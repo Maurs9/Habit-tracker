@@ -23,12 +23,12 @@ source.
 
 ## Screenshots
 
-[![Main screen][screen1th]][screen1]
-[![Edit habit][screen2th]][screen2]
-[![Habit strength][screen3th]][screen3]
-[![Habit history and streaks][screen4th]][screen4]
-[![Widgets][screen5th]][screen5]
-[![Night mode][screen6th]][screen6]
+[![Main screen](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.png)
+[![Edit habit](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.png)
+[![Habit strength](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/3.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/3.png)
+[![Habit history and streaks](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/4.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/4.png)
+[![Widgets](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.png)
+[![Night mode](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.png)
 
 ## Features
 
