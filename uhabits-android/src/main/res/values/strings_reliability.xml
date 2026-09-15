@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_habit_unavailable">This habit is no longer available.</string>
+    <string name="reminder_unavailable">This reminder is no longer available.</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="habit_tags">Tags</string>
+    <string name="habit_tags_hint">One tag per line</string>
+    <string name="filter_tags">Filter by tags</string>
+    <string name="filter_tags_count">Filter by tags (%1$d)</string>
+    <string name="no_habits_match_tags">No habits match this filter. Adjust or clear your tags in the filter menu.</string>
+    <string name="filter_tags_all">Match all selected tags</string>
+    <string name="clear_tag_filter">Clear tags</string>
+    <string name="no_tags_yet">Add tags when creating or editing a habit, or select a habit and choose Tags.</string>
+    <string name="save_filter">Save current filter</string>
+    <string name="filter_name">Filter name</string>
+    <string name="filter_name_exists">A filter with this name already exists.</string>
+    <string name="saved_filters">Saved filters</string>
+    <string name="no_saved_filters">Choose tags, visibility and sorting, then select Save current filter.</string>
+    <string name="delete_saved_filter">Delete saved filter</string>
+    <string name="saved_filters_invalid">Saved filters could not be read. You can reset them without changing your habits.</string>
+    <string name="reset_saved_filters">Reset filters</string>
+    <string name="bulk_skip">Skip a date range</string>
+    <string name="apply_bulk_skip">Apply skips</string>
+    <string name="bulk_skip_preview">Mark %1$d unrecorded habit entries as skipped from %2$s to %3$s? Existing entries, automatic checkmarks and notes will be preserved.</string>
+    <string name="bulk_skip_empty">There are no unrecorded entries in this range. Existing entries, automatic checkmarks and notes have been preserved.</string>
+    <string name="bulk_skip_unavailable">The selected habits or dates are no longer available. Select the habits and try again.</string>
+</resources>

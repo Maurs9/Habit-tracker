@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="habit_number_invalid">Enter a valid number using your local decimal separator.</string>
+    <string name="habit_number_nonnegative">Enter zero or a positive number.</string>
+    <string name="habit_number_too_large">Enter a number no greater than %1$s.</string>
+    <string name="habit_entry_description">%1$s, %2$s, %3$s</string>
+    <string name="habit_entry_with_notes">%1$s. Notes: %2$s</string>
+    <string name="habit_entry_value">%1$s %2$s</string>
+    <string name="habit_entry_value_state">%1$s, %2$s</string>
+    <string name="habit_entry_completed">Completed</string>
+    <string name="habit_entry_automatic">Completed automatically</string>
+    <string name="habit_entry_not_completed">Not completed</string>
+    <string name="habit_entry_skipped">Skipped</string>
+    <string name="habit_entry_unknown">No entry</string>
+    <string name="habit_entry_target_met">Target met</string>
+    <string name="habit_entry_target_not_met">Target not met</string>
+    <string name="habit_action_toggle">Change entry state</string>
+    <string name="habit_action_edit">Edit value and notes</string>
+    <string name="habit_action_select">Change habit selection</string>
+    <string name="habit_color_description">Habit color: %1$s</string>
+    <string-array name="habit_color_names">
+        <item>Red</item>
+        <item>Deep orange</item>
+        <item>Orange</item>
+        <item>Amber</item>
+        <item>Yellow</item>
+        <item>Lime</item>
+        <item>Light green</item>
+        <item>Green</item>
+        <item>Teal</item>
+        <item>Cyan</item>
+        <item>Light blue</item>
+        <item>Blue</item>
+        <item>Indigo</item>
+        <item>Deep purple</item>
+        <item>Purple</item>
+        <item>Pink</item>
+        <item>Brown</item>
+        <item>Dark gray</item>
+        <item>Gray</item>
+        <item>Light gray</item>
+        <item>Crimson</item>
+        <item>Rose</item>
+        <item>Coral</item>
+        <item>Rust</item>
+        <item>Copper</item>
+        <item>Ochre</item>
+        <item>Olive</item>
+        <item>Moss</item>
+        <item>Forest</item>
+        <item>Emerald</item>
+        <item>Lagoon</item>
+        <item>Ocean</item>
+        <item>Denim</item>
+        <item>Royal blue</item>
+        <item>Iris</item>
+        <item>Violet</item>
+        <item>Plum</item>
+        <item>Mulberry</item>
+        <item>Cocoa</item>
+        <item>Slate</item>
+    </string-array>
+</resources>

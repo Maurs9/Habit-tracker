@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="HabitControlsDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="colorSurface">?attr/contrast0</item>
+        <item name="colorOnSurface">?attr/contrast100</item>
+        <item name="colorPrimary">?attr/aboutScreenColor</item>
+        <item name="android:textColor">?attr/contrast100</item>
+    </style>
+    <style name="HabitControlsTimePickerTheme" parent="ThemeOverlay.MaterialComponents.TimePicker">
+        <item name="colorSurface">?attr/contrast0</item>
+        <item name="colorOnSurface">?attr/contrast100</item>
+        <item name="colorPrimary">?attr/aboutScreenColor</item>
+        <item name="android:textColor">?attr/contrast100</item>
+    </style>
+</resources>

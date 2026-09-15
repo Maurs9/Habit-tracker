@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_status_title">Automatic backup</string>
+    <string name="backup_local_title">Review local backups</string>
+    <string name="backup_local_summary">Choose a backup stored on this device and review it before importing.</string>
+    <string name="backup_local_empty">No local backups were found. Return to Settings and tap Automatic backup to create one.</string>
+    <string name="backup_finding">Looking for local backups…</string>
+    <string name="backup_file_modified">File modified: %1$s</string>
+    <string name="backup_status_never">No verified local backup yet. Tap to create one.</string>
+    <string name="backup_status_success">Last verified local backup: %1$s. Tap to create another.</string>
+    <string name="backup_status_failure">The last backup attempt failed. Check available storage, then tap to retry.</string>
+    <string name="backup_database_summary">Save habits, history and habit reminders as a restorable database. App preferences are not included.</string>
+    <string name="backup_import_summary">Choose a Loop backup or a supported import file. Review it before changing your habits.</string>
+    <string name="backup_preview_title">Review import</string>
+    <string name="backup_preview_details">Habits: %1$s\nEntries: %2$s\nLatest entry: %3$s\nDatabase version: %4$s\n\nThe latest entry date is not the backup creation date.</string>
+    <string name="backup_no_entries">No recorded entries</string>
+    <string name="backup_import_other_preview">This is a supported import file. Habit and entry counts are only available for Loop database backups.</string>
+    <string name="backup_import_warning">Import adds habits and updates matching habits. Existing matching entries and habit details may be overwritten. Other habits are kept. App preferences are not restored.\n\nExport a backup first if you want to keep your current data.</string>
+    <string name="backup_confirm_import">Import and update</string>
+    <string name="backup_reading">Reading and checking file…</string>
+    <string name="backup_importing">Importing habits…</string>
+    <string name="backup_creating">Creating and checking backup…</string>
+    <string name="backup_exporting_csv">Preparing spreadsheet files…</string>
+    <string name="backup_saving">Saving document…</string>
+    <string name="backup_action_failed">Could not finish</string>
+    <string name="backup_import_read_failed">Could not read the selected file. Check file access and available storage, then choose the file again. Your habits have not changed.</string>
+    <string name="backup_invalid_file">This file could not be read or is not a supported, valid backup. Your habits have not changed. Choose another file or update the app if the backup was made by a newer version.</string>
+    <string name="backup_import_failed">Could not finish importing this file. Check the file and available storage, then try again.</string>
+    <string name="backup_import_warning_title">Habits imported with a warning</string>
+    <string name="backup_import_refresh_failed">Your habits were imported, but some lists, widgets or reminders could not be refreshed. Reopen Loop and check them. You do not need to import this file again.</string>
+    <string name="backup_create_failed">Could not create a verified backup. Previous backups were kept. Check available storage and try again.</string>
+    <string name="backup_export_failed">Could not save the export. Check available storage and access to the selected location, then try again. A partial document may need to be deleted.</string>
+    <string name="backup_export_interrupted">The export was interrupted. Choose Export again to create a new file.</string>
+    <string name="backup_picker_unavailable">No document picker is available. Enable the system Files app and try again.</string>
+    <string name="backup_created">Verified local backup created.</string>
+    <string name="backup_exported">Export saved.</string>
+</resources>

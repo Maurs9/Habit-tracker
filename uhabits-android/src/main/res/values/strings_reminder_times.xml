@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_times_title">Reminder times</string>
+    <string name="reminder_times_add">Add time</string>
+    <string name="reminder_times_remove">Remove time</string>
+    <string name="reminder_times_shared_days">All times use these weekdays: %1$s. Change weekdays in the habit editor. Tap a time to edit or remove it.</string>
+    <string name="reminder_times_snooze_policy">Snooze pauses all reminders for this habit until the chosen time, even on an unselected weekday. Scheduled times resume afterward.</string>
+    <string name="reminder_times_empty">No reminder times. Save to turn reminders off.</string>
+    <string name="reminder_times_invalid">Choose a valid time between 00:00 and 23:59.</string>
+    <string name="reminder_times_duplicate">This time is already in the list. Choose a different time.</string>
+    <string name="reminder_times_no_weekdays">Choose at least one reminder weekday in the habit editor first.</string>
+    <string name="reminder_times_notifications_disabled">Reminder times saved. Enable notifications for Loop in system settings to receive reminders.</string>
+    <string name="reminder_times_exact_alarms_disabled">Reminder times saved. Allow alarms and reminders for Loop in system settings to schedule them.</string>
+    <plurals name="reminder_times_count">
+        <item quantity="one">%d reminder time</item>
+        <item quantity="other">%d reminder times</item>
+    </plurals>
+</resources>
