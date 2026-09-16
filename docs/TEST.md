@@ -83,8 +83,11 @@ truncation at narrow widths and larger system fonts.
 `ColorContrastTest` checks adjusted foregrounds across all 40 colors and three
 themes, including tinted selected cards and rendering-rounding margins.
 `TodayHighlightTest` checks them against rendered Android backgrounds: text
-must reach 4.5:1 and inactive marks 3:1. Today keeps its 6% tint; saved colors
-and the base palette are unchanged. Device execution remains deferred.
+must reach 4.5:1 and inactive marks 3:1. Today's theme-defined tint is 6% in
+light mode, 16% in dark mode, and 20% in pure-black mode. Dark-mode column
+backgrounds are checked for at least 1.4:1 contrast against adjacent cells;
+text contrast is checked separately. Saved colors and the base palette are
+unchanged. Device execution remains deferred.
 
 ### Detail, editor, and widget pickers
 

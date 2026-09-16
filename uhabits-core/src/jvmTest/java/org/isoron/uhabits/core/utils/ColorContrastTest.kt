@@ -18,10 +18,11 @@ class ColorContrastTest {
     fun highlightedPaletteAndGreysMeetContrastIncludingSelectedCards() {
         val themes = listOf(LightTheme(), DarkTheme(), PureBlackTheme())
         val tints = listOf(0x424242, 0xF5F5F5, 0xEEEEEE)
+        val alphas = listOf(15, 40, 51)
         val selectedBackgrounds = listOf(0xF5F5F5, 0x424242, 0x000000)
         for ((index, theme) in themes.withIndex()) {
             for (base in listOf(rgb(theme.cardBackgroundColor), opaque(selectedBackgrounds[index]))) {
-                val background = composite(tints[index], base, 15)
+                val background = composite(tints[index], base, alphas[index])
                 val foregrounds = (0 until PaletteColor.COUNT).map { rgb(theme.color(it)) } +
                     listOf(rgb(theme.mediumContrastTextColor), rgb(theme.inactiveMarkColor))
                 for (foreground in foregrounds) {
@@ -33,6 +34,25 @@ class ColorContrastTest {
                 val inactive = ColorContrast.ensureContrast(rgb(theme.inactiveMarkColor), background, 3.1)
                 assertAtLeast(inactive, background, 3.1)
                 for (delta in -1..1) assertAtLeast(inactive, shifted(background, delta), 3.0)
+            }
+        }
+    }
+
+    @Test
+    fun darkTodayTintRemainsVisibleOnNormalSelectedAndHeaderBackgrounds() {
+        val themes = listOf(DarkTheme(), PureBlackTheme())
+        val tints = listOf(0xF5F5F5, 0xEEEEEE)
+        val alphas = listOf(40, 51)
+        val selectedBackgrounds = listOf(0x424242, 0x000000)
+        for ((index, theme) in themes.withIndex()) {
+            val backgrounds = listOf(
+                rgb(theme.cardBackgroundColor),
+                rgb(theme.headerBackgroundColor),
+                opaque(selectedBackgrounds[index])
+            )
+            for (base in backgrounds) {
+                val highlighted = composite(tints[index], base, alphas[index])
+                assertAtLeast(highlighted, base, 1.4)
             }
         }
     }

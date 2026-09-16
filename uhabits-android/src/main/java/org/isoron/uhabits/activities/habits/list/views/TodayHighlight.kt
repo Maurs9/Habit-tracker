@@ -26,11 +26,9 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.core.utils.ColorContrast
 import org.isoron.uhabits.utils.sres
 
-const val TODAY_TINT_ALPHA = 0.06f
-
 fun View.todayTintPaint() = Paint().apply {
     color = sres.getColor(R.attr.contrast100)
-    alpha = (255 * TODAY_TINT_ALPHA).toInt()
+    alpha = (255 * sres.getFloat(R.attr.todayHighlightAlpha)).toInt()
 }
 
 class TodayHighlight(private val view: View) {

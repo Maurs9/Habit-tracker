@@ -98,7 +98,12 @@ class TodayHighlightTest : BaseViewTest() {
 
     @Test
     fun testButtonsShareTintAndClearItOnRebindInEveryTheme() {
-        for (style in listOf(R.style.AppBaseTheme, R.style.AppBaseThemeDark, R.style.AppBaseThemeDark_PureBlack)) {
+        val themes = listOf(
+            R.style.AppBaseTheme to 0.06f,
+            R.style.AppBaseThemeDark to 0.16f,
+            R.style.AppBaseThemeDark_PureBlack to 0.20f
+        )
+        for ((style, alpha) in themes) {
             setTheme(style)
             val checkmark = CheckmarkButtonView(targetContext, prefs)
             val number = NumberButtonView(targetContext, prefs)
@@ -107,7 +112,7 @@ class TodayHighlightTest : BaseViewTest() {
                 button.setBackgroundColor(background)
                 measureView(button, dpToPixels(48), dpToPixels(48))
                 val paint = button.todayTintPaint()
-                assertEquals((255 * 0.06f).toInt(), paint.alpha)
+                assertEquals((255 * alpha).toInt(), paint.alpha)
                 assertEquals(button.sres.getColor(R.attr.contrast100) and 0xFFFFFF, paint.color and 0xFFFFFF)
                 assertFalse(checkmark.isToday)
                 assertFalse(number.isToday)
@@ -121,6 +126,9 @@ class TodayHighlightTest : BaseViewTest() {
                     val expected = ColorUtils.compositeColors(paint.color, background)
                     assertCompositeColor(expected, it.getPixel(1, 1))
                     assertCompositeColor(expected, it.getPixel(it.width - 2, it.height - 2))
+                    if (style != R.style.AppBaseTheme) {
+                        assertTrue(ColorUtils.calculateContrast(it.getPixel(1, 1), background) >= 1.4)
+                    }
                     it.recycle()
                 }
                 checkmark.isToday = false

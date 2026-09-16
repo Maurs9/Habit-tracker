@@ -17,7 +17,9 @@ and returns to the previous screen; **Save** applies the habit.
 
 Today's date and entries share a subtle highlighted column. It follows the
 reversed date order and right-to-left layout, and disappears when scrolling to
-older days. Foreground colors are adjusted only in highlighted cells to keep
+older days. The tint uses 6% opacity in light mode, 16% in dark mode, and 20% in
+pure-black mode so the column stays visible against darker backgrounds.
+Foreground colors are adjusted only in highlighted cells to keep
 text and inactive marks readable; the saved color and other cells are unchanged.
 
 The toolbar shows **X of N done** for the current filtered list, or **N to go**
