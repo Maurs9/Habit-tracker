@@ -104,8 +104,6 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         assertFalse(header.itemView.performLongClick())
         val cardHolder = adapter.onCreateViewHolder(root.listView, 0) as HabitCardViewHolder
         adapter.onBindViewHolder(cardHolder, 1)
-        val cardView = cardHolder.itemView as HabitCardView
-        assertTrue(cardView.isDragHandleVisible)
         val selectionMenu: ListHabitsSelectionMenu = mock()
         val controller = HabitCardListController(adapter, mock(), Lazy { selectionMenu })
         controller.onItemClick(0)

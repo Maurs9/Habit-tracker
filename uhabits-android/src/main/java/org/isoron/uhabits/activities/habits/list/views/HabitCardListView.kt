@@ -136,17 +136,6 @@ class HabitCardListView(
         cardView.unit = habit.unit
         cardView.threshold = habit.targetValue
         cardView.notes = notes
-        cardView.isDragHandleVisible = adapter.isSortable
-
-        cardView.dragHandle.setOnTouchListener { _, ev ->
-            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
-                touchHelper.startDrag(holder)
-                true
-            } else {
-                false
-            }
-        }
-
         cardView.setOnClickListener {
             val position = holder.adapterPosition
             if (position != NO_POSITION) controller.get().onItemClick(position)
@@ -215,7 +204,7 @@ class HabitCardListView(
     ) : GestureDetector.SimpleOnGestureListener() {
 
         override fun onLongPress(e: MotionEvent) {
-            if (adapter.isSortable) {
+            if (adapter.isSortable && adapter.isSelectionEmpty) {
                 touchHelper.startDrag(holder)
             } else {
                 holder.itemView.performLongClick()
@@ -232,12 +221,13 @@ class HabitCardListView(
         private var draggedHabit: Habit? = null
         private var lastTargetHabit: Habit? = null
         private var initialPosition: Int = NO_POSITION
+        private var hasMoved: Boolean = false
 
         override fun getMovementFlags(
             recyclerView: RecyclerView,
             viewHolder: ViewHolder
         ): Int {
-            if (!adapter.isSortable) return 0
+            if (!adapter.isSortable || !adapter.isSelectionEmpty) return 0
             if (adapter.getItem(viewHolder.adapterPosition) == null) return 0
             return makeMovementFlags(UP or DOWN, 0)
         }
@@ -264,6 +254,7 @@ class HabitCardListView(
             if (fromPos == NO_POSITION || toPos == NO_POSITION) return false
             if (!canDropOver(recyclerView, from, to)) return false
 
+            hasMoved = true
             val target = adapter.getItem(toPos)
             if (target != null) {
                 lastTargetHabit = target
@@ -279,6 +270,7 @@ class HabitCardListView(
                 initialPosition = pos
                 draggedHabit = if (pos != NO_POSITION) adapter.getItem(pos) else null
                 lastTargetHabit = null
+                hasMoved = false
                 viewHolder.itemView.animate()
                     .scaleX(1.02f)
                     .scaleY(1.02f)
@@ -305,13 +297,17 @@ class HabitCardListView(
             val to = lastTargetHabit
             val currentPos = viewHolder.adapterPosition
             val initialPos = initialPosition
+            val moved = hasMoved
 
             draggedHabit = null
             lastTargetHabit = null
             initialPosition = NO_POSITION
+            hasMoved = false
 
-            if (from != null && to != null && currentPos != NO_POSITION && currentPos != initialPos) {
+            if (moved && from != null && to != null && currentPos != NO_POSITION && currentPos != initialPos) {
                 controller.get().onReorderFinished(from, to)
+            } else if (!moved) {
+                viewHolder.itemView.performLongClick()
             }
         }
 
