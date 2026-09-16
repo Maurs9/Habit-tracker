@@ -1,27 +1,43 @@
-<h1 align="center">Loop Habit Tracker</h1>
+<h1 align="center">Loop Habit Tracker (Enhanced)</h1>
+
 <p align="center">
-  <a href="https://github.com/iSoron/uhabits/actions?query=workflow%3A%22Build+%26+Test%22">
-    <img alt="Build & Test" src="https://github.com/iSoron/uhabits/workflows/Build%20&%20Test/badge.svg" />
+  <a href="https://github.com/Maurs9/Habit-tracker/releases/latest">
+    <img alt="Latest Release" src="https://img.shields.io/github/v/release/Maurs9/Habit-tracker?label=Release&color=0099cc" />
   </a>
-  <a href="https://github.com/iSoron/uhabits/releases/latest">
-    <img alt="release" src="https://img.shields.io/github/v/release/iSoron/uhabits" />
-  </a>
-  <a href="https://github.com/iSoron/uhabits/discussions">
-    <img alt="GitHub" src="https://img.shields.io/badge/GitHub-Discussions-%23fc4ebc" />
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%209.0%2B-brightgreen" />
+  <a href="LICENSE">
+    <img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" />
   </a>
 </p>
 
-Loop is a mobile app that helps you create and maintain good habits,
-allowing you to achieve your long-term goals. Detailed graphs and statistics
-show you how your habits improved over time. It is completely ad-free and open
-source.
-
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=org.isoron.uhabits&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-AC-global-none-all-co-pr-py-PartBadges-Oct1515-1"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="80px"/></a>
-  <a href="https://f-droid.org/app/org.isoron.uhabits"><img alt="Get it on F-Droid" src="https://f-droid.org/badge/get-it-on.png" height="80px"/></a>
+  An enhanced, open-source habit tracking app for Android designed to help you create and maintain positive long-term habits.
+  <br>
+  <strong>Completely ad-free, tracker-free, and 100% offline.</strong>
 </p>
 
-## Screenshots
+<p align="center">
+  <a href="https://github.com/Maurs9/Habit-tracker/releases/latest">
+    <img src="https://img.shields.io/badge/📥%20Download-Latest%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+  </a>
+</p>
+
+---
+
+## 🌟 What's New in this Version
+
+* **📁 Habit Sections**: Organize your daily routines by grouping habits into custom sections (e.g., Morning, Work, Fitness, Evening). Customize section order, collapse or expand sections on the main list, and reassign habits with ease.
+* **🎨 3-Ring Donut Color Wheel Picker**: Replaced the legacy flat color grid with an intuitive 3-ring color wheel based on color theory:
+  * **12 Radial Hue Sectors** (spaced 30° apart across the color spectrum).
+  * **3 Concentric Rings**: Outer (Vibrant / Primary tones), Middle (Soft / Pastel tones), and Inner (Deep / Rich tones).
+  * **Center Hub**: 4 distinct neutral swatches (Light Gray, Gray, Slate, Charcoal).
+  * High-contrast palette calibrated for both Light and Dark themes.
+* **🏷️ Interactive Tag Picker**: Easily assign and manage tags with a multi-selection checklist dialog. Filter your habits and save custom views.
+* **⏰ Multiple Daily Reminders**: Schedule multiple notification times for any habit across selected days of the week, with integrated snooze support directly from the notification shade.
+
+---
+
+## 📱 Screenshots
 
 [![Main screen](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.png)
 [![Edit habit](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.png)
@@ -30,103 +46,71 @@ source.
 [![Widgets](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.png)
 [![Night mode](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.png)
 
-## Features
+---
 
-* **Beautiful, minimalistic and lightweight interface.** Loop has an elegant and minimalistic interface that is very easy to use, even for first-time users. Highly optimized for speed, the app works well even on older phones.
+## ✨ Key Features
 
-* **Habit score.** Loop has an advanced formula for calculating the strength of your habits. Every repetition makes your habit stronger and every missed day makes it weaker. A few missed days after a long streak, however, will not completely destroy your progress, unlike many other don't-break-the-chain apps.
+* **Minimalist & Fast**: Clean, modern interface optimized for speed and battery life without bloat.
+* **Advanced Habit Scoring**: Scientifically-derived scoring formula calculates habit strength over time. Missing a single day won't destroy weeks of progress.
+* **Flexible Schedules**: Daily habits, weekly quotas (e.g., 3 times per week), or repeat intervals (e.g., every 2 days).
+* **Measurable Habits**: Track numerical targets (e.g., cups of water, pages read, workout minutes) in addition to yes/no habits.
+* **Interactive Home Screen Widgets**: Check off habits or monitor scores directly from your Android home screen.
+* **Total Privacy & Offline-First**: No accounts, no cloud dependencies, no analytics. Your data remains strictly on your device.
+* **Export & Import Data**: Export your complete history anytime to CSV or raw SQLite database backups.
 
-* **Flexible schedules.** In addition to daily habits, Loop supports habits with more complex schedules, such as 3 times per week or every other day.
+---
 
-* **Reminders.** Schedule multiple daily reminder times for each habit, all sharing its chosen weekdays. Select a habit and choose **Reminder times** to add, edit, or remove times. Easily check or snooze your habit directly from the notification. Snooze pauses all times for that habit until the chosen time, then its regular schedule resumes.
+## 📥 Installation
 
-* **Widgets.** Track habits directly from your home screen. Choose one or more habits, or use section shortcuts to check their eligible habits, then tap Save. Multiple habits use the existing swipeable stack widget.
+Because this enhanced edition contains custom features (Sections, 3-Ring Color Wheel, Tag Picker) not present in upstream app stores, install the APK directly from GitHub:
 
-* **Take control of your data.** If you want to further analyze your data, or move it to another service, Loop allows you to export it to spreadsheets (CSV) or to a database file (SQLite). For power users, checkmarks can be added through other apps, such as Tasker.
+1. Go to the [**Releases Page**](https://github.com/Maurs9/Habit-tracker/releases/latest).
+2. Download the latest `uhabits-v...apk` file.
+3. On your Android device, tap the downloaded APK to install.
+   *(If prompted, allow your browser or file manager permission to "Install unknown apps").*
 
-* **No limitations.** Track as many habits as you wish. Loop imposes no artificial limits on how many habits you can have. All features are available to all users. There are no in-app purchases.
+> [!NOTE]
+> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
 
-* **Tags and saved filters.** Choose tags from a checklist and save combinations of tags, visibility, and sorting. Habit details show tags and sections, with shortcuts for tags, reminder times, and date-range skips that preserve existing entries and notes. See [Organizing habits](docs/HABIT_ORGANIZATION.md).
+---
 
-* **Quick habit creation.** Start directly in the editor, choose Yes or No or Measurable, and expand More options for Question and Notes. Drafts survive rotation.
+## 🛠️ Building from Source
 
-* **Sections.** Assign one section per habit, optionally group the list in your preferred section order with Other last, and manage sections in Settings. Saved filters remember grouping; database backups and CSV exports include section assignments.
+### Prerequisites
+* **Java Development Kit (JDK)**: 17 or higher
+* **Android SDK**: API level 36 (Android 16 / Build-tools 36.x)
+* **Minimum Supported Device**: Android 9.0 (API level 28)
 
-* **Completely ad-free and open source.** There are no advertisements, annoying notifications or intrusive permissions in this app, and there will never be. The app is completely open-source (GPLv3).
+### Build Steps
 
-* **Works offline and respects your privacy.** Loop doesn't require an Internet connection or online account registration. Your confidential data is never sent to anyone. Neither the developers nor any third-parties have access to it.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Maurs9/Habit-tracker.git
+   cd Habit-tracker
+   ```
 
-## Installing
+2. Build the debug APK:
+   ```bash
+   # On Windows:
+   .\gradlew.bat :uhabits-android:assembleDebug
 
-The easiest way to install Loop is through the [Google Play Store][playstore] or [F-Droid][fdroid].
-You may also download and install the APK from the [releases page][releases];
-note, however, that the app will not be updated automatically.  To build this
-app from the source code, see [build instructions][build].
+   # On Linux / macOS:
+   ./gradlew :uhabits-android:assembleDebug
+   ```
 
-Development requires JDK 17 and Android SDK 36; the app supports Android 9
-(API 28) and later. See the [testing guide](docs/TEST.md) for JVM tests,
-emulator setup, and the opt-in full-history recomputation profiler.
+3. The generated APK will be available at:
+   ```
+   uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
+   ```
 
-## Contributing
+4. Run unit tests:
+   ```bash
+   .\gradlew.bat :uhabits-core:test
+   ```
 
-Loop is an open source project developed entirely by volunteers. If you would
-like to contribute to the project, you are very welcome. There are many ways to
-contribute, even if you are not a software developer.
+---
 
-* **Report bugs, suggest features.** The easiest way to contribute is to simply
-  use the app and let us know if you find any problems or have any suggestions
-  to improve it. To report a problem, please [create a new bug report](https://github.com/iSoron/uhabits/issues/new/choose).
-  To request a new feature or vote on existing feature requests, please visit
-  our [GitHub Discussions page](https://github.com/iSoron/uhabits/discussions/categories/feature-requests).
-  If you would like to receive the newest versions of the app
-  earlier than everyone else, [join our open beta on Google Play][beta].
+## 📄 License & Credits
 
-* **Spread the word.** If you like the app, share it with your family, friends
-  and colleagues. You can also rate and review the app on Google Play Store, to help
-  other users find it more easily.
-
-* **Translate the app into your own language.** If you are not a native English
-  speaker, and would like to see the app translated into your own language,
-  please join our [open translation project][poedit]. If the translation
-  is already completed, you are also very welcome to join and proofread it.
-
-* **Write some code.** If you are an Android developer, you are very welcome to
-  contribute with code. Please see the [guidelines](https://github.com/iSoron/uhabits/blob/dev/docs/GUIDELINES.md).
-
-## License
-
-<img align="right" alt="GPL v3" src="https://www.gnu.org/graphics/gplv3-88x31.png">
-
-  Copyright (C) 2016-2021 Álinson Santos Xavier <isoron@gmail.com>
-
-  Loop Habit Tracker is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by the
-  Free Software Foundation, either version 3 of the License, or (at your
-  option) any later version.
-
-  Loop Habit Tracker is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along
-  with this program. If not, see <https://www.gnu.org/licenses/>.
-
-[screen1]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.png
-[screen2]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.png
-[screen3]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/3.png
-[screen4]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/4.png
-[screen5]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.png
-[screen6]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.png
-[screen1th]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.thumb.png
-[screen2th]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.thumb.png
-[screen3th]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/3.thumb.png
-[screen4th]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/4.thumb.png
-[screen5th]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.thumb.png
-[screen6th]: https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.thumb.png
-[poedit]: https://translate.loophabits.org
-[playstore]: https://play.google.com/store/apps/details?id=org.isoron.uhabits
-[releases]: https://github.com/iSoron/uhabits/releases
-[fdroid]: https://f-droid.org/app/org.isoron.uhabits
-[build]: https://github.com/iSoron/uhabits/blob/dev/docs/BUILD.md
-[beta]: https://play.google.com/apps/testing/org.isoron.uhabits
+* Based on [Loop Habit Tracker](https://github.com/iSoron/uhabits) by Álinson Santos Xavier.
+* Licensed under the [GNU General Public License v3.0 (GPLv3)](LICENSE).
