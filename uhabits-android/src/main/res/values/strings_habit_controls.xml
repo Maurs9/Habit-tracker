@@ -19,45 +19,45 @@
     <string name="habit_action_select">Change habit selection</string>
     <string name="habit_color_description">Habit color: %1$s</string>
     <string-array name="habit_color_names">
-        <item>Red</item>
-        <item>Deep orange</item>
-        <item>Orange</item>
-        <item>Amber</item>
-        <item>Yellow</item>
-        <item>Lime</item>
-        <item>Light green</item>
-        <item>Green</item>
-        <item>Teal</item>
-        <item>Cyan</item>
-        <item>Light blue</item>
-        <item>Blue</item>
-        <item>Indigo</item>
-        <item>Deep purple</item>
-        <item>Purple</item>
-        <item>Pink</item>
-        <item>Brown</item>
-        <item>Dark gray</item>
+        <item>Vibrant Red</item>
+        <item>Soft Red</item>
+        <item>Deep Red</item>
+        <item>Vibrant Coral</item>
+        <item>Soft Coral</item>
+        <item>Deep Coral</item>
+        <item>Vibrant Orange</item>
+        <item>Soft Orange</item>
+        <item>Deep Orange</item>
+        <item>Vibrant Amber</item>
+        <item>Soft Amber</item>
+        <item>Deep Amber</item>
+        <item>Vibrant Yellow</item>
+        <item>Soft Yellow</item>
+        <item>Deep Yellow</item>
+        <item>Vibrant Lime</item>
+        <item>Soft Lime</item>
+        <item>Deep Lime</item>
+        <item>Vibrant Green</item>
+        <item>Soft Green</item>
+        <item>Deep Green</item>
+        <item>Vibrant Teal</item>
+        <item>Soft Teal</item>
+        <item>Deep Teal</item>
+        <item>Vibrant Cyan</item>
+        <item>Soft Cyan</item>
+        <item>Deep Cyan</item>
+        <item>Vibrant Blue</item>
+        <item>Soft Blue</item>
+        <item>Deep Blue</item>
+        <item>Vibrant Purple</item>
+        <item>Soft Purple</item>
+        <item>Deep Purple</item>
+        <item>Vibrant Pink</item>
+        <item>Soft Pink</item>
+        <item>Deep Pink</item>
+        <item>Light Gray</item>
         <item>Gray</item>
-        <item>Light gray</item>
-        <item>Crimson</item>
-        <item>Rose</item>
-        <item>Coral</item>
-        <item>Rust</item>
-        <item>Copper</item>
-        <item>Ochre</item>
-        <item>Olive</item>
-        <item>Moss</item>
-        <item>Forest</item>
-        <item>Emerald</item>
-        <item>Lagoon</item>
-        <item>Ocean</item>
-        <item>Denim</item>
-        <item>Royal blue</item>
-        <item>Iris</item>
-        <item>Violet</item>
-        <item>Plum</item>
-        <item>Mulberry</item>
-        <item>Cocoa</item>
-        <item>Slate</item>
+        <item>Dark Slate</item>
+        <item>Charcoal</item>
     </string-array>
 </resources>

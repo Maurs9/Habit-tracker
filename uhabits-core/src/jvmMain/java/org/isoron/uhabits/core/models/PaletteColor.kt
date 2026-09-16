@@ -26,46 +26,46 @@ data class PaletteColor(val paletteIndex: Int) {
 
     fun toCsvColor(): String {
         return arrayOf(
-            "#D32F2F", //  0 red
-            "#E64A19", //  1 deep orange
-            "#F57C00", //  2 orange
-            "#FF8F00", //  3 amber
-            "#F9A825", //  4 yellow
-            "#AFB42B", //  5 lime
-            "#7CB342", //  6 light green
-            "#388E3C", //  7 green
-            "#00897B", //  8 teal
-            "#00ACC1", //  9 cyan
-            "#039BE5", // 10 light blue
-            "#1976D2", // 11 blue
-            "#303F9F", // 12 indigo
-            "#5E35B1", // 13 deep purple
-            "#8E24AA", // 14 purple
-            "#D81B60", // 15 pink
-            "#5D4037", // 16 brown
-            "#303030", // 17 dark grey
-            "#757575", // 18 grey
-            "#aaaaaa", // 19 light grey
-            "#B71C1C", // 20 crimson
-            "#AD1457", // 21 rose
-            "#C43D3D", // 22 coral
-            "#BF360C", // 23 rust
-            "#A65D16", // 24 copper
-            "#886900", // 25 ochre
-            "#6C7214", // 26 olive
-            "#557A30", // 27 moss
-            "#1B5E20", // 28 forest
-            "#006B44", // 29 emerald
-            "#00695C", // 30 lagoon
-            "#006978", // 31 ocean
-            "#156082", // 32 denim
-            "#0D47A1", // 33 royal blue
-            "#3949AB", // 34 iris
-            "#6A1B9A", // 35 violet
-            "#7B1F72", // 36 plum
-            "#9E3E68", // 37 mulberry
-            "#795548", // 38 cocoa
-            "#455A64" // 39 slate
+            "#F44336", //  0 Red (Vibrant)
+            "#EF9A9A", //  1 Red (Soft)
+            "#B71C1C", //  2 Red (Deep)
+            "#FF5722", //  3 Coral (Vibrant)
+            "#FFAB91", //  4 Coral (Soft)
+            "#BF360C", //  5 Coral (Deep)
+            "#FF9800", //  6 Orange (Vibrant)
+            "#FFCC80", //  7 Orange (Soft)
+            "#E65100", //  8 Orange (Deep)
+            "#FFC107", //  9 Amber (Vibrant)
+            "#FFE082", // 10 Amber (Soft)
+            "#FF8F00", // 11 Amber (Deep)
+            "#FDD835", // 12 Yellow (Vibrant)
+            "#FFF59D", // 13 Yellow (Soft)
+            "#F57F17", // 14 Yellow (Deep)
+            "#C0CA33", // 15 Lime (Vibrant)
+            "#E6EE9C", // 16 Lime (Soft)
+            "#827717", // 17 Lime (Deep)
+            "#4CAF50", // 18 Green (Vibrant)
+            "#A5D6A7", // 19 Green (Soft)
+            "#1B5E20", // 20 Green (Deep)
+            "#009688", // 21 Teal (Vibrant)
+            "#80CBC4", // 22 Teal (Soft)
+            "#004D40", // 23 Teal (Deep)
+            "#00BCD4", // 24 Cyan (Vibrant)
+            "#80DEEA", // 25 Cyan (Soft)
+            "#006064", // 26 Cyan (Deep)
+            "#2196F3", // 27 Blue (Vibrant)
+            "#90CAF9", // 28 Blue (Soft)
+            "#0D47A1", // 29 Blue (Deep)
+            "#9C27B0", // 30 Purple (Vibrant)
+            "#CE93D8", // 31 Purple (Soft)
+            "#4A148C", // 32 Purple (Deep)
+            "#E91E63", // 33 Pink (Vibrant)
+            "#F48FB1", // 34 Pink (Soft)
+            "#880E4F", // 35 Pink (Deep)
+            "#BDBDBD", // 36 Light Gray
+            "#757575", // 37 Gray
+            "#455A64", // 38 Dark Slate
+            "#212121"  // 39 Charcoal
         )[paletteIndex]
     }
 

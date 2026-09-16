@@ -19,23 +19,23 @@
 package org.isoron.uhabits.activities.common.dialogs
 
 import android.app.Dialog
-import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.View
-import android.widget.GridLayout
-import android.widget.ScrollView
+import android.view.Gravity
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.core.graphics.ColorUtils
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.ColorWheelView
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.ui.callbacks.OnColorPickedCallback
 import org.isoron.uhabits.utils.dp
 
 /**
- * Dialog that allows the user to choose a color.
+ * Dialog that allows the user to choose a color using a 3-ring Donut Color Wheel.
  */
 class ColorPickerDialog : AppCompatDialogFragment() {
     private var onPicked: OnColorPickedCallback? = null
@@ -48,54 +48,73 @@ class ColorPickerDialog : AppCompatDialogFragment() {
         val builder = MaterialAlertDialogBuilder(requireContext(), R.style.HabitControlsDialogTheme)
         val context = builder.context
         val colors = requireArguments().getIntArray("colors")!!
-        val selected = requireArguments().getInt("selected")
+        var currentSelection = requireArguments().getInt("selected").coerceIn(0, colors.size - 1)
         val names = resources.getStringArray(R.array.habit_color_names)
-        val grid = GridLayout(context).apply {
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            val pad = dp(16f).toInt()
+            setPadding(pad, dp(8f).toInt(), pad, dp(8f).toInt())
+        }
+
+        // Live Preview Badge
+        val previewBadge = TextView(context).apply {
+            gravity = Gravity.CENTER
+            val hp = dp(16f).toInt()
+            val vp = dp(8f).toInt()
+            setPadding(hp, vp, hp, vp)
+            textSize = 15f
+            isAllCaps = false
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(12f).toInt()
+            }
+        }
+
+        fun updateBadge(index: Int) {
+            val color = colors[index]
+            val isDark = ColorUtils.calculateLuminance(color) < 0.4
+            previewBadge.text = names.getOrElse(index) { "Color" }
+            previewBadge.setTextColor(if (isDark) Color.WHITE else Color.BLACK)
+            val corner = previewBadge.dp(20f)
+            val strokeW = previewBadge.dp(1.5f).toInt()
+            previewBadge.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = corner
+                setColor(color)
+                setStroke(strokeW, if (isDark) Color.argb(80, 255, 255, 255) else Color.argb(80, 0, 0, 0))
+            }
+        }
+
+        updateBadge(currentSelection)
+
+        val colorWheel = ColorWheelView(context).apply {
             id = R.id.color_picker
-            columnCount = 4
-            val padding = dp(12f).toInt()
-            setPadding(padding, 0, padding, padding)
-        }
-        colors.forEachIndexed { index, color ->
-            val foreground = if (ColorUtils.calculateLuminance(color) > 0.179) Color.BLACK else Color.WHITE
-            val swatch = MaterialButton(context).apply {
-                layoutParams = GridLayout.LayoutParams(
-                    GridLayout.spec(index / 4),
-                    GridLayout.spec(index % 4, 1f)
-                ).apply {
-                    width = 0
-                    height = dp(56f).toInt()
-                    val margin = dp(4f).toInt()
-                    setMargins(margin, 0, margin, 0)
-                }
-                minWidth = 0
-                minimumWidth = 0
-                setPadding(0, 0, 0, 0)
-                cornerRadius = dp(24f).toInt()
-                backgroundTintList = ColorStateList.valueOf(color)
-                setTextColor(foreground)
-                isCheckable = true
-                isChecked = index == selected
-                text = if (isChecked) "✓" else ""
-                contentDescription = names[index]
-                setOnClickListener {
-                    onPicked?.onColorPicked(PaletteColor(index))
-                    dismiss()
-                }
+            this.colors = colors
+            this.selectedIndex = currentSelection
+            this.onColorSelected = { index ->
+                currentSelection = index
+                updateBadge(index)
             }
-            grid.addView(swatch)
-        }
-        val scroll = object : ScrollView(context) {
-            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-                val maximumHeight = (resources.displayMetrics.heightPixels * 0.6).toInt()
-                super.onMeasure(
-                    widthMeasureSpec,
-                    View.MeasureSpec.makeMeasureSpec(maximumHeight, View.MeasureSpec.AT_MOST)
-                )
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = Gravity.CENTER
             }
-        }.apply { addView(grid) }
+        }
+
+        container.addView(previewBadge)
+        container.addView(colorWheel)
+
         return builder.setTitle(R.string.color_picker_default_title)
-            .setView(scroll)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                onPicked?.onColorPicked(PaletteColor(currentSelection))
+            }
             .setNegativeButton(android.R.string.cancel, null)
             .create()
     }
