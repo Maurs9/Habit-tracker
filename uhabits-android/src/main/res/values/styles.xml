@@ -37,6 +37,7 @@
         <item name="headerBackgroundColor">@color/grey_200</item>
         <item name="highlightedBackgroundColor">@color/grey_100</item>
         <item name="todayHighlightAlpha">0.06</item>
+        <item name="habitRowDividerColor">@android:color/transparent</item>
         <item name="iconAdd">@drawable/ic_action_add_dark</item>
         <item name="iconArchive">@drawable/ic_action_archive_dark</item>
         <item name="iconChangeColor">@drawable/ic_action_color_dark</item>
@@ -83,6 +84,7 @@
         <item name="headerBackgroundColor">@color/grey_900</item>
         <item name="highlightedBackgroundColor">@color/grey_800</item>
         <item name="todayHighlightAlpha">0.16</item>
+        <item name="habitRowDividerColor">@color/grey_700</item>
         <item name="iconAdd">@drawable/ic_action_add_dark</item>
         <item name="iconArchive">@drawable/ic_action_archive_dark</item>
         <item name="iconChangeColor">@drawable/ic_action_color_dark</item>
@@ -125,6 +127,7 @@
         <item name="headerBackgroundColor">@color/black</item>
         <item name="highlightedBackgroundColor">@color/black</item>
         <item name="todayHighlightAlpha">0.20</item>
+        <item name="habitRowDividerColor">@color/grey_800</item>
         <item name="contrast0">@color/black</item>
         <item name="contrast20">@color/grey_900</item>
         <item name="contrast40">@color/grey_650</item>

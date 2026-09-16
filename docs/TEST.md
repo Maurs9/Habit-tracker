@@ -179,12 +179,10 @@ cp uhabits-android/build/outputs/golden-review/test-screenshots/views/habits/lis
 Create the corresponding asset subdirectory for a new baseline. The second full
 run must pass. The palette changes require review across all existing `common/`,
 `habits/`, and `widgets/` view groups; `CanvasTest.png` is not affected.
-These five new baselines still require capture and review, relative to `assets/views/`:
+These three new baselines still require capture and review, relative to `assets/views/`:
 
 - `habits/list/CheckmarkButtonView/render_today.png`
 - `habits/list/NumberButtonView/render_today.png`
-- `habits/list/SectionHeaderView/render.png`
-- `habits/list/SectionHeaderView/render_other.png`
 - `habits/show/SubtitleCard/render_tags.png`
 
 Run the schema-sensitive suites below and the acceptance, color picker, editor,
@@ -231,21 +229,35 @@ establish successful device execution.
 `HabitCardListCacheGroupingTest` checks stable section partitioning across all
 primary/secondary sorts, stable negative header IDs, notification-time item
 counts, command-driven changes, filtering, completion totals, removal,
-same-section reordering, and cancellation of stale refreshes. Preference tests
-cover persisted grouping and six-/seven-field saved-filter compatibility.
+same-section reordering, and cancellation of stale refreshes. It also checks
+that a header is rebound when filtering, removing, restoring, or moving sections
+changes which header is first, even when that header's counts are unchanged.
+Preference tests cover persisted grouping and six-/seven-field saved-filter compatibility.
 `ShowHabitStateTest` checks section-name resolution without changing detail UI.
 
-Device coverage: `SectionHeaderViewTest`, `ListHabitsRootViewTest`,
-`EditHabitSectionTest`, `HabitSectionDialogsTest`, and `SectionsDialogTest`.
-These cover header accessibility/contrast, habit-only subtitle counts, inert
-headers, assignment/validation, bulk moves, manager commands and recreation.
-They are compiled locally, not device-verified. A later emulator review must
-check grouped drag/drop, long names and large fonts, RTL, and Settings navigation.
+`SectionHeaderViewTest` checks bold title contrast, unchanged progress counts,
+first/subsequent header spacing, divider removal on rebind, RTL insets, and
+long headings at large text sizes. `HabitListAppearanceTest` checks the rendered
+1dp row separators in normal and selected states for yes/no and numerical
+habits, including RTL. Dark separators must contrast at least 1.5:1 with the
+list and card backgrounds; this is a decorative visibility check, not a text
+accessibility threshold. Light mode remains unchanged and pure-black card
+fills stay black. The same suite renders grouped lists in all three themes
+together with today's column, using real activity contexts and matching theme
+preferences so habit binding cannot reset the test theme to light.
 
-Deferred new goldens under `views/habits/list/SectionHeaderView/`:
-`render.png` and `render_other.png`. No existing HabitCardView golden changes
-are introduced by grouping. Do not create replacement images without rendering
-them on the configured emulator.
+`SectionHeaderViewTest` and `HabitListAppearanceTest` were run on an API 35 ARM64
+emulator at 768x1280, 320dpi, English (US). Their five screenshot baselines were
+captured and visually reviewed. The standalone header images are under
+`views/habits/list/SectionHeaderView/`; grouped light, dark, and pure-black
+images are under `views/habits/list/HabitListAppearance/`.
+
+Other device coverage includes `ListHabitsRootViewTest`, `EditHabitSectionTest`,
+`HabitSectionDialogsTest`, and `SectionsDialogTest`: habit-only subtitle counts,
+inert headers, assignment/validation, bulk moves, manager commands and recreation.
+Those remain compiled locally, not device-verified. Grouped drag/drop and
+Settings navigation still require separate device verification. Existing
+HabitCardView goldens are unchanged.
 
 ### Backup and import regression tests
 

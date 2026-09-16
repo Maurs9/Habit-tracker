@@ -63,7 +63,8 @@ class HabitCardListCache @Inject constructor(
             val name: String,
             val done: Int,
             val total: Int,
-            val collapsed: Boolean = false
+            val collapsed: Boolean = false,
+            val isFirstSection: Boolean = false
         ) : ListItem() {
             override val itemId: Long get() = -(sectionId ?: 0) - 1
         }
@@ -338,7 +339,15 @@ class HabitCardListCache @Inject constructor(
             fun append(id: Long?, name: String) {
                 val rows = groups[id].orEmpty()
                 if (rows.isEmpty()) return
-                items.add(ListItem.Header(id, name, rows.count { isCompleted(it) }, rows.size))
+                items.add(
+                    ListItem.Header(
+                        id,
+                        name,
+                        rows.count { isCompleted(it) },
+                        rows.size,
+                        isFirstSection = items.isEmpty()
+                    )
+                )
                 items.addAll(rows.map { ListItem.Row(it) })
             }
             sections.forEach { append(it.id, it.name) }

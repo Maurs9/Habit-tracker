@@ -32,6 +32,7 @@ class HabitCardListCacheGroupingTest : BaseUnitTest() {
     private lateinit var cache: HabitCardListCache
     private val today get() = DateUtils.getTodayWithOffset()
     private val notifications = mutableListOf<String>()
+    private val changedHeaders = mutableListOf<ListItem.Header>()
 
     override fun setUp() {
         super.setUp()
@@ -56,6 +57,7 @@ class HabitCardListCacheGroupingTest : BaseUnitTest() {
             }
             override fun onItemChanged(position: Int) {
                 assertEquals(mirror[position], cache.getItemByPosition(position)!!.itemId)
+                (cache.getItemByPosition(position) as? ListItem.Header)?.let { changedHeaders.add(it) }
                 check("change")
             }
             override fun onRefreshFinished() = check("refresh")
@@ -84,6 +86,7 @@ class HabitCardListCacheGroupingTest : BaseUnitTest() {
         val orphan = habit("Orphan", 999)
         cache.refreshAllHabits()
         assertEquals(listOf(morning.id, evening.id, null), headers().map { it.sectionId })
+        assertEquals(listOf(true, false, false), headers().map { it.isFirstSection })
         assertEquals(listOf(m, e, orphan, other), rows())
         assertEquals(listOf(-morning.id - 1, -evening.id - 1, -1L), headers().map { it.itemId })
         assertTrue(headers().all { it.itemId < 0 })
@@ -187,6 +190,36 @@ class HabitCardListCacheGroupingTest : BaseUnitTest() {
         assertEquals("Before work", headers().first().name)
         commandRunner.run(MoveSectionCommand(sectionList, evening.id, 0))
         assertEquals(listOf(evening.id, morning.id), headers().map { it.sectionId })
+        assertEquals(listOf(true, false), headers().map { it.isFirstSection })
+        assertTrue(changedHeaders.any { it.sectionId == evening.id && it.isFirstSection })
+        assertTrue(changedHeaders.any { it.sectionId == morning.id && !it.isFirstSection })
+    }
+
+    @Test
+    fun firstHeaderRebindsWhenFilteringOrRemovingAnEarlierSection() {
+        val morning = sectionList.add("Morning")
+        val evening = sectionList.add("Evening")
+        val a = habit("A", morning.id, Entry.YES_MANUAL)
+        habit("B", evening.id, Entry.NO)
+        cache.refreshAllHabits()
+        val originalEveningHeader = headers().last()
+        changedHeaders.clear()
+
+        cache.setFilter(HabitMatcher(isCompletedAllowed = false))
+        cache.refreshAllHabits()
+        assertEquals(listOf(originalEveningHeader.copy(isFirstSection = true)), changedHeaders)
+        assertEquals(listOf(true), headers().map { it.isFirstSection })
+
+        changedHeaders.clear()
+        cache.setFilter(HabitMatcher())
+        cache.refreshAllHabits()
+        assertEquals(listOf(originalEveningHeader), changedHeaders)
+        assertEquals(listOf(true, false), headers().map { it.isFirstSection })
+
+        changedHeaders.clear()
+        cache.remove(a.id!!)
+        assertEquals(listOf(originalEveningHeader.copy(isFirstSection = true)), changedHeaders)
+        assertEquals(listOf(true), headers().map { it.isFirstSection })
     }
 
     @Test

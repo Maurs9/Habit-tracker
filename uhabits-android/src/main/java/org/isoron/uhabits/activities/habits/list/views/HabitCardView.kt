@@ -20,6 +20,8 @@
 package org.isoron.uhabits.activities.habits.list.views
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.PointF
 import android.graphics.text.LineBreaker.BREAK_STRATEGY_BALANCED
 import android.os.Build
@@ -139,6 +141,10 @@ class HabitCardView(
     private var scoreRing: RingView
 
     private var currentToggleTaskId = 0
+    private val dividerPaint = Paint().apply {
+        color = sres.getColor(R.attr.habitRowDividerColor)
+    }
+    private val dividerHeight = dp(1f)
 
     init {
         scoreRing = RingView(context).apply {
@@ -215,6 +221,19 @@ class HabitCardView(
         val margin = dp(3f).toInt()
         setPadding(margin, 0, margin, margin)
         addView(innerFrame)
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+        // Use the existing gap so the separator cannot cover entries or today's tint.
+        val top = (height - paddingBottom).toFloat()
+        canvas.drawRect(
+            paddingLeft.toFloat(),
+            top,
+            (width - paddingRight).toFloat(),
+            top + dividerHeight,
+            dividerPaint
+        )
     }
 
     override fun onModelChange() {

@@ -24,6 +24,10 @@ pure-black mode so the column stays visible against darker backgrounds.
 Foreground colors are adjusted only in highlighted cells to keep
 text and inactive marks readable; the saved color and other cells are unchanged.
 
+Dark and pure-black themes use thin separators in the existing gaps between
+habit rows. Pure-black card backgrounds stay black, and light mode retains its
+existing card spacing and shadows.
+
 The toolbar shows **X of N done** for the current filtered list, or **N to go**
 when completed/entered habits are hidden. Selected tags follow the count in
 alphabetical order. The filter icon turns blue when tags are selected or
@@ -98,6 +102,11 @@ count for visible habits only. Empty sections are hidden. Unsectioned habits,
 including missing section references, appear last under **Other**. If all visible
 habits are unsectioned, the list stays flat without an Other header. Section
 headers are informational; sections cannot be collapsed.
+
+Section names are bold and higher-contrast than their progress counts.
+Extra space and a thin line above each subsequent section separate the groups;
+the first section has less top spacing and no line. Headers remain close to
+their own habits, without colored banners or sticky behavior.
 
 With manual sorting and grouping enabled, drag habits **within their section
 only**. Headers cannot be selected or dragged. Use the selection menu's
