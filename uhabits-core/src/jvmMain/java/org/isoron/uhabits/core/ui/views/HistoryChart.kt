@@ -244,7 +244,7 @@ class HistoryChart(
         }
 
         val textColor = if (theme.cardBackgroundColor == Color.TRANSPARENT) {
-            theme.highContrastTextColor
+            if (value == Square.ON) Color(0x212121) else theme.highContrastTextColor
         } else {
             val c1 = squareColor.contrast(theme.cardBackgroundColor)
             val c2 = squareColor.contrast(theme.mediumContrastTextColor)

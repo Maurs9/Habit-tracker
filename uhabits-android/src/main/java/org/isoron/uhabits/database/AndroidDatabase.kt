@@ -34,6 +34,9 @@ class AndroidDatabase(
     override fun endTransaction() = db.endTransaction()
     override fun close() = db.close()
 
+    override val inTransaction: Boolean
+        get() = db.inTransaction()
+
     override val version: Int
         get() = db.version
 

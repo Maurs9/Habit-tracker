@@ -23,12 +23,22 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Bundle
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
-import androidx.core.graphics.ColorUtils
+import android.view.accessibility.AccessibilityEvent
+import android.widget.RadioButton
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.customview.widget.ExploreByTouchHelper
+import org.isoron.uhabits.R
+import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.utils.ColorUtils.contrastingTextColor
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -38,8 +48,8 @@ import kotlin.math.sqrt
 /**
  * 3-ring Donut Color Wheel containing:
  * - 12 radial hue sectors (30 degrees each)
- * - 3 concentric tone rings: Outer (Vibrant), Middle (Soft), Inner (Deep)
- * - Center neutral area with 4 swatches (Light Gray, Gray, Dark Slate, Charcoal)
+ * - 3 concentric tone rings: Outer (Vibrant), Middle (Muted), Inner (Deep)
+ * - Center neutral area with 4 swatches (Gray, Dark Gray, Slate, Charcoal)
  * Total: 40 colors.
  */
 class ColorWheelView @JvmOverloads constructor(
@@ -48,16 +58,27 @@ class ColorWheelView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    var colors: IntArray = IntArray(40) { Color.GRAY }
+    var colors: IntArray = IntArray(PaletteColor.COUNT) { Color.GRAY }
         set(value) {
+            require(value.size == PaletteColor.COUNT)
             field = value
             invalidate()
         }
 
+    var colorNames: Array<String> = resources.getStringArray(R.array.habit_color_names)
+        set(value) {
+            require(value.size == PaletteColor.COUNT && value.all { it.isNotBlank() })
+            field = value
+            accessibilityHelper.invalidateRoot()
+        }
+
     var selectedIndex: Int = 0
         set(value) {
-            if (value in 0 until 40 && field != value) {
+            if (value in colors.indices && field != value) {
+                val previous = field
                 field = value
+                accessibilityHelper.invalidateVirtualView(previous)
+                accessibilityHelper.invalidateVirtualView(value)
                 invalidate()
             }
         }
@@ -74,6 +95,62 @@ class ColorWheelView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         isFakeBoldText = true
+    }
+
+    private val accessibilityHelper = object : ExploreByTouchHelper(this) {
+        override fun getVirtualViewAt(x: Float, y: Float): Int = indexAt(x, y)
+
+        override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>) {
+            virtualViewIds.addAll(colors.indices)
+        }
+
+        override fun onPopulateNodeForVirtualView(virtualViewId: Int, node: AccessibilityNodeInfoCompat) {
+            node.contentDescription = colorNames[virtualViewId]
+            node.className = RadioButton::class.java.name
+            node.isCheckable = true
+            node.isChecked = virtualViewId == selectedIndex
+            node.isSelected = virtualViewId == selectedIndex
+            node.isEnabled = isEnabled
+            node.isClickable = true
+            node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+            node.setBoundsInParent(swatchBounds(virtualViewId))
+        }
+
+        override fun onPerformActionForVirtualView(virtualViewId: Int, action: Int, arguments: Bundle?): Boolean {
+            if (!isEnabled || virtualViewId !in colors.indices || action != AccessibilityNodeInfoCompat.ACTION_CLICK) {
+                return false
+            }
+            select(virtualViewId)
+            sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
+            return true
+        }
+
+        override fun onVirtualViewKeyboardFocusChanged(virtualViewId: Int, hasFocus: Boolean) {
+            invalidate()
+        }
+    }
+
+    init {
+        ViewCompat.setAccessibilityDelegate(this, accessibilityHelper)
+    }
+
+    fun select(index: Int) {
+        require(index in colors.indices)
+        if (selectedIndex == index) return
+        selectedIndex = index
+        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        onColorSelected?.invoke(index)
+    }
+
+    override fun dispatchHoverEvent(event: MotionEvent): Boolean =
+        accessibilityHelper.dispatchHoverEvent(event) || super.dispatchHoverEvent(event)
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        accessibilityHelper.dispatchKeyEvent(event) || super.dispatchKeyEvent(event)
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        accessibilityHelper.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -123,7 +200,7 @@ class ColorWheelView @JvmOverloads constructor(
 
             for (ring in 0 until 3) {
                 // Ring 0: Outer (Vibrant) -> palette index = hue * 3 + 0
-                // Ring 1: Middle (Soft)    -> palette index = hue * 3 + 1
+                // Ring 1: Middle (Muted)   -> palette index = hue * 3 + 1
                 // Ring 2: Inner (Deep)     -> palette index = hue * 3 + 2
                 val colorIndex = hue * 3 + ring
                 val (rIn, rOut) = when (ring) {
@@ -141,6 +218,11 @@ class ColorWheelView @JvmOverloads constructor(
                 strokePaint.color = Color.argb(40, 255, 255, 255)
                 strokePaint.strokeWidth = 1f * density
                 canvas.drawPath(path, strokePaint)
+                if (colorIndex == accessibilityHelper.keyboardFocusedVirtualViewId && colorIndex != selectedIndex) {
+                    strokePaint.color = contrastingTextColor(colors[colorIndex])
+                    strokePaint.strokeWidth = 2f * density
+                    canvas.drawPath(path, strokePaint)
+                }
 
                 if (colorIndex == selectedIndex) {
                     selectedPath = path
@@ -157,10 +239,10 @@ class ColorWheelView @JvmOverloads constructor(
         val neutralRadius = innerRadius * 0.35f
         val neutralOffset = innerRadius * 0.48f
         val neutralCenters = arrayOf(
-            Pair(cx - neutralOffset, cy - neutralOffset), // 36: Light Gray (top-left)
-            Pair(cx + neutralOffset, cy - neutralOffset), // 37: Gray (top-right)
-            Pair(cx - neutralOffset, cy + neutralOffset), // 38: Dark Slate (bottom-left)
-            Pair(cx + neutralOffset, cy + neutralOffset)  // 39: Charcoal (bottom-right)
+            Pair(cx - neutralOffset, cy - neutralOffset), // 36: Gray (top-left)
+            Pair(cx + neutralOffset, cy - neutralOffset), // 37: Dark Gray (top-right)
+            Pair(cx - neutralOffset, cy + neutralOffset), // 38: Slate (bottom-left)
+            Pair(cx + neutralOffset, cy + neutralOffset) // 39: Charcoal (bottom-right)
         )
 
         for (i in 0 until 4) {
@@ -174,6 +256,11 @@ class ColorWheelView @JvmOverloads constructor(
             strokePaint.color = Color.argb(60, 0, 0, 0)
             strokePaint.strokeWidth = 1f * density
             canvas.drawCircle(nx, ny, neutralRadius, strokePaint)
+            if (colorIndex == accessibilityHelper.keyboardFocusedVirtualViewId && colorIndex != selectedIndex) {
+                strokePaint.color = contrastingTextColor(colors[colorIndex])
+                strokePaint.strokeWidth = 2f * density
+                canvas.drawCircle(nx, ny, neutralRadius, strokePaint)
+            }
 
             if (colorIndex == selectedIndex) {
                 selectedColor = colors[colorIndex]
@@ -181,8 +268,7 @@ class ColorWheelView @JvmOverloads constructor(
                 selectedCenterY = ny
 
                 // Bold selection border around circle
-                val isDark = ColorUtils.calculateLuminance(selectedColor) < 0.35
-                strokePaint.color = if (isDark) Color.WHITE else Color.BLACK
+                strokePaint.color = contrastingTextColor(selectedColor)
                 strokePaint.strokeWidth = 3f * density
                 canvas.drawCircle(nx, ny, neutralRadius, strokePaint)
             }
@@ -190,15 +276,13 @@ class ColorWheelView @JvmOverloads constructor(
 
         // 3. Highlight Selected Segment on the Wheel
         if (selectedPath != null) {
-            val isDark = ColorUtils.calculateLuminance(selectedColor) < 0.35
-            strokePaint.color = if (isDark) Color.WHITE else Color.BLACK
+            strokePaint.color = contrastingTextColor(selectedColor)
             strokePaint.strokeWidth = 3.5f * density
             canvas.drawPath(selectedPath, strokePaint)
         }
 
         // 4. Draw Checkmark in Selected Swatch
-        val isDark = ColorUtils.calculateLuminance(selectedColor) < 0.35
-        textPaint.color = if (isDark) Color.WHITE else Color.BLACK
+        textPaint.color = contrastingTextColor(selectedColor)
         textPaint.textSize = 14 * density
         val textY = selectedCenterY - (textPaint.descent() + textPaint.ascent()) / 2f
         canvas.drawText("✓", selectedCenterX, textY, textPaint)
@@ -227,51 +311,64 @@ class ColorWheelView @JvmOverloads constructor(
         return path
     }
 
+    private fun swatchBounds(index: Int): Rect {
+        val cx = width / 2f
+        val cy = height / 2f
+        val outerRadius = (min(width, height) / 2f - 12 * density).coerceAtLeast(1f)
+        val innerRadius = outerRadius * 0.38f
+        val bounds = RectF()
+        if (index < 36) {
+            val ringWidth = (outerRadius - innerRadius) / 3f
+            val rOut = outerRadius - (index % 3) * ringWidth
+            buildArcPath(cx, cy, rOut - ringWidth, rOut, -90f + (index / 3) * 30f + 0.6f, 28.8f)
+                .computeBounds(bounds, true)
+        } else {
+            val neutralRadius = innerRadius * 0.35f
+            val offset = innerRadius * 0.48f
+            val nx = cx + if (index % 2 == 0) -offset else offset
+            val ny = cy + if (index < 38) -offset else offset
+            bounds.set(nx - neutralRadius, ny - neutralRadius, nx + neutralRadius, ny + neutralRadius)
+        }
+        return Rect().also { bounds.roundOut(it) }
+    }
+
+    private fun indexAt(x: Float, y: Float): Int {
+        val outerRadius = min(width, height) / 2f - 12 * density
+        if (outerRadius <= 0 || x < 0 || y < 0 || x >= width || y >= height) return ExploreByTouchHelper.INVALID_ID
+        val innerRadius = outerRadius * 0.38f
+        val ringWidth = (outerRadius - innerRadius) / 3f
+        val dx = x - width / 2f
+        val dy = y - height / 2f
+        val dist = sqrt(dx * dx + dy * dy)
+        return if (dist < innerRadius) {
+            when {
+                dx < 0 && dy < 0 -> 36
+                dx >= 0 && dy < 0 -> 37
+                dx < 0 && dy >= 0 -> 38
+                else -> 39
+            }
+        } else if (dist <= outerRadius + 16 * density) {
+            val degrees = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+            val angle = (degrees + 450f) % 360f
+            val hue = (angle / 30f).toInt().coerceIn(0, 11)
+            val ring = when {
+                dist >= innerRadius + 2 * ringWidth -> 0
+                dist >= innerRadius + ringWidth -> 1
+                else -> 2
+            }
+            hue * 3 + ring
+        } else {
+            ExploreByTouchHelper.INVALID_ID
+        }
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!isEnabled) return false
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                val cx = width / 2f
-                val cy = height / 2f
-                val padding = 12 * density
-                val outerRadius = (min(width, height) / 2f) - padding
-                val innerRadius = outerRadius * 0.38f
-                val ringWidth = (outerRadius - innerRadius) / 3f
-
-                val dx = event.x - cx
-                val dy = event.y - cy
-                val dist = sqrt(dx * dx + dy * dy)
-
-                val tappedIndex = if (dist < innerRadius) {
-                    // Touch in center neutral hub
-                    when {
-                        dx < 0 && dy < 0 -> 36 // Light Gray
-                        dx >= 0 && dy < 0 -> 37 // Gray
-                        dx < 0 && dy >= 0 -> 38 // Dark Slate
-                        else -> 39             // Charcoal
-                    }
-                } else if (dist <= outerRadius + 16 * density) {
-                    // Touch in wheel
-                    var deg = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
-                    var normAngle = deg + 90f
-                    if (normAngle < 0f) normAngle += 360f
-                    if (normAngle >= 360f) normAngle -= 360f
-
-                    val hue = (normAngle / 30f).toInt().coerceIn(0, 11)
-                    val ring = when {
-                        dist >= innerRadius + 2 * ringWidth -> 0 // Outer (Vibrant)
-                        dist >= innerRadius + ringWidth -> 1     // Middle (Soft)
-                        else -> 2                                // Inner (Deep)
-                    }
-                    hue * 3 + ring
-                } else {
-                    return super.onTouchEvent(event)
-                }
-
-                if (tappedIndex != selectedIndex) {
-                    selectedIndex = tappedIndex
-                    performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-                    onColorSelected?.invoke(selectedIndex)
-                }
+                val tappedIndex = indexAt(event.x, event.y)
+                if (tappedIndex == ExploreByTouchHelper.INVALID_ID) return super.onTouchEvent(event)
+                select(tappedIndex)
                 return true
             }
             MotionEvent.ACTION_UP -> {

@@ -19,5 +19,6 @@
   -->
 
 <resources>
+    <item name="color_picker" type="id"/>
     <item name="timestamp_key" type="id"/>
 </resources>

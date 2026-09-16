@@ -170,15 +170,22 @@ fun Activity.restartWithFade(cls: Class<*>?) {
 fun View.setupToolbar(
     toolbar: Toolbar,
     title: String,
-    color: PaletteColor,
+    theme: Theme,
+    displayHomeAsUpEnabled: Boolean = true
+) = setupToolbar(toolbar, title, null, theme, displayHomeAsUpEnabled)
+
+fun View.setupToolbar(
+    toolbar: Toolbar,
+    title: String,
+    color: PaletteColor?,
     theme: Theme,
     displayHomeAsUpEnabled: Boolean = true
 ) {
     toolbar.elevation = InterfaceUtils.dpToPixels(context, 2f)
     val res = StyledResources(context)
     toolbar.title = title
-    val toolbarColor = if (!res.getBoolean(R.attr.useHabitColorAsPrimary)) {
-        StyledResources(context).getColor(R.attr.colorPrimary)
+    val toolbarColor = if (color == null || !res.getBoolean(R.attr.useHabitColorAsPrimary)) {
+        res.getColor(R.attr.colorPrimary)
     } else {
         theme.color(color).toInt()
     }

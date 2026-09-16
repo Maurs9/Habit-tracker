@@ -71,6 +71,13 @@ class EntryButtonViewTest : BaseViewTest() {
     }
 
     @Test
+    fun testRender_today() {
+        view.isToday = true
+        view.value = Entry.YES_MANUAL
+        assertRenders(view, "$PATH/render_today.png")
+    }
+
+    @Test
     fun testClick_withShortToggleDisabled() {
         prefs.isShortToggleEnabled = false
         view.performClick()

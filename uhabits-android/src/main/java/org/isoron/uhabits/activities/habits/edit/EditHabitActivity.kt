@@ -22,6 +22,7 @@ package org.isoron.uhabits.activities.habits.edit
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.content.res.Resources
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Html
 import android.text.Spanned
@@ -40,6 +41,8 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory
 import org.isoron.uhabits.activities.common.dialogs.FrequencyPickerDialog
+import org.isoron.uhabits.activities.common.dialogs.SectionDialogs
+import org.isoron.uhabits.activities.common.dialogs.TagPickerDialog
 import org.isoron.uhabits.activities.common.dialogs.WeekdayPickerDialog
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateHabitCommand
@@ -55,6 +58,7 @@ import org.isoron.uhabits.core.models.WeekdayList
 import org.isoron.uhabits.core.utils.formatEditableNumber
 import org.isoron.uhabits.core.utils.parseFiniteNumber
 import org.isoron.uhabits.databinding.ActivityEditHabitBinding
+import org.isoron.uhabits.utils.ColorUtils.contrastingTextColor
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.applyToolbarInsets
 import org.isoron.uhabits.utils.dismissCurrentAndShow
@@ -76,11 +80,14 @@ class EditHabitActivity : AppCompatActivity() {
     private lateinit var themeSwitcher: AndroidThemeSwitcher
     private lateinit var binding: ActivityEditHabitBinding
     private lateinit var commandRunner: CommandRunner
+    private lateinit var sectionDialogs: SectionDialogs
 
     var habitId = -1L
+    var sectionId: Long? = null
+    var tags: Set<String> = emptySet()
     lateinit var habitType: HabitType
     var unit = ""
-    var color = PaletteColor(11)
+    var color = PaletteColor.DEFAULT
     var androidColor = 0
     var freqNum = 1
     var freqDen = 1
@@ -89,11 +96,16 @@ class EditHabitActivity : AppCompatActivity() {
     var reminderDays: WeekdayList = WeekdayList.EVERY_DAY
     var targetType = NumericalHabitType.AT_LEAST
     private var validatedTarget = 0.0
+    private var booleanFreqNum = 1
+    private var booleanFreqDen = 1
+    private var numericalFreqDen = 1
+    private var moreExpanded = false
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
 
         val component = (application as HabitsApplication).component
+        sectionDialogs = SectionDialogs(this, component.sectionList)
         themeSwitcher = AndroidThemeSwitcher(this, component.preferences)
         themeSwitcher.apply()
 
@@ -108,6 +120,8 @@ class EditHabitActivity : AppCompatActivity() {
             habitId = intent.getLongExtra("habitId", -1)
             val habit = component.habitList.getById(habitId)!!
             habitType = habit.type
+            moreExpanded = habit.question.isNotBlank() || habit.description.isNotBlank()
+            sectionId = habit.sectionId
             color = habit.color
             freqNum = habit.frequency.numerator
             freqDen = habit.frequency.denominator
@@ -120,15 +134,21 @@ class EditHabitActivity : AppCompatActivity() {
             binding.nameInput.setText(habit.name)
             binding.questionInput.setText(habit.question)
             binding.notesInput.setText(habit.description)
-            binding.tagsInput.setText(HabitTags.format(habit.tags))
+            tags = habit.tags
             binding.unitInput.setText(habit.unit)
             binding.targetInput.setText(formatEditableNumber(habit.targetValue, resources.configuration.locales[0]))
         } else {
+            color = PaletteColor(
+                component.preferences.getDefaultHabitColor(PaletteColor.DEFAULT.paletteIndex)
+                    .coerceIn(0, PaletteColor.COUNT - 1)
+            )
             habitType = HabitType.fromInt(intent.getIntExtra("habitType", HabitType.YES_NO.value))
         }
 
         if (state != null) {
             habitId = state.getLong("habitId")
+            sectionId = state.getLong("sectionId", -1).takeIf { it >= 0 }
+            tags = HabitTags.normalize(state.getStringArrayList("tags").orEmpty())
             habitType = HabitType.fromInt(state.getInt("habitType"))
             color = PaletteColor(state.getInt("paletteColor"))
             freqNum = state.getInt("freqNum")
@@ -137,21 +157,40 @@ class EditHabitActivity : AppCompatActivity() {
             reminderMin = state.getInt("reminderMin")
             reminderDays = WeekdayList(state.getInt("reminderDays"))
             targetType = NumericalHabitType.fromInt(state.getInt("targetType", targetType.value))
+            booleanFreqNum = state.getInt("booleanFreqNum", 1)
+            booleanFreqDen = state.getInt("booleanFreqDen", 1)
+            numericalFreqDen = state.getInt("numericalFreqDen", 1)
+            moreExpanded = state.getBoolean("moreExpanded", moreExpanded)
         }
 
         updateColors()
-
-        when (habitType) {
-            HabitType.YES_NO -> {
-                binding.unitOuterBox.visibility = View.GONE
-                binding.targetOuterBox.visibility = View.GONE
-                binding.targetTypeOuterBox.visibility = View.GONE
+        applyHabitType()
+        binding.typeOuterBox.visibility = if (habitId < 0) View.VISIBLE else View.GONE
+        binding.typeToggle.check(if (habitType == HabitType.YES_NO) R.id.typeYesNo else R.id.typeMeasurable)
+        binding.typeToggle.addOnButtonCheckedListener { _, id, checked ->
+            if (checked && habitId < 0) {
+                val newType = if (id == R.id.typeMeasurable) HabitType.NUMERICAL else HabitType.YES_NO
+                if (newType != habitType) {
+                    if (habitType == HabitType.YES_NO) {
+                        booleanFreqNum = freqNum
+                        booleanFreqDen = freqDen
+                        freqNum = 1
+                        freqDen = numericalFreqDen
+                    } else {
+                        numericalFreqDen = freqDen
+                        freqNum = booleanFreqNum
+                        freqDen = booleanFreqDen
+                    }
+                    habitType = newType
+                    applyHabitType()
+                    populateFrequency()
+                }
             }
-            HabitType.NUMERICAL -> {
-                binding.nameInput.hint = getString(R.string.measurable_short_example)
-                binding.questionInput.hint = getString(R.string.measurable_question_example)
-                binding.frequencyOuterBox.visibility = View.GONE
-            }
+        }
+        populateMoreOptions()
+        binding.moreToggle.setOnClickListener {
+            moreExpanded = !moreExpanded
+            populateMoreOptions()
         }
 
         setSupportActionBar(binding.toolbar)
@@ -214,6 +253,26 @@ class EditHabitActivity : AppCompatActivity() {
         }
 
         populateReminder()
+        populateTags()
+        supportFragmentManager.setFragmentResultListener(TagPickerDialog.REQUEST_KEY, this) { _, result ->
+            if (result.getLong(TagPickerDialog.HABIT_ID, -1) == habitId) {
+                tags = HabitTags.normalize(result.getStringArrayList(TagPickerDialog.TAGS).orEmpty())
+                populateTags()
+            }
+        }
+        binding.tagsPicker.setOnClickListener {
+            if (supportFragmentManager.findFragmentByTag(TagPickerDialog.FRAGMENT_TAG) == null) {
+                TagPickerDialog.newInstance(habitId, tags, HabitTags.union(component.habitList, tags))
+                    .show(supportFragmentManager, TagPickerDialog.FRAGMENT_TAG)
+            }
+        }
+        populateSection()
+        binding.sectionPicker.setOnClickListener {
+            sectionDialogs.selectSection(sectionId) { id ->
+                sectionId = id
+                populateSection()
+            }
+        }
         binding.reminderTimePicker.setOnClickListener {
             val currentHour = if (reminderHour >= 0) reminderHour else 8
             val currentMin = if (reminderMin >= 0) reminderMin else 0
@@ -257,7 +316,7 @@ class EditHabitActivity : AppCompatActivity() {
         }
 
         for (fragment in supportFragmentManager.fragments) {
-            (fragment as DialogFragment).dismiss()
+            if (fragment is DialogFragment && fragment !is TagPickerDialog) fragment.dismiss()
         }
     }
 
@@ -274,7 +333,8 @@ class EditHabitActivity : AppCompatActivity() {
         habit.name = binding.nameInput.text.trim().toString()
         habit.question = binding.questionInput.text.trim().toString()
         habit.description = binding.notesInput.text.trim().toString()
-        habit.tags = HabitTags.parse(binding.tagsInput.text.toString())
+        habit.tags = tags
+        habit.sectionId = sectionId?.let { component.sectionList.getById(it)?.id }
         habit.color = color
         if (reminderHour >= 0) {
             habit.reminder = Reminder(reminderHour, reminderMin, reminderDays)
@@ -304,6 +364,7 @@ class EditHabitActivity : AppCompatActivity() {
             )
         }
         component.commandRunner.run(command)
+        if (habitId < 0) component.preferences.setDefaultHabitColor(color.paletteIndex)
         finish()
     }
 
@@ -351,6 +412,44 @@ class EditHabitActivity : AppCompatActivity() {
         }
     }
 
+    private fun populateTags() {
+        binding.tagsPicker.text = HabitTags.formatInline(tags).ifEmpty { getString(R.string.habit_tags_none) }
+    }
+
+    private fun applyHabitType() {
+        val numerical = habitType == HabitType.NUMERICAL
+        binding.unitOuterBox.visibility = if (numerical) View.VISIBLE else View.GONE
+        binding.targetOuterBox.visibility = binding.unitOuterBox.visibility
+        binding.targetTypeOuterBox.visibility = binding.unitOuterBox.visibility
+        binding.frequencyOuterBox.visibility = if (numerical) View.GONE else View.VISIBLE
+        binding.nameInput.setHint(if (numerical) R.string.measurable_short_example else R.string.yes_or_no_short_example)
+        binding.questionInput.setHint(if (numerical) R.string.measurable_question_example else R.string.example_question_boolean)
+        if (!numerical) binding.targetInput.error = null
+    }
+
+    private fun populateMoreOptions() {
+        if (!moreExpanded && binding.moreGroup.hasFocus()) binding.moreToggle.requestFocus()
+        binding.moreGroup.visibility = if (moreExpanded) View.VISIBLE else View.GONE
+        binding.moreToggle.setText(if (moreExpanded) R.string.fewer_options else R.string.more_options)
+    }
+
+    private fun populateSection() {
+        val sections = (application as HabitsApplication).component.sectionList
+        val section = sectionId?.let { sections.getById(it) }
+        sectionId = section?.id
+        binding.sectionPicker.text = section?.name ?: getString(R.string.section_none)
+    }
+
+    override fun onDestroy() {
+        sectionDialogs.dismiss()
+        super.onDestroy()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
+
     @SuppressLint("StringFormatMatches")
     private fun populateFrequency() {
         binding.booleanFrequencyPicker.text = formatFrequency(freqNum, freqDen, resources)
@@ -376,6 +475,14 @@ class EditHabitActivity : AppCompatActivity() {
             R.string.habit_color_description,
             resources.getStringArray(R.array.habit_color_names)[color.paletteIndex]
         )
+        val states = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        for (button in listOf(binding.typeYesNo, binding.typeMeasurable)) {
+            button.backgroundTintList = ColorStateList(states, intArrayOf(androidColor, Color.TRANSPARENT))
+            button.setTextColor(
+                ColorStateList(states, intArrayOf(contrastingTextColor(androidColor), themeSwitcher.currentTheme.highContrastTextColor.toInt()))
+            )
+            button.strokeColor = ColorStateList.valueOf(androidColor)
+        }
         if (!themeSwitcher.isNightMode) {
             window.statusBarColor = androidColor
             binding.toolbar.setBackgroundColor(androidColor)
@@ -391,6 +498,8 @@ class EditHabitActivity : AppCompatActivity() {
         super.onSaveInstanceState(state)
         with(state) {
             putLong("habitId", habitId)
+            putLong("sectionId", sectionId ?: -1)
+            putStringArrayList("tags", ArrayList(tags))
             putInt("habitType", habitType.value)
             putInt("paletteColor", color.paletteIndex)
             putInt("androidColor", androidColor)
@@ -400,6 +509,10 @@ class EditHabitActivity : AppCompatActivity() {
             putInt("reminderMin", reminderMin)
             putInt("reminderDays", reminderDays.toInteger())
             putInt("targetType", targetType.value)
+            putInt("booleanFreqNum", booleanFreqNum)
+            putInt("booleanFreqDen", booleanFreqDen)
+            putInt("numericalFreqDen", numericalFreqDen)
+            putBoolean("moreExpanded", moreExpanded)
         }
     }
 }

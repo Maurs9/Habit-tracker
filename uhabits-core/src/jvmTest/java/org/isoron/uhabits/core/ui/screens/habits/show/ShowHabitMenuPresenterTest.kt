@@ -45,6 +45,7 @@ class ShowHabitMenuPresenterTest : BaseUnitTest() {
             commandRunner,
             habit,
             habitList,
+            sectionList,
             screen,
             system,
             taskRunner
@@ -55,6 +56,24 @@ class ShowHabitMenuPresenterTest : BaseUnitTest() {
     fun testOnEditHabit() {
         menu.onEditHabit()
         verify(screen).showEditHabitScreen(habit)
+    }
+
+    @Test
+    fun testOnEditTags() {
+        menu.onEditTags()
+        verify(screen).showTagsDialog()
+    }
+
+    @Test
+    fun testOnEditReminderTimes() {
+        menu.onEditReminderTimes()
+        verify(screen).showReminderTimesDialog()
+    }
+
+    @Test
+    fun testOnBulkSkip() {
+        menu.onBulkSkip()
+        verify(screen).showBulkSkipDialog()
     }
 
     @Test

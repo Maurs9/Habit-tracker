@@ -21,16 +21,18 @@ package org.isoron.uhabits.core.tasks
 
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.SectionList
 import java.io.File
 import javax.inject.Inject
 
 class ExportCSVTaskFactory
 @Inject constructor(
-    val habitList: HabitList
+    val habitList: HabitList,
+    val sectionList: SectionList
 ) {
     fun create(
         selectedHabits: List<Habit>,
         outputDir: File,
         listener: ExportCSVTask.Listener
-    ) = ExportCSVTask(habitList, selectedHabits, outputDir, listener)
+    ) = ExportCSVTask(habitList, sectionList, selectedHabits, outputDir, listener)
 }

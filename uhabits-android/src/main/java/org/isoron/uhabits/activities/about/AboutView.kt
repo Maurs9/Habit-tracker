@@ -24,7 +24,6 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import org.isoron.uhabits.BuildConfig
 import org.isoron.uhabits.R
-import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.databinding.AboutBinding
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.applyRootViewInsets
@@ -43,7 +42,6 @@ class AboutView(
         addView(binding.root)
         setupToolbar(
             toolbar = binding.toolbar,
-            color = PaletteColor(11),
             title = resources.getString(R.string.about),
             theme = currentTheme()
         )

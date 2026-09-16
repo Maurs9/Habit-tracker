@@ -36,7 +36,9 @@ data class SubtitleCardState(
     val targetType: NumericalHabitType = NumericalHabitType.AT_LEAST,
     val unit: String = "",
     val theme: Theme,
-    val reminderTimes: Set<Int> = reminder?.let { setOf(it.hour * 60 + it.minute) } ?: emptySet()
+    val reminderTimes: Set<Int> = reminder?.let { setOf(it.hour * 60 + it.minute) } ?: emptySet(),
+    val sectionName: String? = null,
+    val tags: Set<String> = emptySet()
 )
 
 class SubtitleCardPresenter {
@@ -51,6 +53,7 @@ class SubtitleCardPresenter {
             question = habit.question,
             reminder = habit.reminder,
             reminderTimes = habit.reminderTimes,
+            tags = habit.tags,
             targetValue = habit.targetValue,
             targetType = habit.targetType,
             unit = habit.unit,

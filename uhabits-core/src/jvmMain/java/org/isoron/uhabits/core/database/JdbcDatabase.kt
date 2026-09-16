@@ -28,6 +28,9 @@ import java.util.ArrayList
 
 class JdbcDatabase(private val connection: Connection) : Database {
     private var transactionSuccessful = false
+    override val inTransaction: Boolean
+        get() = !connection.autoCommit
+
     override fun query(q: String, vararg params: String): Cursor {
         return try {
             val st = buildStatement(q, params)
@@ -45,10 +48,10 @@ class JdbcDatabase(private val connection: Connection) : Database {
     ): Int {
         return try {
             val fields = ArrayList<String?>()
-            val valuesStr = ArrayList<String>()
+            val valuesStr = ArrayList<Any?>()
             for ((key, value) in values) {
                 fields.add("$key=?")
-                valuesStr.add(value.toString())
+                valuesStr.add(value)
             }
             valuesStr.addAll(listOf(*params))
             val query = String.format(

@@ -19,19 +19,18 @@
 package org.isoron.uhabits.activities.common.dialogs
 
 import android.app.Dialog
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDialogFragment
-import androidx.core.graphics.ColorUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ColorWheelView
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.ui.callbacks.OnColorPickedCallback
+import org.isoron.uhabits.utils.ColorUtils.contrastingTextColor
 import org.isoron.uhabits.utils.dp
 
 /**
@@ -76,16 +75,16 @@ class ColorPickerDialog : AppCompatDialogFragment() {
 
         fun updateBadge(index: Int) {
             val color = colors[index]
-            val isDark = ColorUtils.calculateLuminance(color) < 0.4
+            val textColor = contrastingTextColor(color)
             previewBadge.text = names.getOrElse(index) { "Color" }
-            previewBadge.setTextColor(if (isDark) Color.WHITE else Color.BLACK)
+            previewBadge.setTextColor(textColor)
             val corner = previewBadge.dp(20f)
             val strokeW = previewBadge.dp(1.5f).toInt()
             previewBadge.background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = corner
                 setColor(color)
-                setStroke(strokeW, if (isDark) Color.argb(80, 255, 255, 255) else Color.argb(80, 0, 0, 0))
+                setStroke(strokeW, (textColor and 0x00FFFFFF) or (80 shl 24))
             }
         }
 
@@ -94,6 +93,7 @@ class ColorPickerDialog : AppCompatDialogFragment() {
         val colorWheel = ColorWheelView(context).apply {
             id = R.id.color_picker
             this.colors = colors
+            this.colorNames = names
             this.selectedIndex = currentSelection
             this.onColorSelected = { index ->
                 currentSelection = index

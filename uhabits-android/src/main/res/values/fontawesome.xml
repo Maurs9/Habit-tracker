@@ -67,7 +67,7 @@
 	<!--<string translatable="false" name="fa_volume_up">&#xf028;</string>-->
 	<!--<string translatable="false" name="fa_qrcode">&#xf029;</string>-->
 	<!--<string translatable="false" name="fa_barcode">&#xf02a;</string>-->
-	<!--<string translatable="false" name="fa_tag">&#xf02b;</string>-->
+	<string translatable="false" name="fa_tag">&#xf02b;</string>
 	<!--<string translatable="false" name="fa_tags">&#xf02c;</string>-->
 	<!--<string translatable="false" name="fa_book">&#xf02d;</string>-->
 	<!--<string translatable="false" name="fa_bookmark">&#xf02e;</string>-->
@@ -266,7 +266,7 @@
 	<!--<string translatable="false" name="fa_circle">&#xf111;</string>-->
 	<!--<string translatable="false" name="fa_reply">&#xf112;</string>-->
 	<!--<string translatable="false" name="fa_github_alt">&#xf113;</string>-->
-	<!--<string translatable="false" name="fa_folder_o">&#xf114;</string>-->
+	<string translatable="false" name="fa_folder_o">&#xf114;</string>
 	<!--<string translatable="false" name="fa_folder_open_o">&#xf115;</string>-->
 	<!--<string translatable="false" name="fa_smile_o">&#xf118;</string>-->
 	<!--<string translatable="false" name="fa_frown_o">&#xf119;</string>-->

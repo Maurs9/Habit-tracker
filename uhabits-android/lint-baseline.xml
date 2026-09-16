@@ -357,17 +357,6 @@
     </issue>
 
     <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `ResourcesCompat.getDrawable()`"
-        errorLine1="                {getContext().getResources().getDrawable(R.drawable.color_picker_swatch)};"
-        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/android/colorpicker/ColorPickerSwatch.java"
-            line="64"
-            column="18"/>
-    </issue>
-
-    <issue
         id="StringFormatInvalid"
         message="Format string &apos;`x_times_per_month`&apos; is not a valid format string so it should not be passed to `String.format`"
         errorLine1="    freqDen == 30 || freqDen == 31 -> resources.getString(R.string.x_times_per_month, freqNum)"
@@ -1347,17 +1336,6 @@
 
     <issue
         id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;selected&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;color_swatch_description_selected&quot; translatable=&quot;false&quot;>Color &lt;xliff:g example=&quot;14&quot; id=&quot;color_index&quot;>%1$d&lt;/xliff:g> selected&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/pickers.xml"
-            line="88"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="PluralsCandidate"
         message="Formatting %d followed by words (&quot;days&quot;): This should probably be a plural rather than a string"
         errorLine1="    &lt;string name=&quot;every_x_days&quot;>Every %d days&lt;/string>"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -1708,17 +1686,6 @@
             file="src/main/res/layout/date_picker_view_animator.xml"
             line="22"
             column="6"/>
-    </issue>
-
-    <issue
-        id="Overdraw"
-        message="Possible overdraw: Root element paints background `#a0000000` with a theme that also paints a background (inferred theme is `@style/AppBaseTheme`)"
-        errorLine1="    android:background=&quot;#a0000000&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/select_habit_type.xml"
-            line="27"
-            column="5"/>
     </issue>
 
     <issue
@@ -5350,17 +5317,6 @@
             file="src/main/java/org/isoron/uhabits/activities/habits/list/views/CheckmarkPanelView.kt"
             line="39"
             column="7"/>
-    </issue>
-
-    <issue
-        id="ViewConstructor"
-        message="Custom view `ColorPickerSwatch` is missing constructor used by tools: `(Context)` or `(Context,AttributeSet)` or `(Context,AttributeSet,int)`"
-        errorLine1="public class ColorPickerSwatch extends FrameLayout implements View.OnClickListener {"
-        errorLine2="             ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/android/colorpicker/ColorPickerSwatch.java"
-            line="31"
-            column="14"/>
     </issue>
 
     <issue

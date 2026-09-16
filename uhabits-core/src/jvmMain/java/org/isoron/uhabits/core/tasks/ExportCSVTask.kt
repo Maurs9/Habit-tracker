@@ -21,10 +21,12 @@ package org.isoron.uhabits.core.tasks
 import org.isoron.uhabits.core.io.HabitsCSVExporter
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.SectionList
 import java.io.File
 
 class ExportCSVTask(
     private val habitList: HabitList,
+    private val sectionList: SectionList,
     private val selectedHabits: List<Habit>,
     private val outputDir: File,
     private val listener: Listener
@@ -32,7 +34,7 @@ class ExportCSVTask(
     private var archiveFilename: String? = null
     override fun doInBackground() {
         try {
-            val exporter = HabitsCSVExporter(habitList, selectedHabits, outputDir)
+            val exporter = HabitsCSVExporter(habitList, sectionList, selectedHabits, outputDir)
             archiveFilename = exporter.writeArchive()
         } catch (e: Exception) {
             e.printStackTrace()

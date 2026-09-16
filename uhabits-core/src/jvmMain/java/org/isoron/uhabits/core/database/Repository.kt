@@ -72,10 +72,23 @@ class Repository<T>(
      * Executes the given callback inside a database transaction.
      *
      * If the callback terminates without throwing any exceptions, the transaction is considered
-     * successful. If any exceptions are thrown, the transaction is aborted. Nesting transactions
-     * is not allowed.
+     * successful. If any exceptions are thrown, the transaction is aborted. Callers inside an
+     * existing transaction must opt into [allowNesting], which uses a savepoint without committing
+     * the enclosing transaction.
      */
-    fun executeAsTransaction(callback: Runnable) {
+    fun executeAsTransaction(allowNesting: Boolean = false, callback: Runnable) {
+        if (allowNesting && db.inTransaction) {
+            db.execute("SAVEPOINT repository_transaction")
+            try {
+                callback.run()
+                db.execute("RELEASE SAVEPOINT repository_transaction")
+            } catch (e: Exception) {
+                db.execute("ROLLBACK TO SAVEPOINT repository_transaction")
+                db.execute("RELEASE SAVEPOINT repository_transaction")
+                throw RuntimeException(e)
+            }
+            return
+        }
         db.beginTransaction()
         try {
             callback.run()

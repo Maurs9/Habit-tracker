@@ -39,6 +39,7 @@ import dagger.Lazy
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.BundleSavedState
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
 import org.isoron.uhabits.inject.ActivityContext
 import javax.inject.Inject
 
@@ -107,6 +108,12 @@ class HabitCardListView(
 
     fun createHabitCardView(): HabitCardView {
         return cardViewFactory.create()
+    }
+
+    fun createSectionHeaderView() = SectionHeaderView(context)
+
+    fun bindHeaderView(holder: SectionHeaderViewHolder, header: HabitCardListCache.ListItem.Header) {
+        (holder.itemView as SectionHeaderView).bind(header)
     }
 
     fun bindCardView(
@@ -209,14 +216,19 @@ class HabitCardListView(
             recyclerView: RecyclerView,
             viewHolder: ViewHolder
         ): Int {
+            if (adapter.getItem(viewHolder.adapterPosition) == null) return 0
             return makeMovementFlags(UP or DOWN, START or END)
         }
+
+        override fun canDropOver(recyclerView: RecyclerView, current: ViewHolder, target: ViewHolder): Boolean =
+            adapter.isSameSection(current.adapterPosition, target.adapterPosition)
 
         override fun onMove(
             recyclerView: RecyclerView,
             from: ViewHolder,
             to: ViewHolder
         ): Boolean {
+            if (!canDropOver(recyclerView, from, to)) return false
             controller.get().drop(from.adapterPosition, to.adapterPosition)
             return true
         }

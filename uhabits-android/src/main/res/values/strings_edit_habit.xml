@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="habit_type">Type</string>
+    <string name="more_options">More options</string>
+    <string name="fewer_options">Fewer options</string>
+</resources>

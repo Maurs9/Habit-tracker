@@ -95,6 +95,12 @@ class ListHabitsSelectionMenu @Inject constructor(
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.actionHabitSection -> {
+                organizationDialogs.editSection(listAdapter.selected.toList())
+                mode.finish()
+                return true
+            }
+
             R.id.actionReminderTimes -> {
                 listAdapter.selected.singleOrNull()?.id?.let { habitId ->
                     ReminderTimesDialog.newInstance(habitId)

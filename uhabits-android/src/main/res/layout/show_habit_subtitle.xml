@@ -98,4 +98,54 @@
             android:textSize="@dimen/smallTextSize" />
 
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/organizationRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/sectionIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            android:text="@string/fa_folder_o"
+            android:textColor="?attr/contrast60"
+            android:textSize="@dimen/smallTextSize" />
+
+        <TextView
+            android:id="@+id/sectionLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="16dp"
+            android:maxEms="10"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="?attr/contrast60"
+            android:textSize="@dimen/smallTextSize" />
+
+        <TextView
+            android:id="@+id/tagsIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            android:text="@string/fa_tag"
+            android:textColor="?attr/contrast60"
+            android:textSize="@dimen/smallTextSize" />
+
+        <TextView
+            android:id="@+id/tagsLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="?attr/contrast60"
+            android:textSize="@dimen/smallTextSize" />
+    </LinearLayout>
 </merge>

@@ -24,11 +24,14 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.ThemeSwitcher
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsMenuBehavior
+import org.isoron.uhabits.core.ui.views.DarkTheme
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.inject.ActivityScope
 import org.isoron.uhabits.utils.StyledResources
@@ -48,6 +51,11 @@ class ListHabitsMenu @Inject constructor(
         organizationDialogs.restorePendingDialogs()
         menu.clear()
         inflater.inflate(R.menu.list_habits, menu)
+        val filterIcon = StyledResources(activity).getDrawable(R.attr.iconFilter)?.mutate()
+        if (preferences.selectedTags.isNotEmpty() || !preferences.showCompleted) {
+            filterIcon?.setTint(DarkTheme().color(PaletteColor.DEFAULT).toInt())
+        }
+        menu.findItem(R.id.action_filter).icon = filterIcon
         if (preferences.selectedTags.isNotEmpty()) {
             menu.findItem(R.id.actionFilterTags).title =
                 activity.getString(R.string.filter_tags_count, preferences.selectedTags.size)
@@ -58,6 +66,7 @@ class ListHabitsMenu @Inject constructor(
         nightModeItem.isChecked = themeSwitcher.isNightMode
         hideArchivedItem.isChecked = !preferences.showArchived
         hideCompletedItem.isChecked = !preferences.showCompleted
+        menu.findItem(R.id.actionGroupBySection).isChecked = preferences.groupBySection
         if (preferences.areQuestionMarksEnabled || preferences.isSkipEnabled) {
             hideCompletedItem.title = activity.resources.getString(R.string.hide_entered)
         } else {
@@ -90,6 +99,12 @@ class ListHabitsMenu @Inject constructor(
 
     fun onItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.actionGroupBySection -> {
+                behavior.onToggleGroupBySection()
+                activity.invalidateOptionsMenu()
+                return true
+            }
+
             R.id.actionFilterTags -> {
                 organizationDialogs.filterTags(behavior)
                 return true

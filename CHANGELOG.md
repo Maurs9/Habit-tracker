@@ -2,8 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+- Add a multi-habit widget checklist with section shortcuts, explicit Save/Cancel, and rotation-safe selections. Save follows list order, preserves widget type restrictions, and asks for review if selected habits become unavailable.
+- Show tags and sections in habit details and add detail-menu shortcuts for tags, reminder times, and skipping a date range.
+- Add the Sections data layer: ordered, validated section names, optional habit assignments, version 28 database backups, name-based import merging, and a Section column in CSV exports.
+- Add optional section grouping with accessible headers and visible-habit completion counts, single-section assignment in the editor and selection menu, and a Sections manager in Settings. Keep Other last and restrict grouped manual dragging to the same section. Saved filters remember grouping while remaining compatible with older filters.
+- Highlight today's list column and header date, show filtered-list progress and selected tags in the toolbar subtitle, and tint the filter icon when tags or hidden-completed filtering are active. Adjust highlighted-cell foregrounds locally for contrast while preserving the 6% tint and saved/base palette.
+
 ### Changed
 
+- Document macOS screenshot capture and per-image review, including the pending Android baselines and device checks.
+- Open habit creation directly with a Yes or No / Measurable toggle; keep type fixed for existing habits and move Question and Notes into a rotation-safe More options fold.
+- Replace free-text tags with a checklist and new-tag field; preserve selections and unfinished names through rotation.
+- Redesign all 40 habit color slots with Vibrant, Muted, and Deep tones and readable text contrast in light, dark, and pure-black themes. Existing habits keep their slot but look different; CSV color values change.
+- Increase text-grey and inactive-mark contrast, use the dark palette for widgets with contrasting filled-state text, and use light-palette notification tints.
+- Default new habits to Vibrant Blue and remember the last color saved when creating a habit. Restore theme-primary toolbars on non-habit screens.
+- Remove the legacy color picker and duplicate XML palettes; expose all 40 wheel colors to accessibility services and keyboard selection.
 - Document JDK 17, SDK 36, platform-specific setup, and emulator requirements.
 - Run Android JVM unit tests in CI and extend emulator coverage to APIs 31, 35, and 36.
 - Remove unused Ktor dependencies, replace test-only Commons IO helpers with Kotlin APIs, and depend directly on AndroidX Core and Preference instead of legacy support bundles.

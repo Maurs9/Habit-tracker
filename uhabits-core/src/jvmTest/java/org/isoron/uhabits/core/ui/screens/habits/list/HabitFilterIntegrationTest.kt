@@ -23,6 +23,8 @@ class HabitFilterIntegrationTest {
             behavior.onToggleShowArchived()
             behavior.onToggleShowCompleted()
             behavior.onSortByName()
+            behavior.onToggleGroupBySection()
+            assertTrue(adapter.groupBySection)
             val saved = behavior.currentFilter("Morning routine")
             preferences.savedHabitFilters = listOf(saved)
 
@@ -35,11 +37,16 @@ class HabitFilterIntegrationTest {
             assertTrue(restoredAdapter.matcher.isArchivedAllowed)
             assertFalse(restoredAdapter.matcher.isCompletedAllowed)
             assertEquals(HabitList.Order.BY_NAME_ASC, restoredAdapter.primaryOrder)
+            assertTrue(restoredAdapter.groupBySection)
+            assertTrue(restoredPreferences.groupBySection)
 
             restored.onFilterTags(emptySet())
             assertTrue(restoredAdapter.matcher.requiredTags.isEmpty())
             assertTrue(restoredAdapter.matcher.isArchivedAllowed)
             assertFalse(restoredAdapter.matcher.isCompletedAllowed)
+            restored.onApplySavedFilter(saved.copy(groupBySection = false))
+            assertFalse(restoredAdapter.groupBySection)
+            assertFalse(restoredPreferences.groupBySection)
         } finally {
             file.delete()
         }
@@ -49,6 +56,7 @@ class HabitFilterIntegrationTest {
         var matcher = HabitMatcher()
         override var primaryOrder = HabitList.Order.BY_POSITION
         override var secondaryOrder = HabitList.Order.BY_NAME_ASC
+        override var groupBySection = false
         override fun refresh() = Unit
         override fun setFilter(matcher: HabitMatcher) {
             this.matcher = matcher

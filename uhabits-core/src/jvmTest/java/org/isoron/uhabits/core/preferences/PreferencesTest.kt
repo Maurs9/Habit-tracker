@@ -163,6 +163,15 @@ class PreferencesTest : BaseUnitTest() {
     }
 
     @Test
+    fun testGroupBySection() {
+        assertFalse(prefs.groupBySection)
+        prefs.groupBySection = true
+        assertTrue(Preferences(storage).groupBySection)
+        prefs.groupBySection = false
+        assertFalse(Preferences(storage).groupBySection)
+    }
+
+    @Test
     @Throws(Exception::class)
     fun testMidnightDelay() {
         assertFalse(prefs.isMidnightDelayEnabled)

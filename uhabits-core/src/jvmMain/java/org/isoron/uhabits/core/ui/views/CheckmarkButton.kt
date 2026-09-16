@@ -36,7 +36,7 @@ class CheckmarkButton(
         canvas.setColor(
             when (value) {
                 2 -> color
-                else -> theme.lowContrastTextColor
+                else -> theme.inactiveMarkColor
             }
         )
         val text = when (value) {

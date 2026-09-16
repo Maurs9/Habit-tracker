@@ -25,6 +25,89 @@ No emulator is needed. Android Studio also supports running an individual test c
 
 Run `./gradlew ktlintCheck` for Kotlin style checks. CI's `./build.sh build` additionally runs Android lint, the core build/tests, and assembles the app and instrumentation APKs. That script does **not** run Android JVM unit tests; CI runs `:uhabits-android:testDebugUnitTest` separately. Test reports are in each module's `build/reports/tests` directory.
 
+### Palette and core chart checks
+
+`PaletteContrastTest` checks all 40 slots using WCAG relative luminance: text
+on light/dark/pure-black cards, white on light fills, and `#212121` on widget
+fills must reach 4.5:1. Text greys must reach 4.5:1 and inactive marks 3:1.
+Widget alpha is composited onto its `#303030` card. Every hue must keep Deep
+darker than Vibrant and Muted lower in OKLab chroma in both light and dark.
+`PaletteColorTest` checks theme/export consistency and the default blue slot.
+
+Core chart failures write actual, expected, and diff PNGs to
+`uhabits-core/build/failed/views/`. Inspect all affected variants before copying
+actuals into `uhabits-core/assets/test/views/`; never accept images solely to
+make tests pass. CSV exporter mismatches also save the generated CSV under
+`uhabits-core/build/failed/csv_export/` for comparison with its fixture.
+
+Instrumented `PaletteConsistencyTest`, `PaletteRenderingTest`,
+`HabitControlDialogsTest`, and `EditHabitActivityTest` cover color names,
+Android greys, foreground contrast, toolbars, notification tints, wheel virtual
+accessibility/keyboard/touch selection, confirmation/cancel, and remembered
+creation colors. Compiling them does not replace running them on a device.
+
+### Today column, progress subtitle, and filter cue
+
+`HabitTest` and `HabitCardListCacheTest` cover the shared completion rule and
+cached, filtered counts: manual/automatic checks, yes/no skips, numeric targets,
+unknowns, toggles, and empty lists. Numerical "at most" remains never completed.
+
+Device tests in `activities/habits/list/` assert subtitle text without golden
+images (`ListHabitsRootViewTest`) and active/reset filter icon colors
+(`ListHabitsMenuTest`). Under `views/`, panel tests assert today's flag across
+offsets, reversal, and RTL; `TodayHighlightTest` checks shared tint and clearing
+in all three themes. `HeaderViewTest` checks the inset, reversal/RTL, and removal
+of tint at older offsets without extra drawer preference reads.
+
+Run these on the configured test emulator:
+
+```bash
+./gradlew :uhabits-android:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=org.isoron.uhabits.activities.habits.list.ListHabitsRootViewTest,org.isoron.uhabits.activities.habits.list.ListHabitsMenuTest,org.isoron.uhabits.activities.habits.list.views.TodayHighlightTest,org.isoron.uhabits.activities.habits.list.views.HeaderViewTest,org.isoron.uhabits.activities.habits.list.views.EntryPanelViewTest,org.isoron.uhabits.activities.habits.list.views.NumberPanelViewTest,org.isoron.uhabits.activities.habits.list.views.EntryButtonViewTest,org.isoron.uhabits.activities.habits.list.views.NumberButtonViewTest
+```
+
+Device execution and reviewed golden updates remain deferred. Affected paths
+relative to `uhabits-android/src/androidTest/assets/views/habits/list/`:
+
+- New: `CheckmarkButtonView/render_today.png`, `NumberButtonView/render_today.png`.
+- Invalidated: `HeaderView/render.png`, `HeaderView/render_reverse.png`,
+  `CheckmarkPanelView/render.png`, `NumberPanelView/render.png`,
+  `HabitCardView/render.png`, `HabitCardView/render_changed.png`,
+  `HabitCardView/render_numerical.png`, `HabitCardView/render_selected.png`.
+
+Do not create placeholder PNGs or accept unreviewed outputs. Verify the header
+and card tint align at the existing 3dp outer inset in light, dark, and
+pure-black, including reversed/RTL layouts, and check toolbar subtitle
+truncation at narrow widths and larger system fonts.
+
+`ColorContrastTest` checks adjusted foregrounds across all 40 colors and three
+themes, including tinted selected cards and rendering-rounding margins.
+`TodayHighlightTest` checks them against rendered Android backgrounds: text
+must reach 4.5:1 and inactive marks 3:1. Today keeps its 6% tint; saved colors
+and the base palette are unchanged. Device execution remains deferred.
+
+### Detail, editor, and widget pickers
+
+`SubtitleCardViewTest` covers the hidden organization row, section/tag visibility
+changes, and `habits/show/SubtitleCard/render_tags.png`.
+`TagPickerDialogTest`, `EditHabitActivityTest`, and `EditHabitSectionTest` cover
+checklist selection, case-insensitive reuse, validation, cancellation, clearing,
+and draft/result delivery after rotation.
+
+Editor tests cover direct-create defaults, both type drafts, numerical
+validation, hidden type controls for existing habits, More options defaults and
+rotation, and reminder/section preservation. Theme tests exercise type-button
+and tag-dialog inflation in light, dark, and pure-black modes. Acceptance tests
+use the direct editor flow and scroll to folded fields.
+
+`HabitPickerDialogTest` covers multi-selection, Save/Cancel, list-order
+persistence, section shortcuts, widget type restrictions, rotation, and recovery
+when selected habits disappear or become ineligible. Verify the resulting stack
+updates after changing a habit in the app.
+
+These device tests are compiled, not executed. APK assembly and compilation
+alone do not establish visual, accessibility, or interaction correctness.
+
 ## Running instrumented tests
 
 The `build.sh` script runs medium and large tests on Linux with hardware-accelerated **x86_64 Google APIs** emulator images. It needs Bash, GNU `getopt`, `flock`, `timeout`, `ts` (from `moreutils`), Python 3, and the Android command-line tools, platform-tools, and emulator under `ANDROID_HOME`. On Ubuntu/Debian, the non-SDK tools are available through `util-linux`, `coreutils`, `moreutils`, and `python3`. The script assumes a dedicated test runner; its setup command deletes and recreates the named test AVD.
@@ -44,7 +127,56 @@ Note that instrumented tests are designed to run on a clean install, inside an e
 - The homescreen must look exactly like it was when the emulator was originally created, with no additional icons or widgets;
 - All animations must be disabled. `build.sh` disables the window, transition, and animator scales; disable them yourself when launching an emulator outside the script.
 
-If there are failing view tests (that is, if some custom views do not render exactly like the prerendered images we have), then both the actual and expected images will be automatically downloaded from the device to the folder `uhabits-android/build/outputs`. After verifying the differences, if you feel that the actual images are actually fine and should replace the prerendered ones, then run `./build.sh android-accept-images`.
+The Linux wrapper pulls failed screenshots into `uhabits-android/build/outputs`.
+Running Gradle directly does not perform that pull. Never accept images just
+to make tests pass.
+
+### Reviewing screenshot baselines on macOS
+
+Use a disposable, clean emulator matching the Nexus 4 size, density, locale,
+and disabled-animation settings above. On Apple Silicon, use an ARM64 image.
+Select its serial with `adb devices`; the example below uses `emulator-5554`.
+
+```bash
+./gradlew :uhabits-android:connectedDebugAndroidTest
+mkdir -p uhabits-android/build/outputs/golden-review
+adb -s emulator-5554 pull \
+  /sdcard/Android/data/org.isoron.uhabits/files/test-screenshots \
+  uhabits-android/build/outputs/golden-review/
+```
+
+Use the actual path printed by a failing `BaseViewTest`: older writable-storage
+devices may use `/sdcard/test-screenshots` instead. A mismatched image writes an
+actual PNG and an `.expected.png`; a missing baseline writes only the actual.
+
+Inspect each actual beside its expected image and diff. Fix rendering defects
+before accepting anything. Copy only individually approved actuals into matching
+paths under `uhabits-android/src/androidTest/assets/`; do not copy expected images
+or bulk-sync unreviewed captures. For example, after approving this image:
+
+```bash
+cp uhabits-android/build/outputs/golden-review/test-screenshots/views/habits/list/HeaderView/render.png \
+  uhabits-android/src/androidTest/assets/views/habits/list/HeaderView/render.png
+./gradlew :uhabits-android:connectedDebugAndroidTest
+```
+
+Create the corresponding asset subdirectory for a new baseline. The second full
+run must pass. The palette changes require review across all existing `common/`,
+`habits/`, and `widgets/` view groups; `CanvasTest.png` is not affected.
+These five new baselines still require capture and review, relative to `assets/views/`:
+
+- `habits/list/CheckmarkButtonView/render_today.png`
+- `habits/list/NumberButtonView/render_today.png`
+- `habits/list/SectionHeaderView/render.png`
+- `habits/list/SectionHeaderView/render_other.png`
+- `habits/show/SubtitleCard/render_tags.png`
+
+Run the schema-sensitive suites below and the acceptance, color picker, editor,
+subtitle, grouped-list, tag-picker, and widget-picker suites explicitly as well.
+Manually check all three themes, reversed/RTL lists, large fonts, section
+assignment/deletion and drag limits, picker rotation, stack updates, and a
+reminder notification. This verification and Android golden acceptance remain
+deferred; no replacement PNGs are supplied without device rendering.
 
 ## Profiling full-history recomputation
 
@@ -65,6 +197,27 @@ The deterministic fixtures cover 1, 5, and 10 years (365 days per year, ending J
 Use the same JDK, hardware, heap, parameters, and otherwise-idle machine for comparisons. Save artifacts before another run overwrites them and repeat in fresh JVMs. This lightweight harness includes JVM allocation and garbage-collection effects, but does not measure allocation counts, database I/O, Android UI latency, or an end-to-end `Habit.recompute()` call. Use an allocation profiler or Android device profiling for those questions.
 
 `RecomputeDeterminismTest` exercises the same full histories with shuffled insertion order and repeated recomputation. `EntryListTest` also compares ordering against the previous ascending-sort-plus-reverse implementation. Neither these correctness checks nor the existence of a profiling task establishes a latency improvement for full recomputation. No historical cutoff or incremental algorithm is introduced.
+
+### Sections and grouping
+
+`HabitCardListCacheGroupingTest` checks stable section partitioning across all
+primary/secondary sorts, stable negative header IDs, notification-time item
+counts, command-driven changes, filtering, completion totals, removal,
+same-section reordering, and cancellation of stale refreshes. Preference tests
+cover persisted grouping and six-/seven-field saved-filter compatibility.
+`ShowHabitStateTest` checks section-name resolution without changing detail UI.
+
+Device coverage: `SectionHeaderViewTest`, `ListHabitsRootViewTest`,
+`EditHabitSectionTest`, `HabitSectionDialogsTest`, and `SectionsDialogTest`.
+These cover header accessibility/contrast, habit-only subtitle counts, inert
+headers, assignment/validation, bulk moves, manager commands and recreation.
+They are compiled locally, not device-verified. A later emulator review must
+check grouped drag/drop, long names and large fonts, RTL, and Settings navigation.
+
+Deferred new goldens under `views/habits/list/SectionHeaderView/`:
+`render.png` and `render_other.png`. No existing HabitCardView golden changes
+are introduced by grouping. Do not create replacement images without rendering
+them on the configured emulator.
 
 ### Backup and import regression tests
 

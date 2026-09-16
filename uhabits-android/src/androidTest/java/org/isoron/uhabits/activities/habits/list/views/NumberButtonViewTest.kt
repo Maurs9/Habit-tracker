@@ -76,6 +76,13 @@ class NumberButtonViewTest : BaseViewTest() {
     }
 
     @Test
+    fun testRender_today() {
+        view.isToday = true
+        view.value = 500.0
+        assertRenders(view, "$PATH/render_today.png")
+    }
+
+    @Test
     fun testRender_atMostAboveThreshold() {
         view.value = 500.0
         view.targetType = NumericalHabitType.AT_MOST

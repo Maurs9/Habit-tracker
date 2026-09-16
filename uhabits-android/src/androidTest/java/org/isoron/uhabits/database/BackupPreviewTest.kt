@@ -169,7 +169,7 @@ class BackupPreviewTest : BaseAndroidTest() {
 
     @Test
     fun recognizesPriorSchemaWithoutMigratingPreview() {
-        for (version in 25..26) {
+        for (version in 25..27) {
             val file = File(directory, "legacy-$version.db")
             SQLiteDatabase.openOrCreateDatabase(file, null).use {
                 it.disableWriteAheadLogging()
@@ -189,6 +189,112 @@ class BackupPreviewTest : BaseAndroidTest() {
             }
             assertRejectedUnchanged(file)
         }
+    }
+
+    @Test
+    fun version28RecognizesSectionsAndAllowsOrphansWithoutChangingInput() {
+        val section = appComponent.sectionList.add("Morning")
+        val habit = fixtures.createEmptyHabit()
+        habit.sectionId = section.id
+        habitList.update(habit)
+        val file = backup()
+        val bytes = file.readBytes()
+        assertTrue(BackupValidator.isLoopDatabase(file))
+        assertEquals(28, BackupValidator.inspect(file).version)
+        assertTrue(bytes.contentEquals(file.readBytes()))
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use {
+            it.execSQL("UPDATE Habits SET section_id = 999999")
+        }
+        val orphanBytes = file.readBytes()
+        assertEquals(28, BackupValidator.inspect(file).version)
+        assertTrue(orphanBytes.contentEquals(file.readBytes()))
+    }
+
+    @Test
+    fun version28RequiresSectionTableColumnsAndHabitReferenceColumn() {
+        val mutations = listOf(
+            "DROP TABLE Sections",
+            "ALTER TABLE Sections RENAME COLUMN position TO incorrect_position",
+            "ALTER TABLE Habits RENAME COLUMN section_id TO incorrect_section_id",
+            "DROP TABLE Sections; CREATE VIEW Sections AS SELECT 1 AS id, 'Morning' AS name, 0 AS position"
+        )
+        for (mutation in mutations) {
+            val file = backup()
+            SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
+                mutation.split(";").forEach { db.execSQL(it) }
+            }
+            assertRejectedUnchanged(file)
+        }
+    }
+
+    @Test
+    fun version28RejectsInvalidSectionMetadataReadOnly() {
+        appComponent.sectionList.add("Morning")
+        fixtures.createEmptyHabit()
+        val mutations = listOf(
+            "UPDATE Habits SET section_id = 'not-an-id'",
+            "UPDATE Habits SET section_id = 1.5",
+            "UPDATE Sections SET name = ''",
+            "UPDATE Sections SET name = char(9) || char(10) || char(160)",
+            "UPDATE Sections SET name = x'1234'",
+            "UPDATE Sections SET position = 'first'",
+            "UPDATE Sections SET position = 1.5",
+            "UPDATE Sections SET position = 2147483648",
+            "UPDATE Sections SET id = 0"
+        )
+        for (mutation in mutations) {
+            val file = backup()
+            SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use {
+                it.execSQL(mutation)
+            }
+            assertRejectedUnchanged(file)
+        }
+    }
+
+    @Test
+    fun sectionsMergeByNameKeepLocalOrderAndRoundTripReferences() {
+        val sections = appComponent.sectionList
+        val morning = sections.add("Morning")
+        val evening = sections.add("Evening")
+        val habit = fixtures.createEmptyHabit()
+        habit.sectionId = evening.id
+        habitList.update(habit)
+        val file = backup()
+        sections.remove(morning)
+        sections.remove(evening)
+        val localEvening = sections.add(" evening ")
+        sections.add("Local")
+        repeat(2) {
+            var result = 0
+            val task = ImportDataTask(appComponent.genericImporter, modelFactory, file, habitList) { result = it }
+            task.doInBackground()
+            task.onPostExecute()
+            assertEquals(ImportDataTask.SUCCESS, result)
+            assertFalse(DatabaseUtils.openDatabase().inTransaction())
+            assertEquals(listOf("evening", "Local", "Morning"), sections.getAll().map { it.name })
+            assertEquals(localEvening.id, habit.sectionId)
+            assertEquals(localEvening.id, habitList.getByUUID(habit.uuid)!!.sectionId)
+        }
+        (habitList as SQLiteHabitList).reload()
+        assertEquals(localEvening.id, habit.sectionId)
+        assertEquals(sections.getAll(), SQLModelFactory((modelFactory as SQLModelFactory).database).buildSectionList().getAll())
+    }
+
+    @Test
+    fun importedOrphanIsRepairedInLoadedAndPersistedHabits() {
+        val habit = fixtures.createEmptyHabit()
+        val file = backup()
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use {
+            it.execSQL("UPDATE Habits SET section_id = 999999")
+        }
+        var result = 0
+        val task = ImportDataTask(appComponent.genericImporter, modelFactory, file, habitList) { result = it }
+        task.doInBackground()
+        task.onPostExecute()
+        assertEquals(ImportDataTask.SUCCESS, result)
+        assertNull(habit.sectionId)
+        (habitList as SQLiteHabitList).reload()
+        assertNull(habitList.getById(habit.id!!)!!.sectionId)
     }
 
     @Test
@@ -262,6 +368,10 @@ class BackupPreviewTest : BaseAndroidTest() {
     @Test
     fun failedImportRollsBackPartialWritesAndReloadsCachedModels() {
         val habit = fixtures.createEmptyHabit()
+        val sections = appComponent.sectionList
+        val originalSection = sections.add("Original")
+        habit.sectionId = originalSection.id
+        habitList.update(habit)
         habit.originalEntries.add(Entry(day(0), Entry.YES_MANUAL, "Original note"))
         habit.recompute()
         val originalScore = habit.scores[day(0)].value
@@ -276,9 +386,11 @@ class BackupPreviewTest : BaseAndroidTest() {
 
             override fun importHabitsFromFile(file: File) {
                 habit.name = "Partial update"
+                habit.sectionId = sections.add("Partial section").id
                 habitList.update(listOf(habit))
                 habit.originalEntries.add(Entry(day(0), Entry.NO, "Partial note"))
                 fixtures.createEmptyHabit()
+                sections.repair()
                 throw IOException("Interrupted import")
             }
         })
@@ -293,6 +405,8 @@ class BackupPreviewTest : BaseAndroidTest() {
             val restored = habitList.getById(id)!!
             assertSame(habit, restored)
             assertEquals(originalName, restored.name)
+            assertEquals(originalSection.id, restored.sectionId)
+            assertEquals(listOf(originalSection), sections.getAll())
             assertEquals(Entry.YES_MANUAL, restored.originalEntries.get(day(0)).value)
             assertEquals("Original note", restored.originalEntries.get(day(0)).notes)
             assertEquals(Entry.YES_MANUAL, restored.computedEntries.get(day(0)).value)

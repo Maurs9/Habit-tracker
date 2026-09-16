@@ -142,7 +142,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
         }) { (directory, selectedHabits) ->
             val habits = component.habitList
             component.taskRunner.execute(
-                ExportCSVTask(habits, selectedHabits, directory) { filename ->
+                ExportCSVTask(habits, component.sectionList, selectedHabits, directory) { filename ->
                     if (filename == null) {
                         finish(R.string.backup_export_failed)
                     } else {

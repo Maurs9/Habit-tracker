@@ -28,6 +28,7 @@ import org.isoron.uhabits.core.database.DatabaseOpener
 import org.isoron.uhabits.core.io.Logging
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.models.sqlite.SQLModelFactory
 import org.isoron.uhabits.core.models.sqlite.SQLiteHabitList
 import org.isoron.uhabits.core.preferences.Preferences
@@ -96,6 +97,10 @@ class HabitsModule(dbFile: File) {
     fun getHabitList(list: SQLiteHabitList): HabitList {
         return list
     }
+
+    @Provides
+    @AppScope
+    fun getSectionList(modelFactory: ModelFactory): SectionList = modelFactory.buildSectionList()
 
     @Provides
     @AppScope

@@ -23,6 +23,7 @@ import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.tasks.ExportCSVTask
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.callbacks.OnConfirmedCallback
@@ -36,6 +37,7 @@ class ShowHabitMenuPresenter(
     private val commandRunner: CommandRunner,
     private val habit: Habit,
     private val habitList: HabitList,
+    private val sectionList: SectionList,
     private val screen: Screen,
     private val system: System,
     private val taskRunner: TaskRunner
@@ -44,10 +46,16 @@ class ShowHabitMenuPresenter(
         screen.showEditHabitScreen(habit)
     }
 
+    fun onEditTags() = screen.showTagsDialog()
+
+    fun onEditReminderTimes() = screen.showReminderTimesDialog()
+
+    fun onBulkSkip() = screen.showBulkSkipDialog()
+
     fun onExportCSV() {
         val outputDir = system.getCSVOutputDir()
         taskRunner.execute(
-            ExportCSVTask(habitList, listOf(habit), outputDir) { filename: String? ->
+            ExportCSVTask(habitList, sectionList, listOf(habit), outputDir) { filename: String? ->
                 if (filename != null) {
                     screen.showSendFileScreen(filename)
                 } else {
@@ -85,6 +93,9 @@ class ShowHabitMenuPresenter(
 
     interface Screen {
         fun showEditHabitScreen(habit: Habit)
+        fun showTagsDialog()
+        fun showReminderTimesDialog()
+        fun showBulkSkipDialog()
         fun showMessage(m: Message?)
         fun showSendFileScreen(filename: String)
         fun showDeleteConfirmationScreen(callback: OnConfirmedCallback)

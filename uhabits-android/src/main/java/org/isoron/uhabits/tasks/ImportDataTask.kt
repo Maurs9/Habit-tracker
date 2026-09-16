@@ -68,7 +68,10 @@ class ImportDataTask(
                     Log.e("ImportDataTask", "Could not finish import transaction", e)
                 }
             }
-            if (result != SUCCESS) (habitList as? SQLiteHabitList)?.reload()
+            if (result != SUCCESS) {
+                modelFactory.buildSectionList().reload()
+                (habitList as? SQLiteHabitList)?.reload()
+            }
         }
     }
 

@@ -26,6 +26,7 @@ import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
+import org.isoron.uhabits.core.commands.SectionCommand
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
@@ -51,7 +52,7 @@ class NotificationTray @Inject constructor(
     }
 
     override fun onCommandFinished(command: Command) {
-        if (command is ChangeHabitTagsCommand) return
+        if (command is ChangeHabitTagsCommand || command is SectionCommand) return
         if (command is CreateRepetitionCommand) {
             val (_, habit) = command
             cancel(habit)

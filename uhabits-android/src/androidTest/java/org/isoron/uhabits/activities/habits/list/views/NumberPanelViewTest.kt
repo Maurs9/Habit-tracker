@@ -19,6 +19,7 @@
 
 package org.isoron.uhabits.activities.habits.list.views
 
+import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
@@ -74,6 +75,23 @@ class NumberPanelViewTest : BaseViewTest() {
     @Test
     fun testRender() {
         assertRenders(view, "$PATH/render.png")
+    }
+
+    @Test
+    fun testTodayFlagFollowsOffset() {
+        for (direction in listOf(View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL)) {
+            view.layoutDirection = direction
+            for (reversed in listOf(false, true)) {
+                prefs.isCheckmarkSequenceReversed = reversed
+                view.dataOffset = 0
+                assertEquals(listOf(true, false, false, false), view.buttons.map { it.isToday })
+                assertSame(view.buttons[0], view.getChildAt(if (reversed) 3 else 0))
+                view.dataOffset = 3
+                assertTrue(view.buttons.none { it.isToday })
+                view.dataOffset = 0
+                assertEquals(listOf(true, false, false, false), view.buttons.map { it.isToday })
+            }
+        }
     }
 
     @Test

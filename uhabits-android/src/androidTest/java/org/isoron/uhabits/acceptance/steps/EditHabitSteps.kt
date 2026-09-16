@@ -18,11 +18,16 @@
  */
 package org.isoron.uhabits.acceptance.steps
 
+import android.view.View
 import androidx.test.espresso.Espresso
+import androidx.test.espresso.UiController
+import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.matcher.ViewMatchers
-import androidx.test.platform.app.InstrumentationRegistry
+import org.hamcrest.Matcher
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.ColorWheelView
+import org.isoron.uhabits.core.models.PaletteColor
 import com.google.android.material.R as MaterialR
 
 object EditHabitSteps {
@@ -32,13 +37,13 @@ object EditHabitSteps {
 
     fun pickFrequency() {
         Espresso.onView(ViewMatchers.withId(R.id.boolean_frequency_picker))
-            .perform(ViewActions.click())
+            .perform(ViewActions.scrollTo(), ViewActions.click())
         Espresso.onView(ViewMatchers.withText("SAVE")).perform(ViewActions.click())
     }
 
     fun pickMonthFrequency() {
         Espresso.onView(ViewMatchers.withId(R.id.boolean_frequency_picker))
-            .perform(ViewActions.click())
+            .perform(ViewActions.scrollTo(), ViewActions.click())
         Espresso.onView(ViewMatchers.withId(R.id.xTimesPerMonthRadioButton))
             .perform(ViewActions.click())
         Espresso.onView(ViewMatchers.withId(R.id.xTimesPerMonthTextView))
@@ -48,24 +53,24 @@ object EditHabitSteps {
 
     fun pickDailyFrequency() {
         Espresso.onView(ViewMatchers.withId(R.id.boolean_frequency_picker))
-            .perform(ViewActions.click())
+            .perform(ViewActions.scrollTo(), ViewActions.click())
         Espresso.onView(ViewMatchers.withId(R.id.everyDayRadioButton))
             .perform(ViewActions.click())
         Espresso.onView(ViewMatchers.withText("SAVE")).perform(ViewActions.click())
     }
 
     fun pickColor(color: Int) {
-        val names = InstrumentationRegistry.getInstrumentation().targetContext.resources
-            .getStringArray(R.array.habit_color_names)
-        require(color in 1..names.size) { "Color number must be between 1 and ${names.size}" }
-        // Legacy swatches used one-based visual numbering, with alternate rows reversed.
-        val columns = 4
-        val row = (color - 1) / columns
-        val column = (color - 1) % columns
-        val paletteIndex = row * columns + if (row % 2 == 0) column else columns - column - 1
-        Espresso.onView(ViewMatchers.withId(R.id.colorButton)).perform(ViewActions.click())
-        Espresso.onView(ViewMatchers.withContentDescription(names[paletteIndex]))
-            .perform(ViewActions.scrollTo(), ViewActions.click())
+        require(color in 1..PaletteColor.COUNT) { "Color number must be between 1 and ${PaletteColor.COUNT}" }
+        Espresso.onView(ViewMatchers.withId(R.id.colorButton)).perform(ViewActions.scrollTo(), ViewActions.click())
+        Espresso.onView(ViewMatchers.withId(R.id.color_picker)).perform(object : ViewAction {
+            override fun getConstraints(): Matcher<View> = ViewMatchers.isAssignableFrom(ColorWheelView::class.java)
+            override fun getDescription() = "Select color $color"
+            override fun perform(uiController: UiController, view: View) {
+                (view as ColorWheelView).select(color - 1)
+                uiController.loopMainThreadUntilIdle()
+            }
+        })
+        Espresso.onView(ViewMatchers.withId(android.R.id.button1)).perform(ViewActions.click())
     }
 
     fun typeName(name: String) {
@@ -73,21 +78,42 @@ object EditHabitSteps {
     }
 
     fun typeQuestion(name: String) {
+        expandMoreOptions()
         typeTextWithId(R.id.questionInput, name)
     }
 
     fun typeDescription(description: String) {
+        expandMoreOptions()
         typeTextWithId(R.id.notesInput, description)
     }
 
+    fun expandMoreOptions() {
+        var expanded = false
+        Espresso.onView(ViewMatchers.withId(R.id.moreGroup)).check { view, exception ->
+            if (exception != null) throw exception
+            expanded = view.visibility == View.VISIBLE
+        }
+        if (!expanded) {
+            Espresso.onView(ViewMatchers.withId(R.id.moreToggle)).perform(ViewActions.scrollTo(), ViewActions.click())
+        }
+    }
+
+    fun selectMeasurable() {
+        Espresso.onView(ViewMatchers.withId(R.id.typeMeasurable)).perform(ViewActions.scrollTo(), ViewActions.click())
+    }
+
+    fun typeUnit(unit: String) = typeTextWithId(R.id.unitInput, unit)
+
+    fun typeTarget(target: String) = typeTextWithId(R.id.targetInput, target)
+
     fun setReminder() {
-        Espresso.onView(ViewMatchers.withId(R.id.reminderTimePicker)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.withId(R.id.reminderTimePicker)).perform(ViewActions.scrollTo(), ViewActions.click())
         Espresso.onView(ViewMatchers.withId(MaterialR.id.material_timepicker_ok_button))
             .perform(ViewActions.click())
     }
 
     fun clickReminderDays() {
-        Espresso.onView(ViewMatchers.withId(R.id.reminderDatePicker)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.withId(R.id.reminderDatePicker)).perform(ViewActions.scrollTo(), ViewActions.click())
     }
 
     fun unselectAllDays() {
@@ -102,6 +128,7 @@ object EditHabitSteps {
 
     private fun typeTextWithId(id: Int, name: String) {
         Espresso.onView(ViewMatchers.withId(id)).perform(
+            ViewActions.scrollTo(),
             ViewActions.clearText(),
             ViewActions.typeText(name),
             ViewActions.closeSoftKeyboard()

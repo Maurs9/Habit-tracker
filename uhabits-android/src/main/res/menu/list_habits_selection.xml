@@ -37,6 +37,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/actionHabitSection"
+        android:title="@string/habit_section"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/actionReminderTimes"
         android:title="@string/reminder_times_title"
         app:showAsAction="never" />

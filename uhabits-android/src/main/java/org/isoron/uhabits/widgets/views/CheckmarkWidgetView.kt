@@ -34,6 +34,7 @@ import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.inject.HabitsApplicationComponent
+import org.isoron.uhabits.utils.ColorUtils.contrastingTextColor
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.PaletteUtils.getAndroidTestColor
 import org.isoron.uhabits.utils.StyledResources
@@ -70,7 +71,7 @@ class CheckmarkWidgetView : HabitWidgetView {
         when (entryState) {
             YES_MANUAL, SKIP, YES_AUTO -> {
                 bgColor = activeColor
-                fgColor = res.getColor(R.attr.contrast0)
+                fgColor = contrastingTextColor(bgColor)
                 backgroundPaint!!.color = bgColor
                 frame!!.setBackgroundDrawable(background)
             }

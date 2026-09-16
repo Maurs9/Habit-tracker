@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="habit_section">Section</string>
+    <string name="section_other">Other</string>
+    <string name="section_none">None</string>
+    <string name="section_new">New section…</string>
+    <string name="section_name_hint">Section name</string>
+    <string name="section_name_exists">A section with this name already exists.</string>
+    <string name="sections">Sections</string>
+    <string name="sections_summary">Add, rename and order your sections</string>
+    <string name="group_by_section">Group by section</string>
+    <string name="section_add">Add section</string>
+    <string name="section_rename">Rename</string>
+    <string name="section_move_up">Move up</string>
+    <string name="section_move_down">Move down</string>
+    <string name="section_delete">Delete</string>
+    <string name="section_delete_confirm">Delete %1$s? Its habits are kept and shown under Other.</string>
+    <string name="no_sections_yet">No sections yet. Add a section to organize your habits.</string>
+    <string name="section_header_count">%1$d/%2$d</string>
+    <string name="section_header_description">%1$s, %2$d of %3$d done</string>
     <string name="habit_tags">Tags</string>
-    <string name="habit_tags_hint">One tag per line</string>
+    <string name="add_tag">Add</string>
+    <string name="tag_name">Tag name</string>
+    <string name="tag_name_single_line">Enter one tag at a time, without line breaks.</string>
+    <string name="tag_habit_unavailable">This habit is no longer available. Close the dialog and select another habit.</string>
+    <string name="habit_tags_none">None</string>
+    <string name="no_tags_yet_short">No tags yet. Add a tag above.</string>
     <string name="filter_tags">Filter by tags</string>
     <string name="filter_tags_count">Filter by tags (%1$d)</string>
     <string name="no_habits_match_tags">No habits match this filter. Adjust or clear your tags in the filter menu.</string>

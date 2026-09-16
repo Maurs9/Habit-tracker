@@ -44,12 +44,31 @@ class HabitsCSVExporterTest : BaseUnitTest() {
     }
 
     @Test
+    fun testSectionNamesAreQuotedInArchive() {
+        val section = sectionList.add("Morning, \"quiet\"\ntime")
+        val habit = habitList.getByPosition(0)
+        habit.sectionId = section.id
+        habitList.update(habit)
+        val filename = HabitsCSVExporter(habitList, sectionList, habitList.toList(), baseDir).writeArchive()
+        try {
+            ZipFile(filename).use { archive ->
+                val csv = archive.getInputStream(archive.getEntry("Habits.csv")).bufferedReader().use { it.readText() }
+                assertTrue(csv.contains("Tags,Section,ReminderTimes"))
+                assertTrue(csv.contains("\"Morning, \"\"quiet\"\"\ntime\""))
+            }
+        } finally {
+            File(filename).delete()
+        }
+    }
+
+    @Test
     @Throws(IOException::class)
     fun testExportCSV() {
         val selected: MutableList<Habit> = LinkedList()
         for (h in habitList) selected.add(h)
         val exporter = HabitsCSVExporter(
             habitList,
+            sectionList,
             selected,
             baseDir
         )
@@ -107,6 +126,12 @@ class HabitsCSVExporterTest : BaseUnitTest() {
         copyAssetToFile(assetFilename, expectedFile)
         val actualContents = actualFile.readText()
         val expectedContents = expectedFile.readText()
+        if (actualContents != expectedContents) {
+            File("build/failed", assetFilename).apply {
+                parentFile.mkdirs()
+                writeText(actualContents)
+            }
+        }
         assertEquals(expectedContents, actualContents, "content mismatch for $s")
     }
 }

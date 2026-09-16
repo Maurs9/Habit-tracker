@@ -24,11 +24,14 @@ import org.isoron.uhabits.core.models.ScoreList
 import org.isoron.uhabits.core.models.StreakList
 
 class MemoryModelFactory : ModelFactory {
+    private val sections = MemorySectionList()
     override fun buildComputedEntries() = EntryList()
     override fun buildOriginalEntries() = EntryList()
-    override fun buildHabitList() = MemoryHabitList()
+    override fun buildHabitList() = MemoryHabitList().also { sections.registerHabitList(it) }
+    override fun buildSectionList() = sections
     override fun buildScoreList() = ScoreList()
     override fun buildStreakList() = StreakList()
     override fun buildHabitListRepository() = throw NotImplementedError()
+    override fun buildSectionListRepository() = throw NotImplementedError()
     override fun buildRepetitionListRepository() = throw NotImplementedError()
 }

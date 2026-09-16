@@ -22,6 +22,21 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_tags"
+        android:title="@string/habit_tags"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_reminder_times"
+        android:title="@string/reminder_times_title"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_bulk_skip"
+        android:title="@string/bulk_skip"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/export"
         android:title="@string/export"
         app:showAsAction="never"/>

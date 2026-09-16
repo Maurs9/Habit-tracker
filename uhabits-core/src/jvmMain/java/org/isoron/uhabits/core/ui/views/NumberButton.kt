@@ -63,7 +63,7 @@ class NumberButton(
             when {
                 value >= threshold -> color
                 value >= 0.01 -> theme.mediumContrastTextColor
-                else -> theme.lowContrastTextColor
+                else -> theme.inactiveMarkColor
             }
         )
 

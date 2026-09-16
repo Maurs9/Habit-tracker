@@ -41,6 +41,7 @@ class HabitRecordTest : BaseUnitTest() {
             reminder = Reminder(8, 30, WeekdayList.EVERY_DAY)
             extraReminderTimes = setOf(12 * 60, 20 * 60 + 15)
             tags = setOf("Health", "Daily")
+            sectionId = 42L
             id = 1000L
             position = 20
         }
@@ -72,6 +73,7 @@ class HabitRecordTest : BaseUnitTest() {
         val record = HabitRecord()
         record.copyFrom(original)
         val duplicate = modelFactory.buildHabit()
+        duplicate.sectionId = 42L
         record.copyTo(duplicate)
         assertThat(original, equalTo(duplicate))
     }

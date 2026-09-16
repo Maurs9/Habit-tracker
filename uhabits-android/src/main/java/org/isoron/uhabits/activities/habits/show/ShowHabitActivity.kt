@@ -39,6 +39,7 @@ import org.isoron.uhabits.activities.common.dialogs.CheckmarkDialog
 import org.isoron.uhabits.activities.common.dialogs.ConfirmDeleteDialog
 import org.isoron.uhabits.activities.common.dialogs.HistoryEditorDialog
 import org.isoron.uhabits.activities.common.dialogs.NumberDialog
+import org.isoron.uhabits.activities.habits.list.HabitOrganizationDialogs
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.models.Habit
@@ -50,6 +51,7 @@ import org.isoron.uhabits.core.ui.screens.habits.show.ShowHabitMenuPresenter
 import org.isoron.uhabits.core.ui.screens.habits.show.ShowHabitPresenter
 import org.isoron.uhabits.core.ui.views.OnDateClickedListener
 import org.isoron.uhabits.intents.IntentFactory
+import org.isoron.uhabits.notifications.ReminderTimesDialog
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.currentTheme
 import org.isoron.uhabits.utils.dismissCurrentAndShow
@@ -67,6 +69,7 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
     private lateinit var preferences: Preferences
     private lateinit var themeSwitcher: AndroidThemeSwitcher
     private lateinit var widgetUpdater: WidgetUpdater
+    private lateinit var organizationDialogs: HabitOrganizationDialogs
 
     private val scope = CoroutineScope(Dispatchers.Main)
     private lateinit var presenter: ShowHabitPresenter
@@ -85,6 +88,16 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         themeSwitcher = AndroidThemeSwitcher(this, preferences)
         themeSwitcher.apply()
 
+        organizationDialogs = HabitOrganizationDialogs(
+            this,
+            habitList,
+            preferences,
+            commandRunner,
+            appComponent.taskRunner,
+            appComponent.sectionList
+        )
+        organizationDialogs.restorePendingDialogs()
+
         presenter = ShowHabitPresenter(
             commandRunner = commandRunner,
             habit = habit,
@@ -99,6 +112,7 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
             commandRunner = commandRunner,
             habit = habit,
             habitList = habitList,
+            sectionList = appComponent.sectionList,
             screen = screen,
             system = HabitsDirFinder(AndroidDirFinder(this)),
             taskRunner = appComponent.taskRunner
@@ -158,7 +172,8 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
                     ShowHabitPresenter.buildState(
                         habit = habit,
                         preferences = preferences,
-                        theme = themeSwitcher.currentTheme
+                        theme = themeSwitcher.currentTheme,
+                        sectionList = (applicationContext as HabitsApplication).component.sectionList
                     )
                 )
             }
@@ -215,6 +230,18 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
 
         override fun showEditHabitScreen(habit: Habit) {
             startActivity(IntentFactory().startEditActivity(this@ShowHabitActivity, habit))
+        }
+
+        override fun showTagsDialog() {
+            organizationDialogs.editTags(habit)
+        }
+
+        override fun showReminderTimesDialog() {
+            ReminderTimesDialog.newInstance(habit.id!!).show(supportFragmentManager, "reminderTimes")
+        }
+
+        override fun showBulkSkipDialog() {
+            organizationDialogs.bulkSkip(listOf(habit))
         }
 
         override fun showMessage(m: ShowHabitMenuPresenter.Message?) {

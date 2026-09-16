@@ -2,8 +2,10 @@ package org.isoron.uhabits.core.ui
 
 import org.isoron.uhabits.core.BaseUnitTest
 import org.isoron.uhabits.core.commands.BulkSkipCommand
+import org.isoron.uhabits.core.commands.ChangeHabitSectionCommand
 import org.isoron.uhabits.core.commands.ChangeHabitTagsCommand
 import org.isoron.uhabits.core.commands.Command
+import org.isoron.uhabits.core.commands.DeleteSectionCommand
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.NumericalHabitType
@@ -58,6 +60,28 @@ class NotificationReminderLifecycleTest : BaseUnitTest() {
             commandRunner.run(BulkSkipCommand(habitList, listOf(habit), today.minus(1), today.minus(1)))
             commandRunner.run(ChangeHabitTagsCommand(habitList, listOf(habit), setOf("Health")))
             verifyNoInteractions(system)
+        } finally {
+            tray.stopListening()
+        }
+    }
+
+    @Test
+    fun testSectionChangesLeaveCurrentNotificationAlone() {
+        val system: NotificationTray.SystemTray = mock()
+        val tray = NotificationTray(taskRunner, commandRunner, mock<Preferences>(), system)
+        val habit = reminderHabit()
+        val section = sectionList.add("Morning")
+        val today = DateUtils.getTodayWithOffset()
+        val time = DateUtils.getUtcTime()
+        tray.show(habit, today, time)
+        clearInvocations(system)
+        tray.startListening()
+        try {
+            commandRunner.run(ChangeHabitSectionCommand(habitList, listOf(habit), section.id))
+            commandRunner.run(DeleteSectionCommand(sectionList, habitList, section.id))
+            verifyNoInteractions(system)
+            tray.onNotificationsChanged()
+            verify(system).showNotification(habit, habit.id!!.toInt(), today, time)
         } finally {
             tray.stopListening()
         }

@@ -40,13 +40,17 @@ source.
 
 * **Reminders.** Schedule multiple daily reminder times for each habit, all sharing its chosen weekdays. Select a habit and choose **Reminder times** to add, edit, or remove times. Easily check or snooze your habit directly from the notification. Snooze pauses all times for that habit until the chosen time, then its regular schedule resumes.
 
-* **Widgets.** Be reminded of your habits whenever you unlock your phone. Colorful widgets allow you to track your habits directly from your home screen, without even opening the app.
+* **Widgets.** Track habits directly from your home screen. Choose one or more habits, or use section shortcuts to check their eligible habits, then tap Save. Multiple habits use the existing swipeable stack widget.
 
 * **Take control of your data.** If you want to further analyze your data, or move it to another service, Loop allows you to export it to spreadsheets (CSV) or to a database file (SQLite). For power users, checkmarks can be added through other apps, such as Tasker.
 
 * **No limitations.** Track as many habits as you wish. Loop imposes no artificial limits on how many habits you can have. All features are available to all users. There are no in-app purchases.
 
-* **Tags and saved filters.** Organize habits with multiple tags and save combinations of tags, visibility, and sorting. Select a date range to skip unrecorded days without overwriting existing entries or notes. See [Organizing habits](docs/HABIT_ORGANIZATION.md).
+* **Tags and saved filters.** Choose tags from a checklist and save combinations of tags, visibility, and sorting. Habit details show tags and sections, with shortcuts for tags, reminder times, and date-range skips that preserve existing entries and notes. See [Organizing habits](docs/HABIT_ORGANIZATION.md).
+
+* **Quick habit creation.** Start directly in the editor, choose Yes or No or Measurable, and expand More options for Question and Notes. Drafts survive rotation.
+
+* **Sections.** Assign one section per habit, optionally group the list in your preferred section order with Other last, and manage sections in Settings. Saved filters remember grouping; database backups and CSV exports include section assignments.
 
 * **Completely ad-free and open source.** There are no advertisements, annoying notifications or intrusive permissions in this app, and there will never be. The app is completely open-source (GPLv3).
 

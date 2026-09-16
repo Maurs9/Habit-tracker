@@ -88,6 +88,7 @@ class CheckmarkPanelView(
             val timestamp = today.minus(index + dataOffset)
             button.habitName = habitName
             button.timestamp = timestamp
+            button.isToday = index + dataOffset == 0
             button.value = when {
                 index + dataOffset < values.size -> values[index + dataOffset]
                 else -> UNKNOWN

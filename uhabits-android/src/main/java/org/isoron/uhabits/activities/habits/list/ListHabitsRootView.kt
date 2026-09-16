@@ -20,9 +20,11 @@
 package org.isoron.uhabits.activities.habits.list
 
 import android.content.Context
+import android.graphics.Color
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
+import androidx.core.graphics.ColorUtils
 import nl.dionsegijn.konfetti.xml.KonfettiView
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ScrollableChart
@@ -34,7 +36,6 @@ import org.isoron.uhabits.activities.habits.list.views.HabitCardListViewFactory
 import org.isoron.uhabits.activities.habits.list.views.HeaderView
 import org.isoron.uhabits.activities.habits.list.views.HintView
 import org.isoron.uhabits.core.models.ModelObservable
-import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.screens.habits.list.HintListFactory
@@ -97,16 +98,17 @@ class ListHabitsRootView @Inject constructor(
         rootView.setupToolbar(
             toolbar = tbar,
             title = resources.getString(R.string.main_activity_title),
-            color = PaletteColor(17),
             displayHomeAsUpEnabled = false,
             theme = currentTheme()
         )
+        tbar.setSubtitleTextColor(ColorUtils.setAlphaComponent(Color.WHITE, (255 * 0.7f).toInt()))
         addView(rootView, MATCH_PARENT, MATCH_PARENT)
         listAdapter.setListView(listView)
     }
 
     override fun onModelChange() {
         updateEmptyView()
+        updateSubtitle()
     }
 
     private fun setupControllers() {
@@ -123,6 +125,7 @@ class ListHabitsRootView @Inject constructor(
         super.onAttachedToWindow()
         setupControllers()
         listAdapter.observable.addListener(this)
+        updateSubtitle()
     }
 
     override fun onDetachedFromWindow() {
@@ -157,6 +160,26 @@ class ListHabitsRootView @Inject constructor(
             }
         } else {
             llEmpty.hide()
+        }
+    }
+
+    private fun updateSubtitle() {
+        if (listAdapter.hasNoHabit()) {
+            tbar.subtitle = null
+            return
+        }
+        val count = listAdapter.habitCount
+        val progress = if (preferences.showCompleted) {
+            val done = listAdapter.completedTodayCount()
+            resources.getQuantityString(R.plurals.subtitle_done, done, done, count)
+        } else {
+            resources.getQuantityString(R.plurals.subtitle_to_go, count, count)
+        }
+        val tags = preferences.selectedTags.sortedWith(String.CASE_INSENSITIVE_ORDER)
+        tbar.subtitle = if (tags.isEmpty()) {
+            progress
+        } else {
+            progress + resources.getString(R.string.subtitle_separator) + tags.joinToString(", ")
         }
     }
 }

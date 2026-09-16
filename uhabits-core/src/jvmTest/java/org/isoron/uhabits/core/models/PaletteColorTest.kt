@@ -1,6 +1,7 @@
 package org.isoron.uhabits.core.models
 
 import org.isoron.platform.gui.Color
+import org.isoron.uhabits.core.models.memory.MemoryModelFactory
 import org.isoron.uhabits.core.ui.views.DarkTheme
 import org.isoron.uhabits.core.ui.views.LightTheme
 import org.isoron.uhabits.core.ui.views.PureBlackTheme
@@ -23,11 +24,18 @@ class PaletteColorTest {
             val expectedCsv = color.toCsvColor()
             val expectedLight = Color(expectedCsv.removePrefix("#").toInt(16))
             assertEquals(expectedLight, light.color(color))
-            assertEquals(expectedLight, widget.color(color))
+            assertEquals(dark.color(color), widget.color(color))
             assertNotEquals(Color.BLACK, light.color(color))
             assertNotEquals(Color.WHITE, dark.color(color))
             assertEquals(dark.color(color), black.color(color))
         }
+    }
+
+    @Test
+    fun newHabitsDefaultToVibrantBlue() {
+        assertEquals(PaletteColor(27), PaletteColor.DEFAULT)
+        assertEquals("#1565C0", PaletteColor.DEFAULT.toCsvColor())
+        assertEquals(PaletteColor.DEFAULT, MemoryModelFactory().buildHabit().color)
     }
 
     @Test

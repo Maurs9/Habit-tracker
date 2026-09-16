@@ -153,11 +153,7 @@ object CommonSteps : BaseUserInterfaceTest() {
                     .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
 
             Screen.EDIT_HABIT ->
-                Espresso.onView(ViewMatchers.withId(R.id.questionInput))
-                    .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
-
-            Screen.SELECT_HABIT_TYPE ->
-                Espresso.onView(ViewMatchers.withText(R.string.yes_or_no_example))
+                Espresso.onView(ViewMatchers.withId(R.id.nameInput))
                     .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
 
             else -> throw IllegalStateException()
@@ -176,8 +172,6 @@ object CommonSteps : BaseUserInterfaceTest() {
 
     fun createHabit(habitName: String) {
         ListHabitsSteps.clickMenu(ListHabitsSteps.MenuItem.ADD)
-        verifyShowsScreen(Screen.SELECT_HABIT_TYPE)
-        clickText("Yes or No")
         verifyShowsScreen(Screen.EDIT_HABIT)
         EditHabitSteps.typeName(habitName)
         EditHabitSteps.clickSave()
@@ -200,6 +194,6 @@ object CommonSteps : BaseUserInterfaceTest() {
     }
 
     enum class Screen {
-        LIST_HABITS, SHOW_HABIT, EDIT_HABIT, SELECT_HABIT_TYPE
+        LIST_HABITS, SHOW_HABIT, EDIT_HABIT
     }
 }

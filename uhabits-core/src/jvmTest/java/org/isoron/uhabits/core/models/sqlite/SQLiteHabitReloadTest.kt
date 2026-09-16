@@ -38,7 +38,7 @@ class SQLiteHabitReloadTest : BaseUnitTest() {
             assertTrue(habit.scores[today].value > 0)
 
             val incomplete = habits.getFiltered(HabitMatcher(isCompletedAllowed = false))
-            val cache = HabitCardListCache(habits, commandRunner, taskRunner, StandardLogging())
+            val cache = HabitCardListCache(habits, factory.buildSectionList(), commandRunner, taskRunner, StandardLogging())
             cache.setCheckmarkCount(3)
             cache.refreshAllHabits()
             assertSame(habit, cache.getHabitByPosition(0))

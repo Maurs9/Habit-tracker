@@ -25,6 +25,7 @@ import org.isoron.uhabits.core.commands.ChangeHabitTagsCommand
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
+import org.isoron.uhabits.core.commands.SectionCommand
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitMatcher
@@ -47,7 +48,7 @@ class ReminderScheduler @Inject constructor(
 ) : CommandRunner.Listener {
     @Synchronized
     override fun onCommandFinished(command: Command) {
-        if (command is ChangeHabitColorCommand || command is ChangeHabitTagsCommand) return
+        if (command is ChangeHabitColorCommand || command is ChangeHabitTagsCommand || command is SectionCommand) return
         if (command is BulkSkipCommand) {
             for (habit in command.selected) schedule(habit)
             return

@@ -112,6 +112,12 @@ class NumberButtonView(
         }
 
     var onEdit: () -> Unit = { }
+    var isToday = false
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     var habitName = ""
     var timestamp: Timestamp? = null
 
@@ -176,6 +182,7 @@ class NumberButtonView(
 
         private val lowContrast: Int
         private val mediumContrast: Int
+        private val todayHighlight = TodayHighlight(this@NumberButtonView)
 
         private val paint = TextPaint().apply {
             typeface = getFontAwesome()
@@ -204,6 +211,7 @@ class NumberButtonView(
         }
 
         fun draw(canvas: Canvas) {
+            if (isToday) canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), todayHighlight.paint)
             val activeColor = when {
                 value < 0.0 -> lowContrast
                 (targetType == AT_LEAST) && (value >= threshold) -> color
@@ -242,9 +250,9 @@ class NumberButtonView(
             }
 
             pNumber.textSize = textSize
-            pNumber.color = activeColor
+            pNumber.color = if (isToday) todayHighlight.foreground(activeColor) else activeColor
             pNumber.typeface = typeface
-            pUnit.color = activeColor
+            pUnit.color = pNumber.color
 
             if (units.isBlank()) {
                 // Draw number without units
@@ -266,7 +274,7 @@ class NumberButtonView(
                 canvas.drawText(trimmedUnits, rect.centerX(), rect.centerY(), pUnit)
             }
 
-            drawNotesIndicator(canvas, color, em, notes)
+            drawNotesIndicator(canvas, if (isToday) todayHighlight.foreground(color, 3.0) else color, em, notes)
         }
     }
 }

@@ -36,7 +36,7 @@ class ListHabitsMenuBehavior @Inject constructor(
     private var showArchived: Boolean
 
     fun onCreateHabit() {
-        screen.showSelectHabitTypeDialog()
+        screen.showCreateHabitScreen()
     }
 
     fun onViewFAQ() {
@@ -65,6 +65,12 @@ class ListHabitsMenuBehavior @Inject constructor(
 
     fun onSortByManually() {
         adapter.primaryOrder = HabitList.Order.BY_POSITION
+    }
+
+    fun onToggleGroupBySection() {
+        val enabled = !preferences.groupBySection
+        preferences.groupBySection = enabled
+        adapter.groupBySection = enabled
     }
 
     fun onSortByColor() {
@@ -102,6 +108,7 @@ class ListHabitsMenuBehavior @Inject constructor(
     fun onPreferencesChanged() {
         showCompleted = preferences.showCompleted
         showArchived = preferences.showArchived
+        adapter.groupBySection = preferences.groupBySection
         updateAdapterFilter()
     }
 
@@ -116,13 +123,15 @@ class ListHabitsMenuBehavior @Inject constructor(
         showArchived,
         showCompleted,
         adapter.primaryOrder,
-        adapter.secondaryOrder
+        adapter.secondaryOrder,
+        preferences.groupBySection
     )
 
     fun onApplySavedFilter(filter: SavedHabitFilter) {
         preferences.showArchived = filter.showArchived
         preferences.showCompleted = filter.showCompleted
         preferences.selectedTags = filter.tags
+        preferences.groupBySection = filter.groupBySection
         adapter.primaryOrder = filter.primaryOrder
         adapter.secondaryOrder = filter.secondaryOrder
         onPreferencesChanged()
@@ -154,6 +163,7 @@ class ListHabitsMenuBehavior @Inject constructor(
         fun setFilter(matcher: HabitMatcher)
         var primaryOrder: HabitList.Order
         var secondaryOrder: HabitList.Order
+        var groupBySection: Boolean
     }
 
     interface Screen {
@@ -161,7 +171,7 @@ class ListHabitsMenuBehavior @Inject constructor(
         fun showAboutScreen()
         fun showFAQScreen()
         fun showSettingsScreen()
-        fun showSelectHabitTypeDialog()
+        fun showCreateHabitScreen()
     }
 
     init {

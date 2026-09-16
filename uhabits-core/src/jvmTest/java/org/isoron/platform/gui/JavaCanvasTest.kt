@@ -25,6 +25,7 @@ import org.junit.Assert.fail
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import java.io.File
 
 class JavaCanvasTest {
     @Test
@@ -40,7 +41,7 @@ suspend fun assertRenders(
     canvas: Canvas
 ) {
     val actualImage = canvas.toImage()
-    val failedActualPath = "/tmp/failed/$path"
+    val failedActualPath = File("build/failed", path).absolutePath
     val failedExpectedPath = failedActualPath.replace(
         ".png",
         ".expected.png"

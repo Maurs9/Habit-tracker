@@ -46,7 +46,7 @@ class HabitCardListAdapter @Inject constructor(
     private val cache: HabitCardListCache,
     private val preferences: Preferences,
     private val midnightTimer: MidnightTimer
-) : RecyclerView.Adapter<HabitCardViewHolder?>(),
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>(),
     HabitCardListCache.Listener,
     MidnightTimer.MidnightListener,
     ListHabitsMenuBehavior.Adapter,
@@ -65,6 +65,12 @@ class HabitCardListAdapter @Inject constructor(
     fun hasNoHabit(): Boolean {
         return cache.hasNoHabit()
     }
+
+    fun completedTodayCount(): Int = cache.completedTodayCount()
+
+    val habitCount: Int get() = cache.habitCount
+
+    fun isSameSection(from: Int, to: Int): Boolean = cache.isSameSection(from, to)
 
     /**
      * Sets all items as not selected.
@@ -91,12 +97,15 @@ class HabitCardListAdapter @Inject constructor(
     }
 
     override fun getItemCount(): Int {
-        return cache.habitCount
+        return cache.itemCount
     }
 
     override fun getItemId(position: Int): Long {
-        return getItem(position)!!.id!!
+        return cache.getItemByPosition(position)!!.itemId
     }
+
+    override fun getItemViewType(position: Int): Int =
+        if (cache.getItemByPosition(position) is HabitCardListCache.ListItem.Header) 1 else 0
 
     /**
      * Returns whether list of selected items is empty.
@@ -117,10 +126,15 @@ class HabitCardListAdapter @Inject constructor(
     }
 
     override fun onBindViewHolder(
-        holder: HabitCardViewHolder,
+        holder: RecyclerView.ViewHolder,
         position: Int
     ) {
         if (listView == null) return
+        if (holder is SectionHeaderViewHolder) {
+            listView!!.bindHeaderView(holder, cache.getItemByPosition(position) as HabitCardListCache.ListItem.Header)
+            return
+        }
+        holder as HabitCardViewHolder
         val habit = cache.getHabitByPosition(position)
         val score = cache.getScore(habit!!.id!!)
         val checkmarks = cache.getCheckmarks(habit.id!!)
@@ -129,18 +143,19 @@ class HabitCardListAdapter @Inject constructor(
         listView!!.bindCardView(holder, habit, score, checkmarks, notes, selected)
     }
 
-    override fun onViewAttachedToWindow(holder: HabitCardViewHolder) {
-        listView!!.attachCardView(holder)
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        if (holder is HabitCardViewHolder) listView!!.attachCardView(holder)
     }
 
-    override fun onViewDetachedFromWindow(holder: HabitCardViewHolder) {
-        listView!!.detachCardView(holder)
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        if (holder is HabitCardViewHolder) listView!!.detachCardView(holder)
     }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): HabitCardViewHolder {
+    ): RecyclerView.ViewHolder {
+        if (viewType == 1) return SectionHeaderViewHolder(listView!!.createSectionHeaderView())
         val view = listView!!.createHabitCardView()
         return HabitCardViewHolder(view)
     }
@@ -244,6 +259,13 @@ class HabitCardListAdapter @Inject constructor(
             preferences.defaultSecondaryOrder = value
         }
 
+    override var groupBySection: Boolean
+        get() = cache.groupBySection
+        set(value) {
+            preferences.groupBySection = value
+            cache.groupBySection = value
+        }
+
     /**
      * Selects or deselects the item at a given position.
      *
@@ -263,6 +285,7 @@ class HabitCardListAdapter @Inject constructor(
         )
         cache.secondaryOrder = preferences.defaultSecondaryOrder
         cache.primaryOrder = preferences.defaultPrimaryOrder
+        cache.groupBySection = preferences.groupBySection
         setHasStableIds(true)
     }
 }

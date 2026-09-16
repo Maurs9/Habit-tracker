@@ -63,6 +63,13 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
     }
 
     @Test
+    fun testOnCreateHabit() {
+        behavior.onCreateHabit()
+        verify(screen).showCreateHabitScreen()
+        verifyNoMoreInteractions(screen)
+    }
+
+    @Test
     fun testInitialFilter() {
         whenever(prefs.showArchived).thenReturn(true)
         whenever(prefs.showCompleted).thenReturn(true)
@@ -150,6 +157,18 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
         behavior.onToggleShowCompleted()
         verify(adapter).setFilter(matcherCaptor.capture())
         assertFalse(matcherCaptor.lastValue.isCompletedAllowed)
+    }
+
+    @Test
+    fun testOnToggleGroupBySection() {
+        behavior.onToggleGroupBySection()
+        verify(prefs).groupBySection = true
+        verify(adapter).groupBySection = true
+        whenever(prefs.groupBySection).thenReturn(true)
+        clearInvocations(adapter)
+        behavior.onToggleGroupBySection()
+        verify(prefs).groupBySection = false
+        verify(adapter).groupBySection = false
     }
 
     @Test

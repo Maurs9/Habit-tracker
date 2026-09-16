@@ -40,6 +40,18 @@ class ShowHabitMenu(
 
     fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_tags -> {
+                presenter.onEditTags()
+                return true
+            }
+            R.id.action_reminder_times -> {
+                presenter.onEditReminderTimes()
+                return true
+            }
+            R.id.action_bulk_skip -> {
+                presenter.onBulkSkip()
+                return true
+            }
             R.id.action_edit_habit -> {
                 presenter.onEditHabit()
                 return true

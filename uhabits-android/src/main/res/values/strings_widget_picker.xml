@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_pick_habits">Choose habits</string>
+    <string name="widget_select_section">Select habits in %1$s</string>
+    <string name="widget_selection_changed">Some selected habits are no longer available. Review your selection and save again.</string>
+</resources>

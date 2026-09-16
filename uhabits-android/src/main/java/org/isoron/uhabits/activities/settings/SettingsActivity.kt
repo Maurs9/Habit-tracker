@@ -24,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
-import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.databinding.SettingsActivityBinding
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.applyRootViewInsets
@@ -41,7 +40,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.root.setupToolbar(
             toolbar = binding.toolbar,
             title = resources.getString(R.string.settings),
-            color = PaletteColor(11),
             theme = themeSwitcher.currentTheme
         )
         binding.root.applyRootViewInsets()

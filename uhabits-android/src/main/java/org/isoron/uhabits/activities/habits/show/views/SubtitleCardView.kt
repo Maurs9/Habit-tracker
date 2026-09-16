@@ -28,6 +28,7 @@ import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.edit.formatFrequency
 import org.isoron.uhabits.activities.habits.list.views.toShortString
+import org.isoron.uhabits.core.models.HabitTags
 import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.ui.screens.habits.show.views.SubtitleCardState
 import org.isoron.uhabits.databinding.ShowHabitSubtitleBinding
@@ -43,6 +44,8 @@ class SubtitleCardView(context: Context, attrs: AttributeSet) : LinearLayout(con
         binding.targetIcon.typeface = fontAwesome
         binding.frequencyIcon.typeface = fontAwesome
         binding.reminderIcon.typeface = fontAwesome
+        binding.sectionIcon.typeface = fontAwesome
+        binding.tagsIcon.typeface = fontAwesome
     }
 
     @SuppressLint("SetTextI18n")
@@ -64,6 +67,18 @@ class SubtitleCardView(context: Context, attrs: AttributeSet) : LinearLayout(con
             resources.getString(R.string.reminder_off)
         }
         binding.targetText.text = "${state.targetValue.toShortString()} ${state.unit}"
+
+        val section = state.sectionName.orEmpty()
+        val tags = HabitTags.formatInline(state.tags)
+        binding.sectionLabel.text = section
+        binding.tagsLabel.text = tags
+        binding.sectionLabel.contentDescription = "${resources.getString(R.string.habit_section)}: $section"
+        binding.tagsLabel.contentDescription = "${resources.getString(R.string.habit_tags)}: $tags"
+        binding.sectionIcon.visibility = if (section.isBlank()) View.GONE else View.VISIBLE
+        binding.sectionLabel.visibility = binding.sectionIcon.visibility
+        binding.tagsIcon.visibility = if (tags.isEmpty()) View.GONE else View.VISIBLE
+        binding.tagsLabel.visibility = binding.tagsIcon.visibility
+        binding.organizationRow.visibility = if (section.isBlank() && tags.isEmpty()) View.GONE else View.VISIBLE
 
         binding.questionLabel.visibility = View.VISIBLE
         binding.targetIcon.visibility = View.VISIBLE

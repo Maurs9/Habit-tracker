@@ -59,6 +59,10 @@ object BackupValidator {
             if (version >= 24) habits.add("uuid")
             if (version >= 26) habits.add("tags")
             if (version >= 27) habits.add("reminder_times")
+            if (version >= 28) {
+                habits.add("section_id")
+                requireColumns(db, "Sections", setOf("id", "name", "position"))
+            }
             val entries = mutableSetOf("id", "habit", "timestamp")
             if (version >= 16) entries.add("value")
             if (version >= 25) entries.add("notes")
@@ -113,6 +117,10 @@ object BackupValidator {
         if (version >= 24) invalidHabit.addAll(listOf("uuid IS NULL", "uuid = ''"))
         if (version >= 26) invalidHabit.add("tags IS NULL")
         if (version >= 27) invalidHabit.add("typeof(reminder_times) != 'text'")
+        if (version >= 28) {
+            invalidHabit.add("(section_id IS NOT NULL AND typeof(section_id) != 'integer')")
+            validateSections(db)
+        }
         invalidHabit.addAll(
             listOf(
                 "(reminder_hour IS NULL) != (reminder_min IS NULL)",
@@ -159,6 +167,21 @@ object BackupValidator {
                 if (it.isNull(0) && times.isNotEmpty()) {
                     throw IOException("Secondary reminder times require an enabled primary reminder")
                 }
+            }
+        }
+    }
+
+    private fun validateSections(db: SQLiteDatabase) {
+        requireNoRows(
+            db,
+            "SELECT 1 FROM Sections WHERE typeof(id) != 'integer' OR id < 1 " +
+                "OR typeof(name) != 'text' OR typeof(position) != 'integer' " +
+                "OR position NOT BETWEEN -2147483648 AND 2147483647 LIMIT 1"
+        )
+        requireNoRows(db, "SELECT id FROM Sections GROUP BY id HAVING count(*) > 1 LIMIT 1")
+        db.rawQuery("SELECT name FROM Sections", null).use {
+            while (it.moveToNext()) {
+                if (it.getString(0).isBlank()) throw IOException("Blank section name")
             }
         }
     }

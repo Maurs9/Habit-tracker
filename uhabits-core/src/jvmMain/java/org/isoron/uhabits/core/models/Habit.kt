@@ -22,7 +22,7 @@ import org.isoron.uhabits.core.utils.DateUtils
 import java.util.UUID
 
 data class Habit(
-    var color: PaletteColor = PaletteColor(8),
+    var color: PaletteColor = PaletteColor.DEFAULT,
     var description: String = "",
     var frequency: Frequency = Frequency.DAILY,
     var id: Long? = null,
@@ -41,7 +41,8 @@ data class Habit(
     val originalEntries: EntryList,
     val scores: ScoreList,
     val streaks: StreakList,
-    var extraReminderTimes: Set<Int> = emptySet()
+    var extraReminderTimes: Set<Int> = emptySet(),
+    var sectionId: Long? = null
 ) {
     init {
         if (uuid == null) this.uuid = UUID.randomUUID().toString().replace("-", "")
@@ -75,6 +76,10 @@ data class Habit(
     fun isCompletedToday(): Boolean {
         val today = DateUtils.getTodayWithOffset()
         val value = computedEntries.get(today).value
+        return isCompleted(value)
+    }
+
+    fun isCompleted(value: Int): Boolean {
         return if (isNumerical) {
             when (targetType) {
                 NumericalHabitType.AT_LEAST -> value / 1000.0 >= targetValue
@@ -139,6 +144,7 @@ data class Habit(
         this.position = other.position
         this.question = other.question
         this.tags = other.tags.toSet()
+        this.sectionId = other.sectionId
         this.reminder = other.reminder
         this.extraReminderTimes = other.reminderTimes.filter {
             it != other.reminder?.let { r -> r.hour * 60 + r.minute }
@@ -163,6 +169,7 @@ data class Habit(
         if (position != other.position) return false
         if (question != other.question) return false
         if (tags != other.tags) return false
+        if (sectionId != other.sectionId) return false
         if (reminder != other.reminder) return false
         if (extraReminderTimes != other.extraReminderTimes) return false
         if (targetType != other.targetType) return false
@@ -184,6 +191,7 @@ data class Habit(
         result = 31 * result + position
         result = 31 * result + question.hashCode()
         result = 31 * result + tags.hashCode()
+        result = 31 * result + (sectionId?.hashCode() ?: 0)
         result = 31 * result + (reminder?.hashCode() ?: 0)
         result = 31 * result + extraReminderTimes.hashCode()
         result = 31 * result + targetType.value

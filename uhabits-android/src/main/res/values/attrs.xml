@@ -49,7 +49,6 @@
 
     <attr name="widgetShadowAlpha" format="float"/>
     <attr name="widgetBackgroundAlpha" format="float"/>
-    <attr name="palette" format="reference"/>
 
     <!-- Pre-Lollipop -->
     <attr name="cardBackground" format="reference"/>

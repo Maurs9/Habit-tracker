@@ -50,6 +50,7 @@ class HabitTest : BaseUnitTest() {
         model.color = PaletteColor(0)
         model.frequency = Frequency(10, 20)
         model.reminder = Reminder(8, 30, WeekdayList(1))
+        model.sectionId = 42L
         val habit = modelFactory.buildHabit()
         habit.copyFrom(model)
         assertEquals(habit.isArchived, model.isArchived)
@@ -57,6 +58,15 @@ class HabitTest : BaseUnitTest() {
         assertThat(habit.color, `is`(model.color))
         assertThat(habit.frequency, equalTo(model.frequency))
         assertThat(habit.reminder, equalTo(model.reminder))
+        assertEquals(model.sectionId, habit.sectionId)
+        assertEquals(model, habit)
+        assertEquals(model.hashCode(), habit.hashCode())
+        habit.sectionId = null
+        assertNotEquals(model, habit)
+        assertNotEquals(model.hashCode(), habit.hashCode())
+        model.sectionId = null
+        habit.copyFrom(model)
+        assertEquals(model, habit)
     }
 
     @Test
@@ -75,6 +85,55 @@ class HabitTest : BaseUnitTest() {
         h.originalEntries.add(Entry(getToday(), Entry.YES_MANUAL))
         h.recompute()
         assertTrue(h.isCompletedToday())
+    }
+
+    @Test
+    fun test_isCompleted_value() {
+        val habit = modelFactory.buildHabit()
+        for (value in listOf(Entry.YES_MANUAL, Entry.YES_AUTO, Entry.SKIP)) {
+            assertTrue(habit.isCompleted(value))
+        }
+        for (value in listOf(Entry.NO, Entry.UNKNOWN)) {
+            assertFalse(habit.isCompleted(value))
+        }
+    }
+
+    @Test
+    fun test_isCompleted_value_numerical() {
+        val habit = modelFactory.buildHabit().apply {
+            type = HabitType.NUMERICAL
+            targetType = NumericalHabitType.AT_LEAST
+            targetValue = 10.5
+            frequency = Frequency(1, 7)
+        }
+        for (value in listOf(10500, 10501, 20000)) assertTrue(habit.isCompleted(value))
+        for (value in listOf(10499, 2000, Entry.NO, Entry.UNKNOWN, Entry.SKIP)) {
+            assertFalse(habit.isCompleted(value))
+        }
+        habit.targetType = NumericalHabitType.AT_MOST
+        for (value in listOf(0, 10499, 10500, 10501, Entry.UNKNOWN, Entry.SKIP)) {
+            assertFalse(habit.isCompleted(value))
+        }
+    }
+
+    @Test
+    fun test_isCompletedToday_usesComputedValueRule() {
+        val habit = modelFactory.buildHabit()
+        for (type in HabitType.entries) {
+            habit.type = type
+            for (targetType in NumericalHabitType.entries) {
+                habit.targetType = targetType
+                habit.targetValue = 10.5
+                for (value in listOf(Entry.UNKNOWN, Entry.NO, Entry.SKIP, Entry.YES_MANUAL, 10500, 11000)) {
+                    habit.originalEntries.add(Entry(getToday(), value))
+                    habit.recompute()
+                    assertEquals(
+                        habit.isCompleted(habit.computedEntries.get(getToday()).value),
+                        habit.isCompletedToday()
+                    )
+                }
+            }
+        }
     }
 
     @Test

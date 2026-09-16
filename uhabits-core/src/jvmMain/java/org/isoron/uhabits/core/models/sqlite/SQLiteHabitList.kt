@@ -34,6 +34,11 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
     private val repository: Repository<HabitRecord> = modelFactory.buildHabitListRepository()
     private val list: MemoryHabitList = MemoryHabitList()
     private var loaded = false
+
+    init {
+        modelFactory.buildSectionList().registerHabitList(this)
+    }
+
     private fun loadRecords(
         retainedHabits: Map<Long?, Habit> = emptyMap(),
         recompute: Boolean = false
@@ -156,6 +161,8 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
         list.removeAll()
         repository.execSQL("delete from habits")
         repository.execSQL("delete from repetitions")
+        repository.execSQL("delete from sections")
+        (modelFactory.buildSectionList() as SQLiteSectionList).reload()
         observable.notifyListeners()
     }
 

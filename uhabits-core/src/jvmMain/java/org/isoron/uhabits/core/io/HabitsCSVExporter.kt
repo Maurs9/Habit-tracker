@@ -24,6 +24,7 @@ import org.isoron.uhabits.core.models.EntryList
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.Score
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.utils.DateFormats
 import org.isoron.uhabits.core.utils.DateUtils
@@ -44,6 +45,7 @@ import kotlin.math.min
  */
 class HabitsCSVExporter(
     private val allHabits: HabitList,
+    private val sectionList: SectionList,
     private val selectedHabits: List<Habit>,
     dir: File
 ) {
@@ -86,7 +88,7 @@ class HabitsCSVExporter(
         File(exportDirName).mkdirs()
         val out = FileWriter(exportDirName + filename)
         generatedFilenames.add(filename)
-        allHabits.writeCSV(out)
+        allHabits.writeCSV(out, sectionList.nameMap())
         out.close()
         for (h in selectedHabits) {
             val sane = sanitizeFilename(h.name)

@@ -47,22 +47,24 @@ class HabitCardListController @Inject constructor(
     }
 
     override fun drop(from: Int, to: Int) {
-        if (from == to) return
-        cancelSelection()
+        if (from == to || !adapter.isSameSection(from, to)) return
 
         val habitFrom = adapter.getItem(from)
         val habitTo = adapter.getItem(to)
         if (habitFrom == null || habitTo == null) return
 
+        cancelSelection()
         adapter.performReorder(from, to)
         behavior.onReorderHabit(habitFrom, habitTo)
     }
 
     override fun onItemClick(position: Int) {
+        if (adapter.getItem(position) == null) return
         activeMode.onItemClick(position)
     }
 
     override fun onItemLongClick(position: Int) {
+        if (adapter.getItem(position) == null) return
         activeMode.onItemLongClick(position)
     }
 
@@ -78,6 +80,7 @@ class HabitCardListController @Inject constructor(
     }
 
     override fun startDrag(position: Int) {
+        if (adapter.getItem(position) == null) return
         activeMode.startDrag(position)
     }
 

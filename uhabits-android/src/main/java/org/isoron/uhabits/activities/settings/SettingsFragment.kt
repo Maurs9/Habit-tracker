@@ -235,6 +235,13 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         val key = preference.key ?: return false
         when (key) {
+            "manageSections" -> {
+                if (parentFragmentManager.findFragmentByTag("sections") == null) {
+                    SectionsDialog().show(parentFragmentManager, "sections")
+                }
+                return true
+            }
+
             "importData" -> {
                 try {
                     importDocument.launch(arrayOf("*/*"))

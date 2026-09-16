@@ -21,7 +21,6 @@ package org.isoron.uhabits.activities.habits.list.views
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
@@ -102,13 +101,15 @@ class HeaderView(
 
     private inner class Drawer {
         private val rect = RectF()
+        private val regularTextColor = sres.getColor(R.attr.contrast60)
+        private val todayTextColor = sres.getColor(R.attr.contrast100)
+        private val todayPaint = todayTintPaint()
         private val paint = TextPaint().apply {
-            color = Color.BLACK
             isAntiAlias = true
             textSize = dim(R.dimen.tinyTextSize)
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
-            color = sres.getColor(R.attr.contrast60)
+            color = regularTextColor
         }
 
         fun draw(canvas: Canvas) {
@@ -139,6 +140,9 @@ class HeaderView(
                     )
                 }
 
+                val isToday = index == 0 && dataOffset == 0
+                if (isToday) canvas.drawRect(rect, todayPaint)
+                paint.color = if (isToday) todayTextColor else regularTextColor
                 val y1 = rect.centerY() - 0.25 * em
                 val y2 = rect.centerY() + 1.25 * em
                 val lines = DateUtils.formatHeaderDate(day).uppercase().split("\n")

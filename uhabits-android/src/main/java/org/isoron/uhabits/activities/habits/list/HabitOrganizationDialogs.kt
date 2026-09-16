@@ -6,17 +6,23 @@ import android.util.Log
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.Pair
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.dialogs.SectionDialogs
+import org.isoron.uhabits.activities.common.dialogs.TagPickerDialog
 import org.isoron.uhabits.core.commands.BulkSkipCommand
+import org.isoron.uhabits.core.commands.ChangeHabitSectionCommand
 import org.isoron.uhabits.core.commands.ChangeHabitTagsCommand
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitTags
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.preferences.SavedHabitFilter
@@ -26,7 +32,6 @@ import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsMenuBehavior
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.inject.ActivityScope
-import java.util.Locale
 import javax.inject.Inject
 
 @ActivityScope
@@ -35,30 +40,37 @@ class HabitOrganizationDialogs @Inject constructor(
     private val habits: HabitList,
     private val preferences: Preferences,
     private val commandRunner: CommandRunner,
-    private val taskRunner: TaskRunner
+    private val taskRunner: TaskRunner,
+    private val sectionList: SectionList
 ) {
     private val activity = context as AppCompatActivity
+    private val sectionDialogs = SectionDialogs(activity, sectionList)
+
+    init {
+        activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                sectionDialogs.dismiss()
+            }
+        })
+    }
+
+    fun editSection(habits: List<Habit>) {
+        if (habits.isEmpty()) return
+        val ids = habits.map { it.sectionId }.distinct()
+        sectionDialogs.selectSection(ids.singleOrNull(), mixed = ids.size > 1) { id ->
+            commandRunner.run(ChangeHabitSectionCommand(this.habits, habits, id))
+        }
+    }
 
     fun editTags(habit: Habit) {
-        val input = textInput(multiline = true).apply {
-            hint = activity.getString(R.string.habit_tags_hint)
-            setText(HabitTags.format(habit.tags))
-        }
-        dialogBuilder()
-            .setTitle(R.string.habit_tags)
-            .setView(input)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.save) { _, _ ->
-                commandRunner.run(
-                    ChangeHabitTagsCommand(habits, listOf(habit), HabitTags.parse(input.text.toString()))
-                )
-            }
-            .show()
+        val manager = activity.supportFragmentManager
+        if (manager.findFragmentByTag(TagPickerDialog.FRAGMENT_TAG) != null) return
+        TagPickerDialog.newInstance(habit.id!!, habit.tags, HabitTags.union(habits))
+            .show(manager, TagPickerDialog.FRAGMENT_TAG)
     }
 
     fun filterTags(behavior: ListHabitsMenuBehavior) {
-        val tags = HabitTags.normalize(habits.flatMap { it.tags } + preferences.selectedTags)
-            .sortedBy { it.lowercase(Locale.ROOT) }
+        val tags = HabitTags.union(habits, preferences.selectedTags).toList()
         if (tags.isEmpty()) {
             dialogBuilder()
                 .setTitle(R.string.filter_tags)
@@ -171,6 +183,20 @@ class HabitOrganizationDialogs @Inject constructor(
     }
 
     fun restorePendingDialogs() {
+        activity.supportFragmentManager.setFragmentResultListener(TagPickerDialog.REQUEST_KEY, activity) { _, result ->
+            val habit = habits.getById(result.getLong(TagPickerDialog.HABIT_ID, -1))
+            if (habit == null) {
+                showError(R.string.tag_habit_unavailable)
+            } else {
+                commandRunner.run(
+                    ChangeHabitTagsCommand(
+                        habits,
+                        listOf(habit),
+                        HabitTags.normalize(result.getStringArrayList(TagPickerDialog.TAGS).orEmpty())
+                    )
+                )
+            }
+        }
         val picker = activity.supportFragmentManager.findFragmentByTag(BULK_PICKER)
         if (picker is MaterialDatePicker<*>) attachBulkSkipListener(picker)
     }

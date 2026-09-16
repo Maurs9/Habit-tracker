@@ -14,6 +14,31 @@ class HabitTagsTest : BaseUnitTest() {
     }
 
     @Test
+    fun formatsInlineWithNormalizedCaseInsensitiveOrder() {
+        assertEquals(
+            "Books, articles, health, Morning routine",
+            HabitTags.formatInline(listOf(" Morning routine ", "health", "HEALTH", "Books, articles", " "))
+        )
+        assertEquals("", HabitTags.formatInline(emptySet()))
+        assertEquals("", HabitTags.formatInline(setOf(" ", "\n")))
+    }
+
+    @Test
+    fun unionsHabitAndExtraTagsInCaseInsensitiveOrder() {
+        val first = modelFactory.buildHabit().apply { tags = setOf(" zebra ", "Health", "") }
+        val second = modelFactory.buildHabit().apply { tags = setOf("health", "Apple") }
+        val tags = HabitTags.union(listOf(first, second), listOf("apple", " Morning routine ", "\n"))
+        assertEquals(listOf("Apple", "Health", "Morning routine", "zebra"), tags.toList())
+        assertEquals(setOf(" zebra ", "Health", ""), first.tags)
+    }
+
+    @Test
+    fun unionKeepsSelectedTagsMissingFromTheHabitList() {
+        assertEquals(listOf("Books, articles", "Focus"), HabitTags.union(emptyList(), setOf("Focus", "Books, articles")).toList())
+        assertEquals(emptySet(), HabitTags.union(emptyList()))
+    }
+
+    @Test
     fun matchesAllTagsWithoutChangingOtherFilters() {
         val habit = modelFactory.buildHabit().apply { tags = setOf("Health", "Morning") }
         assertTrue(HabitMatcher(requiredTags = setOf("health", "morning")).matches(habit))

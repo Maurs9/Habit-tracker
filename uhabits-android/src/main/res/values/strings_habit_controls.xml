@@ -20,44 +20,44 @@
     <string name="habit_color_description">Habit color: %1$s</string>
     <string-array name="habit_color_names">
         <item>Vibrant Red</item>
-        <item>Soft Red</item>
+        <item>Muted Red</item>
         <item>Deep Red</item>
         <item>Vibrant Coral</item>
-        <item>Soft Coral</item>
+        <item>Muted Coral</item>
         <item>Deep Coral</item>
         <item>Vibrant Orange</item>
-        <item>Soft Orange</item>
+        <item>Muted Orange</item>
         <item>Deep Orange</item>
         <item>Vibrant Amber</item>
-        <item>Soft Amber</item>
+        <item>Muted Amber</item>
         <item>Deep Amber</item>
         <item>Vibrant Yellow</item>
-        <item>Soft Yellow</item>
+        <item>Muted Yellow</item>
         <item>Deep Yellow</item>
         <item>Vibrant Lime</item>
-        <item>Soft Lime</item>
+        <item>Muted Lime</item>
         <item>Deep Lime</item>
         <item>Vibrant Green</item>
-        <item>Soft Green</item>
+        <item>Muted Green</item>
         <item>Deep Green</item>
         <item>Vibrant Teal</item>
-        <item>Soft Teal</item>
+        <item>Muted Teal</item>
         <item>Deep Teal</item>
         <item>Vibrant Cyan</item>
-        <item>Soft Cyan</item>
+        <item>Muted Cyan</item>
         <item>Deep Cyan</item>
         <item>Vibrant Blue</item>
-        <item>Soft Blue</item>
+        <item>Muted Blue</item>
         <item>Deep Blue</item>
         <item>Vibrant Purple</item>
-        <item>Soft Purple</item>
+        <item>Muted Purple</item>
         <item>Deep Purple</item>
         <item>Vibrant Pink</item>
-        <item>Soft Pink</item>
+        <item>Muted Pink</item>
         <item>Deep Pink</item>
-        <item>Light Gray</item>
         <item>Gray</item>
-        <item>Dark Slate</item>
+        <item>Dark Gray</item>
+        <item>Slate</item>
         <item>Charcoal</item>
     </string-array>
 </resources>

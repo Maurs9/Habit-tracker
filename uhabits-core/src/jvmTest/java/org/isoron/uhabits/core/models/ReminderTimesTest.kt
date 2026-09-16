@@ -78,7 +78,7 @@ class ReminderTimesTest : BaseUnitTest() {
         assertEquals(setOf("Health"), habit.tags)
         assertEquals(62, habit.reminder!!.days.toInteger())
         val csv = StringWriter().also { habitList.writeCSV(it) }.toString()
-        assertTrue(csv.contains("Tags,ReminderTimes,ReminderDays"))
-        assertTrue(csv.contains("Health,08:00;20:30,62"))
+        assertTrue(csv.contains("Tags,Section,ReminderTimes,ReminderDays"))
+        assertTrue(csv.contains("Health,,08:00;20:30,62"))
     }
 }

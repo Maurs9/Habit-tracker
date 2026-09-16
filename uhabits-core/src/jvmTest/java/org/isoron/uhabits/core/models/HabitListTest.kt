@@ -196,6 +196,7 @@ class HabitListTest : BaseUnitTest() {
         h1.description = "this is a test description"
         h1.frequency = Frequency.DAILY
         h1.color = PaletteColor(3)
+        h1.sectionId = sectionList.add("Morning").id
         val h2 = fixtures.createEmptyHabit()
         h2.name = "Wake up early"
         h2.question = "Did you wake up before 6am?"
@@ -208,14 +209,14 @@ class HabitListTest : BaseUnitTest() {
         list.add(h3)
         val expectedCSV =
             """
-            Position,Name,Type,Question,Description,FrequencyNumerator,FrequencyDenominator,Color,Unit,Target Type,Target Value,Archived?,Tags,ReminderTimes,ReminderDays
-            001,Meditate,YES_NO,Did you meditate this morning?,this is a test description,1,1,#FF8F00,,,,false,,,
-            002,Run,NUMERICAL,How many miles did you run today?,,1,1,#E64A19,miles,AT_LEAST,2.0,false,,,
-            003,Wake up early,YES_NO,Did you wake up before 6am?,,2,3,#AFB42B,,,,false,,,
+            Position,Name,Type,Question,Description,FrequencyNumerator,FrequencyDenominator,Color,Unit,Target Type,Target Value,Archived?,Tags,Section,ReminderTimes,ReminderDays
+            001,Meditate,YES_NO,Did you meditate this morning?,this is a test description,1,1,#C43E12,,,,false,,Morning,,
+            002,Run,NUMERICAL,How many miles did you run today?,,1,1,#A65050,miles,AT_LEAST,2.0,false,,,,
+            003,Wake up early,YES_NO,Did you wake up before 6am?,,2,3,#8F2809,,,,false,,,,
             
             """.trimIndent()
         val writer = StringWriter()
-        list.writeCSV(writer)
+        list.writeCSV(writer, sectionList.nameMap())
         assertThat(writer.toString(), equalTo(expectedCSV))
     }
 

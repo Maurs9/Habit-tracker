@@ -27,6 +27,7 @@ import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.NumericalHabitType.AT_LEAST
 import org.isoron.uhabits.core.models.NumericalHabitType.AT_MOST
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.ExportCSVTask
@@ -40,6 +41,7 @@ import kotlin.math.roundToInt
 
 open class ListHabitsBehavior @Inject constructor(
     private val habitList: HabitList,
+    private val sectionList: SectionList,
     private val dirFinder: DirFinder,
     private val taskRunner: TaskRunner,
     private val screen: Screen,
@@ -84,7 +86,7 @@ open class ListHabitsBehavior @Inject constructor(
         for (h in habitList) selected.add(h)
         val outputDir = dirFinder.getCSVOutputDir()
         taskRunner.execute(
-            ExportCSVTask(habitList, selected, outputDir) { filename: String? ->
+            ExportCSVTask(habitList, sectionList, selected, outputDir) { filename: String? ->
                 if (filename != null) {
                     screen.showSendFileScreen(filename)
                 } else {
@@ -109,6 +111,7 @@ open class ListHabitsBehavior @Inject constructor(
     fun onRepairDB() {
         taskRunner.execute {
             habitList.repair()
+            sectionList.repair()
             screen.showMessage(Message.DATABASE_REPAIRED)
         }
     }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="subtitle_done">
+        <item quantity="one">%1$d of %2$d done</item>
+        <item quantity="other">%1$d of %2$d done</item>
+    </plurals>
+    <plurals name="subtitle_to_go">
+        <item quantity="one">%d to go</item>
+        <item quantity="other">%d to go</item>
+    </plurals>
+    <string name="subtitle_separator">" · "</string>
+</resources>

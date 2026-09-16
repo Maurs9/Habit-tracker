@@ -50,6 +50,8 @@ interface Database {
 
     fun endTransaction()
 
+    val inTransaction: Boolean
+
     fun close()
 
     val version: Int

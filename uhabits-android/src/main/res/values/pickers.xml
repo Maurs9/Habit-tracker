@@ -24,6 +24,9 @@
     <dimen name="color_swatch_margins_large">8dip</dimen>
     <dimen name="color_swatch_margins_small">4dip</dimen>
 
+    <string name="color_swatch_description" translatable="false">Color <xliff:g example="14" id="color_index">%1$d</xliff:g></string>
+    <string name="color_swatch_description_selected" translatable="false">Color <xliff:g example="14" id="color_index">%1$d</xliff:g> selected</string>
+
     <item name="circle_radius_multiplier" format="float" translatable="false" type="string">
         0.82
     </item>
@@ -83,9 +86,6 @@
     <dimen name="day_number_size">16sp</dimen>
     <dimen name="year_label_height">64dp</dimen>
     <dimen name="year_label_text_size">22dp</dimen>
-
-    <string name="color_swatch_description" translatable="false">Color <xliff:g example="14" id="color_index">%1$d</xliff:g></string>
-    <string name="color_swatch_description_selected" translatable="false">Color <xliff:g example="14" id="color_index">%1$d</xliff:g> selected</string>
 
     <!-- Date and time picker -->
     <string name="hour_picker_description" translatable="false">Hours circular slider</string>

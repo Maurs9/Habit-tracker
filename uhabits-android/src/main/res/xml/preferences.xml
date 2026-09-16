@@ -24,6 +24,12 @@
             android:key="interfaceCategory"
             android:title="@string/interface_preferences">
 
+        <Preference
+            android:key="manageSections"
+            android:title="@string/sections"
+            android:summary="@string/sections_summary"
+            app:iconSpaceReserved="false" />
+
         <SwitchPreferenceCompat
                 android:defaultValue="false"
                 android:key="pref_short_toggle"

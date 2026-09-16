@@ -11,7 +11,8 @@ data class SavedHabitFilter(
     val showArchived: Boolean,
     val showCompleted: Boolean,
     val primaryOrder: HabitList.Order,
-    val secondaryOrder: HabitList.Order
+    val secondaryOrder: HabitList.Order,
+    val groupBySection: Boolean = false
 ) {
     init {
         require(name.isNotBlank()) { "A saved filter needs a name" }
@@ -23,20 +24,22 @@ data class SavedHabitFilter(
         showArchived.toString(),
         showCompleted.toString(),
         primaryOrder.name,
-        secondaryOrder.name
+        secondaryOrder.name,
+        groupBySection.toString()
     ).joinToString("\t")
 
     companion object {
         fun decode(record: String): SavedHabitFilter {
             val fields = record.split('\t')
-            require(fields.size == 6) { "Invalid saved filter" }
+            require(fields.size in 6..7) { "Invalid saved filter" }
             return SavedHabitFilter(
                 name = URLDecoder.decode(fields[0], "UTF-8"),
                 tags = HabitTags.parse(URLDecoder.decode(fields[1], "UTF-8")),
                 showArchived = fields[2].toBooleanStrict(),
                 showCompleted = fields[3].toBooleanStrict(),
                 primaryOrder = HabitList.Order.valueOf(fields[4]),
-                secondaryOrder = HabitList.Order.valueOf(fields[5])
+                secondaryOrder = HabitList.Order.valueOf(fields[5]),
+                groupBySection = fields.getOrNull(6)?.toBooleanStrict() ?: false
             )
         }
     }

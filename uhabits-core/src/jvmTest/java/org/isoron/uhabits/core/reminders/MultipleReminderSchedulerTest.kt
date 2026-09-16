@@ -2,9 +2,14 @@ package org.isoron.uhabits.core.reminders
 
 import org.isoron.uhabits.core.BaseUnitTest
 import org.isoron.uhabits.core.commands.BulkSkipCommand
+import org.isoron.uhabits.core.commands.ChangeHabitSectionCommand
 import org.isoron.uhabits.core.commands.ChangeHabitTagsCommand
 import org.isoron.uhabits.core.commands.ChangeReminderTimesCommand
+import org.isoron.uhabits.core.commands.CreateSectionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
+import org.isoron.uhabits.core.commands.DeleteSectionCommand
+import org.isoron.uhabits.core.commands.MoveSectionCommand
+import org.isoron.uhabits.core.commands.RenameSectionCommand
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitType
@@ -96,6 +101,24 @@ class MultipleReminderSchedulerTest : BaseUnitTest() {
         commandRunner.run(ChangeHabitTagsCommand(habitList, listOf(habit), setOf("Health")))
         assertEquals(cancellations, system.cancelCount)
         assertRegular("2026-09-14T08:00:00Z")
+    }
+
+    @Test
+    fun testSectionCommandsPreserveSnoozedAndRegularReminders() {
+        scheduler.scheduleAll()
+        scheduler.snoozeAtTime(habit, instant("2026-09-14T09:00:00Z"))
+        val cancellations = system.cancelCount
+        val alarms = system.alarms.toMap()
+        val snooze = prefs.getSnoozeTime(habit.id!!)
+        commandRunner.run(CreateSectionCommand(sectionList, "Morning"))
+        val section = sectionList.getByName("Morning")!!
+        commandRunner.run(ChangeHabitSectionCommand(habitList, listOf(habit), section.id))
+        commandRunner.run(RenameSectionCommand(sectionList, section.id, "Early"))
+        commandRunner.run(MoveSectionCommand(sectionList, section.id, 0))
+        commandRunner.run(DeleteSectionCommand(sectionList, habitList, section.id))
+        assertEquals(cancellations, system.cancelCount)
+        assertEquals(alarms, system.alarms)
+        assertEquals(snooze, prefs.getSnoozeTime(habit.id!!))
     }
 
     @Test

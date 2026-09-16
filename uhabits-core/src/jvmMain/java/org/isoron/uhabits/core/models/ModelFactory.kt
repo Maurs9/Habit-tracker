@@ -21,6 +21,7 @@ package org.isoron.uhabits.core.models
 import org.isoron.uhabits.core.database.Repository
 import org.isoron.uhabits.core.models.sqlite.records.EntryRecord
 import org.isoron.uhabits.core.models.sqlite.records.HabitRecord
+import org.isoron.uhabits.core.models.sqlite.records.SectionRecord
 
 /**
  * Interface implemented by factories that provide concrete implementations of
@@ -41,8 +42,10 @@ interface ModelFactory {
     fun buildComputedEntries(): EntryList
     fun buildOriginalEntries(): EntryList
     fun buildHabitList(): HabitList
+    fun buildSectionList(): SectionList
     fun buildScoreList(): ScoreList
     fun buildStreakList(): StreakList
     fun buildHabitListRepository(): Repository<HabitRecord>
+    fun buildSectionListRepository(): Repository<SectionRecord>
     fun buildRepetitionListRepository(): Repository<EntryRecord>
 }

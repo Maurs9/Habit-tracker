@@ -30,9 +30,11 @@ import org.isoron.uhabits.core.database.Repository
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.models.sqlite.records.EntryRecord
 import org.isoron.uhabits.core.models.sqlite.records.HabitRecord
+import org.isoron.uhabits.core.models.sqlite.records.SectionRecord
 import org.isoron.uhabits.core.utils.isSQLite3File
 import java.io.File
 import javax.inject.Inject
@@ -43,6 +45,7 @@ import javax.inject.Inject
 class LoopDBImporter
 @Inject constructor(
     @AppScope val habitList: HabitList,
+    @AppScope val sectionList: SectionList,
     @AppScope val modelFactory: ModelFactory,
     @AppScope val opener: DatabaseOpener,
     @AppScope val runner: CommandRunner,
@@ -63,7 +66,9 @@ class LoopDBImporter
 
     private fun canHandleDatabase(db: Database): Boolean {
         var canHandle = true
-        val c = db.query("select count(*) from SQLITE_MASTER where name='Habits' or name='Repetitions'")
+        val c = db.query(
+            "SELECT count(*) FROM sqlite_master WHERE type='table' AND lower(name) IN ('habits', 'repetitions')"
+        )
         try {
             if (!c.moveToNext() || c.getInt(0) != 2) {
                 logger.error("Cannot handle file: tables not found")
@@ -94,10 +99,17 @@ class LoopDBImporter
 
         val habitsRepository = Repository(HabitRecord::class.java, db)
         val entryRepository = Repository(EntryRecord::class.java, db)
+        validateSectionMetadata(db)
+        val foreignSections = Repository(SectionRecord::class.java, db)
+            .findAll("ORDER BY position, id").map { it.toSection() }
+        val sectionIds = foreignSections.associate { section ->
+            section.id to (sectionList.getByName(section.name) ?: sectionList.add(section.name)).id
+        }
 
         for (habitRecord in habitsRepository.findAll("order by position")) {
             var habit = habitList.getByUUID(habitRecord.uuid)
             val entryRecords = entryRepository.findAll("where habit = ?", habitRecord.id.toString())
+            habitRecord.sectionId = sectionIds[habitRecord.sectionId]
 
             if (habit == null) {
                 habit = modelFactory.buildHabit()
@@ -126,5 +138,18 @@ class LoopDBImporter
             habit.recompute()
         }
         habitList.resort()
+        sectionList.repair()
+    }
+
+    private fun validateSectionMetadata(db: Database) {
+        val invalidRows = listOf(
+            "SELECT 1 FROM habits WHERE section_id IS NOT NULL AND typeof(section_id) != 'integer' LIMIT 1",
+            "SELECT 1 FROM sections WHERE typeof(id) != 'integer' OR id < 1 OR typeof(name) != 'text' " +
+                "OR typeof(position) != 'integer' OR position NOT BETWEEN -2147483648 AND 2147483647 LIMIT 1",
+            "SELECT id FROM sections GROUP BY id HAVING count(*) > 1 LIMIT 1"
+        )
+        for (query in invalidRows) {
+            db.query(query).use { require(!it.moveToNext()) { "Invalid section metadata" } }
+        }
     }
 }

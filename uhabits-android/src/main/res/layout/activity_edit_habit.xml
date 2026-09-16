@@ -125,19 +125,46 @@
                 </FrameLayout>
             </LinearLayout>
 
-            <!-- Habit Question -->
-            <FrameLayout style="@style/FormOuterBox">
+            <FrameLayout
+                android:id="@+id/typeOuterBox"
+                style="@style/FormOuterBox">
                 <LinearLayout style="@style/FormInnerBox">
                     <TextView
                         style="@style/FormLabel"
-                        android:labelFor="@id/questionInput"
-                        android:text="@string/question" />
-                    <EditText
-                        android:id="@+id/questionInput"
-                        style="@style/FormInput"
-                        android:inputType="textCapSentences|textMultiLine"
-                        android:hint="@string/example_question_boolean"
-                         />
+                        android:labelFor="@id/typeToggle"
+                        android:text="@string/habit_type" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/typeToggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:saveEnabled="false"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/typeYesNo"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minHeight="48dp"
+                            android:saveEnabled="false"
+                            android:text="@string/yes_or_no"
+                            android:textAllCaps="false" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/typeMeasurable"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minHeight="48dp"
+                            android:saveEnabled="false"
+                            android:text="@string/measurable"
+                            android:textAllCaps="false" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
                 </LinearLayout>
             </FrameLayout>
 
@@ -263,34 +290,81 @@
                 <LinearLayout style="@style/FormInnerBox">
                     <TextView
                         style="@style/FormLabel"
-                        android:labelFor="@id/tagsInput"
-                        android:text="@string/habit_tags" />
+                        android:labelFor="@id/sectionPicker"
+                        android:text="@string/habit_section" />
 
-                    <EditText
-                        android:id="@+id/tagsInput"
-                        style="@style/FormInput"
-                        android:inputType="textCapWords|textMultiLine"
-                        android:minLines="2"
-                        android:freezesText="true"
-                        android:hint="@string/habit_tags_hint" />
+                    <TextView
+                        android:id="@+id/sectionPicker"
+                        style="@style/FormDropdown" />
                 </LinearLayout>
             </FrameLayout>
 
-            <!-- Notes -->
             <FrameLayout style="@style/FormOuterBox">
                 <LinearLayout style="@style/FormInnerBox">
                     <TextView
                         style="@style/FormLabel"
-                        android:labelFor="@id/notesInput"
-                        android:text="@string/notes" />
+                        android:labelFor="@id/tagsPicker"
+                        android:text="@string/habit_tags" />
 
-                    <EditText
-                        android:id="@+id/notesInput"
-                        style="@style/FormInput"
-                        android:inputType="textCapSentences|textMultiLine"
-                        android:hint="@string/example_notes" />
+                    <TextView
+                        android:id="@+id/tagsPicker"
+                        style="@style/FormDropdown"
+                        android:focusable="true"
+                        android:hint="@string/habit_tags_none" />
                 </LinearLayout>
             </FrameLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/moreToggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:stateListAnimator="@null"
+                android:textAllCaps="false"
+                android:text="@string/more_options"
+                android:textColor="?attr/contrast60"
+                android:textSize="@dimen/smallerTextSize" />
+
+            <LinearLayout
+                android:id="@+id/moreGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <FrameLayout style="@style/FormOuterBox">
+                    <LinearLayout style="@style/FormInnerBox">
+                        <TextView
+                            style="@style/FormLabel"
+                            android:labelFor="@id/questionInput"
+                            android:text="@string/question" />
+                        <EditText
+                            android:id="@+id/questionInput"
+                            style="@style/FormInput"
+                            android:inputType="textCapSentences|textMultiLine"
+                            android:hint="@string/example_question_boolean" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <FrameLayout style="@style/FormOuterBox">
+                    <LinearLayout style="@style/FormInnerBox">
+                        <TextView
+                            style="@style/FormLabel"
+                            android:labelFor="@id/notesInput"
+                            android:text="@string/notes" />
+                        <EditText
+                            android:id="@+id/notesInput"
+                            style="@style/FormInput"
+                            android:inputType="textCapSentences|textMultiLine"
+                            android:hint="@string/example_notes" />
+                    </LinearLayout>
+                </FrameLayout>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

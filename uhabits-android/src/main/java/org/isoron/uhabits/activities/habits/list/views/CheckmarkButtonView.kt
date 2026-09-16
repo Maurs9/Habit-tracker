@@ -81,6 +81,12 @@ class CheckmarkButtonView(
 
     var onToggle: (Int, String) -> Unit = { _, _ -> }
 
+    var isToday = false
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     var onEdit: () -> Unit = { }
     var habitName = ""
     var timestamp: Timestamp? = null
@@ -165,6 +171,7 @@ class CheckmarkButtonView(
         private val bgColor = sres.getColor(R.attr.cardBgColor)
         private val lowContrastColor = sres.getColor(R.attr.contrast40)
         private val mediumContrastColor = sres.getColor(R.attr.contrast60)
+        private val todayHighlight = TodayHighlight(this@CheckmarkButtonView)
 
         private val paint = TextPaint().apply {
             typeface = getFontAwesome()
@@ -173,6 +180,7 @@ class CheckmarkButtonView(
         }
 
         fun draw(canvas: Canvas) {
+            if (isToday) canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), todayHighlight.paint)
             paint.color = when (value) {
                 YES_MANUAL, YES_AUTO, SKIP -> color
                 NO -> {
@@ -183,6 +191,10 @@ class CheckmarkButtonView(
                     }
                 }
                 else -> lowContrastColor
+            }
+            if (isToday) {
+                val minimum = if (value == NO || value == UNKNOWN) 3.0 else 4.5
+                paint.color = todayHighlight.foreground(paint.color, minimum)
             }
             val id = when (value) {
                 SKIP -> R.string.fa_skipped
@@ -217,12 +229,12 @@ class CheckmarkButtonView(
             canvas.drawText(label, rect.centerX(), rect.centerY(), paint)
 
             if (value == YES_AUTO) {
-                paint.color = bgColor
+                paint.color = if (isToday) todayHighlight.backgroundColor else bgColor
                 paint.style = Paint.Style.FILL
                 canvas.drawText(label, rect.centerX(), rect.centerY(), paint)
             }
 
-            drawNotesIndicator(canvas, color, em, notes)
+            drawNotesIndicator(canvas, if (isToday) todayHighlight.foreground(color, 3.0) else color, em, notes)
         }
     }
 }

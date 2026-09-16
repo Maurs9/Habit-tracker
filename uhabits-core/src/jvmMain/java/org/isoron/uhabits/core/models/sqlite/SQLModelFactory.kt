@@ -26,6 +26,7 @@ import org.isoron.uhabits.core.models.ScoreList
 import org.isoron.uhabits.core.models.StreakList
 import org.isoron.uhabits.core.models.sqlite.records.EntryRecord
 import org.isoron.uhabits.core.models.sqlite.records.HabitRecord
+import org.isoron.uhabits.core.models.sqlite.records.SectionRecord
 import javax.inject.Inject
 
 /**
@@ -35,9 +36,11 @@ class SQLModelFactory
 @Inject constructor(
     val database: Database
 ) : ModelFactory {
+    private val sections by lazy { SQLiteSectionList(this) }
     override fun buildOriginalEntries() = SQLiteEntryList(database)
     override fun buildComputedEntries() = EntryList()
     override fun buildHabitList() = SQLiteHabitList(this)
+    override fun buildSectionList() = sections
     override fun buildScoreList() = ScoreList()
     override fun buildStreakList() = StreakList()
 
@@ -46,4 +49,7 @@ class SQLModelFactory
 
     override fun buildRepetitionListRepository() =
         Repository(EntryRecord::class.java, database)
+
+    override fun buildSectionListRepository() =
+        Repository(SectionRecord::class.java, database)
 }

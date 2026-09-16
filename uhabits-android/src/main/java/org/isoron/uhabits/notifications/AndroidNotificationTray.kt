@@ -30,12 +30,14 @@ import androidx.core.app.NotificationCompat.Action
 import androidx.core.app.NotificationCompat.Builder
 import androidx.core.app.NotificationCompat.WearableExtender
 import androidx.core.app.NotificationManagerCompat
+import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.NotificationTray
+import org.isoron.uhabits.core.ui.views.LightTheme
 import org.isoron.uhabits.inject.AppContext
 import org.isoron.uhabits.intents.PendingIntentFactory
 import javax.inject.Inject
@@ -133,6 +135,7 @@ class AndroidNotificationTray
 
         val defaultText = context.getString(R.string.default_reminder_question)
         val builder = Builder(context, REMINDERS_CHANNEL_ID)
+            .setColor(LightTheme().color(habit.color).toInt())
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(habit.name)
             .setContentText(if (habit.question.isBlank()) defaultText else habit.question)

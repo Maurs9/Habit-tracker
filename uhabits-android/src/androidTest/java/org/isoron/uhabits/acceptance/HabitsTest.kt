@@ -23,7 +23,6 @@ import androidx.test.filters.LargeTest
 import org.isoron.uhabits.BaseUserInterfaceTest
 import org.isoron.uhabits.acceptance.steps.CommonSteps.Screen.EDIT_HABIT
 import org.isoron.uhabits.acceptance.steps.CommonSteps.Screen.LIST_HABITS
-import org.isoron.uhabits.acceptance.steps.CommonSteps.Screen.SELECT_HABIT_TYPE
 import org.isoron.uhabits.acceptance.steps.CommonSteps.Screen.SHOW_HABIT
 import org.isoron.uhabits.acceptance.steps.CommonSteps.clickText
 import org.isoron.uhabits.acceptance.steps.CommonSteps.launchApp
@@ -37,9 +36,12 @@ import org.isoron.uhabits.acceptance.steps.CommonSteps.verifyShowsScreen
 import org.isoron.uhabits.acceptance.steps.EditHabitSteps.clickSave
 import org.isoron.uhabits.acceptance.steps.EditHabitSteps.pickColor
 import org.isoron.uhabits.acceptance.steps.EditHabitSteps.pickFrequency
+import org.isoron.uhabits.acceptance.steps.EditHabitSteps.selectMeasurable
 import org.isoron.uhabits.acceptance.steps.EditHabitSteps.typeDescription
 import org.isoron.uhabits.acceptance.steps.EditHabitSteps.typeName
 import org.isoron.uhabits.acceptance.steps.EditHabitSteps.typeQuestion
+import org.isoron.uhabits.acceptance.steps.EditHabitSteps.typeTarget
+import org.isoron.uhabits.acceptance.steps.EditHabitSteps.typeUnit
 import org.isoron.uhabits.acceptance.steps.ListHabitsSteps.MenuItem.ADD
 import org.isoron.uhabits.acceptance.steps.ListHabitsSteps.MenuItem.ARCHIVE
 import org.isoron.uhabits.acceptance.steps.ListHabitsSteps.MenuItem.DELETE
@@ -73,8 +75,6 @@ class HabitsTest : BaseUserInterfaceTest() {
         launchApp()
         verifyShowsScreen(LIST_HABITS)
         clickMenu(ADD)
-        verifyShowsScreen(SELECT_HABIT_TYPE)
-        clickText("Yes or No")
         verifyShowsScreen(EDIT_HABIT)
         val testName = "Hello world"
         typeName(testName)
@@ -85,6 +85,33 @@ class HabitsTest : BaseUserInterfaceTest() {
         clickSave()
         verifyShowsScreen(LIST_HABITS)
         verifyDisplaysText(testName)
+    }
+
+    @Test
+    fun shouldCreateMeasurableHabitDirectly() {
+        launchApp()
+        clickMenu(ADD)
+        verifyShowsScreen(EDIT_HABIT)
+        selectMeasurable()
+        typeName("Read pages")
+        typeUnit("pages")
+        typeTarget("10")
+        clickSave()
+        verifyShowsScreen(LIST_HABITS)
+        clickText("Read pages")
+        verifyShowsScreen(SHOW_HABIT)
+        verifyDisplaysText("10 pages")
+    }
+
+    @Test
+    fun shouldReturnDirectlyToTheListWhenCancelingCreation() {
+        launchApp()
+        clickMenu(ADD)
+        verifyShowsScreen(EDIT_HABIT)
+        typeName("Canceled habit")
+        pressBack()
+        verifyShowsScreen(LIST_HABITS)
+        verifyDoesNotDisplayText("Canceled habit")
     }
 
     @Test

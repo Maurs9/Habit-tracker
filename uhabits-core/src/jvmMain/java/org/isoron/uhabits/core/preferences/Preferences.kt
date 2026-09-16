@@ -97,6 +97,12 @@ open class Preferences(private val storage: Storage) {
         set(showArchived) {
             storage.putBoolean("pref_show_archived", showArchived)
         }
+    var groupBySection: Boolean
+        get() = storage.getBoolean("pref_group_by_section", false)
+        set(value) {
+            storage.putBoolean("pref_group_by_section", value)
+        }
+
     var showCompleted: Boolean
         get() = storage.getBoolean("pref_show_completed", true)
         set(showCompleted) {

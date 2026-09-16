@@ -18,7 +18,6 @@
  */
 package org.isoron.uhabits.core.ui.screens.habits.list
 
-import org.apache.commons.lang3.ArrayUtils
 import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
@@ -28,14 +27,10 @@ import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitList.Order
 import org.isoron.uhabits.core.models.HabitMatcher
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.tasks.Task
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getTodayWithOffset
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.HashMap
-import java.util.LinkedList
-import java.util.TreeSet
 import javax.inject.Inject
 
 /**
@@ -54,12 +49,29 @@ import javax.inject.Inject
 @AppScope
 class HabitCardListCache @Inject constructor(
     private val allHabits: HabitList,
+    private val sectionList: SectionList,
     private val commandRunner: CommandRunner,
     taskRunner: TaskRunner,
-    logging: Logging
+    @Suppress("UNUSED_PARAMETER") logging: Logging
 ) : CommandRunner.Listener {
 
-    private val logger = logging.getLogger("HabitCardListCache")
+    sealed class ListItem {
+        abstract val itemId: Long
+
+        data class Header(
+            val sectionId: Long?,
+            val name: String,
+            val done: Int,
+            val total: Int,
+            val collapsed: Boolean = false
+        ) : ListItem() {
+            override val itemId: Long get() = -(sectionId ?: 0) - 1
+        }
+
+        data class Row(val habit: Habit) : ListItem() {
+            override val itemId: Long get() = habit.id!!
+        }
+    }
 
     private var checkmarkCount = 0
     private var currentFetchTask: Task? = null
@@ -88,6 +100,11 @@ class HabitCardListCache @Inject constructor(
         return allHabits.isEmpty
     }
 
+    @Synchronized
+    fun completedTodayCount(): Int = data.items.filterIsInstance<ListItem.Row>().count {
+        data.isCompleted(it.habit)
+    }
+
     /**
      * Returns the habits that occupies a certain position on the list.
      *
@@ -96,12 +113,28 @@ class HabitCardListCache @Inject constructor(
      */
     @Synchronized
     fun getHabitByPosition(position: Int): Habit? {
-        return if (position < 0 || position >= data.habits.size) null else data.habits[position]
+        return (getItemByPosition(position) as? ListItem.Row)?.habit
     }
+
+    @Synchronized
+    fun getItemByPosition(position: Int): ListItem? = data.items.getOrNull(position)
+
+    @get:Synchronized
+    val itemCount: Int
+        get() = data.items.size
 
     @get:Synchronized
     val habitCount: Int
-        get() = data.habits.size
+        get() = data.items.count { it is ListItem.Row }
+
+    @get:Synchronized
+    @set:Synchronized
+    var groupBySection: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            refreshAllHabits()
+        }
 
     @get:Synchronized
     @set:Synchronized
@@ -158,27 +191,40 @@ class HabitCardListCache @Inject constructor(
 
     @Synchronized
     fun refreshHabit(id: Long) {
-        taskRunner.execute(RefreshTask(id))
+        // A superseded partial refresh must not lose another habit's changed entries.
+        val task = if (currentFetchTask == null) RefreshTask(id) else RefreshTask()
+        currentFetchTask?.cancel()
+        currentFetchTask = task
+        taskRunner.execute(task)
     }
 
     @Synchronized
     fun remove(id: Long) {
-        val h = data.idToHabit[id] ?: return
-        val position = data.habits.indexOf(h)
-        data.habits.removeAt(position)
-        data.idToHabit.remove(id)
-        data.checkmarks.remove(id)
-        data.notes.remove(id)
-        data.scores.remove(id)
-        listener.onItemRemoved(position)
+        val remaining = data.items.filterIsInstance<ListItem.Row>().map { it.habit }.filter { it.id != id }
+        if (remaining.size == habitCount) return
+        val next = CacheData()
+        next.checkmarks.putAll(data.checkmarks)
+        next.notes.putAll(data.notes)
+        next.scores.putAll(data.scores)
+        next.fetchItems(remaining)
+        applyData(next)
     }
 
     @Synchronized
     fun reorder(from: Int, to: Int) {
-        val fromHabit = data.habits[from]
-        data.habits.removeAt(from)
-        data.habits.add(to, fromHabit)
+        if (from == to || !isSameSection(from, to)) return
+        val row = data.items.removeAt(from)
+        data.items.add(to, row)
         listener.onItemMoved(from, to)
+    }
+
+    @Synchronized
+    fun isSameSection(from: Int, to: Int): Boolean {
+        val first = getHabitByPosition(from) ?: return false
+        val second = getHabitByPosition(to) ?: return false
+        if (!groupBySection) return true
+        fun section(habit: Habit) = habit.sectionId?.let { sectionList.getById(it)?.id }
+        return section(first) == section(second)
     }
 
     @Synchronized
@@ -209,212 +255,120 @@ class HabitCardListCache @Inject constructor(
     }
 
     private inner class CacheData {
-        val idToHabit: HashMap<Long?, Habit> = HashMap()
-        val habits: MutableList<Habit>
-        val checkmarks: HashMap<Long?, IntArray>
-        val scores: HashMap<Long?, Double>
-        val notes: HashMap<Long?, Array<String>>
+        val items = mutableListOf<ListItem>()
+        val checkmarks = hashMapOf<Long?, IntArray>()
+        val scores = hashMapOf<Long?, Double>()
+        val notes = hashMapOf<Long?, Array<String>>()
 
-        @Synchronized
-        fun copyCheckmarksFrom(oldData: CacheData) {
-            val empty = IntArray(checkmarkCount)
-            for (id in idToHabit.keys) {
-                if (oldData.checkmarks.containsKey(id)) {
-                    checkmarks[id] =
-                        oldData.checkmarks[id]!!
-                } else {
-                    checkmarks[id] = empty
-                }
+        fun isCompleted(habit: Habit) =
+            checkmarks[habit.id]?.firstOrNull()?.let { habit.isCompleted(it) } == true
+
+        fun fetchItems(habits: List<Habit>) {
+            val sections = sectionList.getAll()
+            val knownIds = sections.map { it.id }.toSet()
+            if (!groupBySection || habits.none { it.sectionId in knownIds }) {
+                items.addAll(habits.map { ListItem.Row(it) })
+                return
             }
-        }
-
-        @Synchronized
-        fun copyNoteIndicatorsFrom(oldData: CacheData) {
-            val empty = (0..checkmarkCount).map { "" }.toTypedArray()
-            for (id in idToHabit.keys) {
-                if (oldData.notes.containsKey(id)) {
-                    notes[id] =
-                        oldData.notes[id]!!
-                } else {
-                    notes[id] = empty
-                }
+            val groups = habits.groupBy { it.sectionId.takeIf { id -> id in knownIds } }
+            fun append(id: Long?, name: String) {
+                val rows = groups[id].orEmpty()
+                if (rows.isEmpty()) return
+                items.add(ListItem.Header(id, name, rows.count { isCompleted(it) }, rows.size))
+                items.addAll(rows.map { ListItem.Row(it) })
             }
-        }
-
-        @Synchronized
-        fun copyScoresFrom(oldData: CacheData) {
-            for (id in idToHabit.keys) {
-                if (oldData.scores.containsKey(id)) {
-                    scores[id] =
-                        oldData.scores[id]!!
-                } else {
-                    scores[id] = 0.0
-                }
-            }
-        }
-
-        @Synchronized
-        fun fetchHabits() {
-            for (h in filteredHabits) {
-                if (h.id == null) continue
-                habits.add(h)
-                idToHabit[h.id] = h
-            }
-        }
-
-        /**
-         * Creates a new CacheData without any content.
-         */
-        init {
-            habits = LinkedList()
-            checkmarks = HashMap()
-            scores = HashMap()
-            notes = HashMap()
+            sections.forEach { append(it.id, it.name) }
+            append(null, "")
         }
     }
 
-    private inner class RefreshTask : Task {
-        private val newData: CacheData
-        private val targetId: Long?
-        private var isCancelled = false
-        private var runner: TaskRunner? = null
-
-        constructor() {
-            newData = CacheData()
-            targetId = null
-            isCancelled = false
+    @Synchronized
+    private fun applyData(next: CacheData) {
+        val ids = next.items.map { it.itemId }.toSet()
+        var position = 0
+        while (position < data.items.size) {
+            val item = data.items[position]
+            if (item.itemId in ids) {
+                position++
+                continue
+            }
+            data.items.removeAt(position)
+            if (item is ListItem.Row) {
+                data.checkmarks.remove(item.itemId)
+                data.notes.remove(item.itemId)
+                data.scores.remove(item.itemId)
+            }
+            listener.onItemRemoved(position)
         }
-
-        constructor(targetId: Long) {
-            newData = CacheData()
-            this.targetId = targetId
+        next.items.forEachIndexed { index, item ->
+            val oldPosition = data.items.indexOfFirst { it.itemId == item.itemId }
+            val oldItem = data.items.getOrNull(oldPosition)
+            val changed = when (item) {
+                is ListItem.Header -> item != oldItem
+                is ListItem.Row -> {
+                    val id = item.itemId
+                    data.scores[id] != next.scores[id] ||
+                        !data.checkmarks[id].contentEquals(next.checkmarks[id]) ||
+                        !data.notes[id].contentEquals(next.notes[id])
+                }
+            }
+            if (item is ListItem.Row) {
+                data.checkmarks[item.itemId] = next.checkmarks[item.itemId]!!
+                data.notes[item.itemId] = next.notes[item.itemId]!!
+                data.scores[item.itemId] = next.scores[item.itemId]!!
+            }
+            if (oldPosition < 0) {
+                data.items.add(index, item)
+                listener.onItemInserted(index)
+            } else {
+                data.items.removeAt(oldPosition)
+                data.items.add(index, item)
+                if (oldPosition != index) listener.onItemMoved(oldPosition, index)
+                if (changed) listener.onItemChanged(index)
+            }
         }
+    }
 
-        @Synchronized
+    private inner class RefreshTask(private val targetId: Long? = null) : Task {
+        private val newData = CacheData()
+
+        @Volatile private var isCancelled = false
+
         override fun cancel() {
             isCancelled = true
         }
 
-        @Synchronized
+        override fun isCanceled() = isCancelled
+
         override fun doInBackground() {
-            newData.fetchHabits()
-            newData.copyScoresFrom(data)
-            newData.copyCheckmarksFrom(data)
-            newData.copyNoteIndicatorsFrom(data)
+            val habits = filteredHabits.filter { it.id != null }
+            synchronized(this@HabitCardListCache) {
+                newData.scores.putAll(data.scores)
+                newData.checkmarks.putAll(data.checkmarks)
+                newData.notes.putAll(data.notes)
+            }
             val today = getTodayWithOffset()
             val dateFrom = today.minus(checkmarkCount - 1)
-            if (runner != null) runner!!.publishProgress(this, -1)
-            for (position in newData.habits.indices) {
+            for (habit in habits) {
                 if (isCancelled) return
-                val habit = newData.habits[position]
-                if (targetId != null && targetId != habit.id) continue
+                if (targetId != null && targetId != habit.id && newData.checkmarks.containsKey(habit.id)) continue
                 newData.scores[habit.id] = habit.scores[today].value
-                val list: MutableList<Int> = ArrayList()
-                val notes: MutableList<String> = ArrayList()
-                for ((_, value, note) in habit.computedEntries.getByInterval(dateFrom, today)) {
-                    list.add(value)
-                    notes.add(note)
-                }
-                val entries = list.toTypedArray()
-                newData.checkmarks[habit.id] = ArrayUtils.toPrimitive(entries)
-                newData.notes[habit.id] = notes.toTypedArray()
-                runner!!.publishProgress(this, position)
+                val entries = habit.computedEntries.getByInterval(dateFrom, today)
+                newData.checkmarks[habit.id] = entries.map { it.value }.toIntArray()
+                newData.notes[habit.id] = entries.map { it.notes }.toTypedArray()
             }
+            newData.fetchItems(habits)
         }
 
-        @Synchronized
-        override fun onAttached(runner: TaskRunner) {
-            this.runner = runner
-        }
-
-        @Synchronized
         override fun onPostExecute() {
-            currentFetchTask = null
-            listener.onRefreshFinished()
-        }
-
-        @Synchronized
-        override fun onProgressUpdate(currentPosition: Int) {
-            if (currentPosition < 0) processRemovedHabits() else processPosition(currentPosition)
-        }
-
-        @Synchronized
-        private fun performInsert(habit: Habit, position: Int) {
-            val id = habit.id
-            data.habits.add(position, habit)
-            data.idToHabit[id] = habit
-            data.scores[id] = newData.scores[id]!!
-            data.checkmarks[id] = newData.checkmarks[id]!!
-            data.notes[id] = newData.notes[id]!!
-            listener.onItemInserted(position)
-        }
-
-        @Synchronized
-        private fun performMove(
-            habit: Habit,
-            fromPosition: Int,
-            toPosition: Int
-        ) {
-            data.habits.removeAt(fromPosition)
-
-            // Workaround for https://github.com/iSoron/uhabits/issues/968
-            val checkedToPosition = if (toPosition > data.habits.size) {
-                logger.error("performMove: $toPosition is strictly higher than ${data.habits.size}")
-                data.habits.size
-            } else {
-                toPosition
+            synchronized(this@HabitCardListCache) {
+                if (isCancelled || currentFetchTask !== this) return
+                // Publish the complete snapshot on the UI thread; each notification sees
+                // exactly the item count and positions that RecyclerView expects.
+                applyData(newData)
+                currentFetchTask = null
+                listener.onRefreshFinished()
             }
-
-            data.habits.add(checkedToPosition, habit)
-            listener.onItemMoved(fromPosition, checkedToPosition)
-        }
-
-        @Synchronized
-        private fun performUpdate(id: Long, position: Int) {
-            val oldScore = data.scores[id]!!
-            val oldCheckmarks = data.checkmarks[id]
-            val oldNoteIndicators = data.notes[id]
-            val newScore = newData.scores[id]!!
-            val newCheckmarks = newData.checkmarks[id]!!
-            val newNoteIndicators = newData.notes[id]!!
-            var unchanged = true
-            if (oldScore != newScore) unchanged = false
-            if (!Arrays.equals(oldCheckmarks, newCheckmarks)) unchanged = false
-            if (!Arrays.equals(oldNoteIndicators, newNoteIndicators)) unchanged = false
-            if (unchanged) return
-            data.scores[id] = newScore
-            data.checkmarks[id] = newCheckmarks
-            data.notes[id] = newNoteIndicators
-            listener.onItemChanged(position)
-        }
-
-        @Synchronized
-        private fun processPosition(currentPosition: Int) {
-            val habit = newData.habits[currentPosition]
-            val id = habit.id
-            val prevPosition = data.habits.indexOf(habit)
-            if (prevPosition < 0) {
-                performInsert(habit, currentPosition)
-            } else {
-                if (prevPosition != currentPosition) {
-                    performMove(
-                        habit,
-                        prevPosition,
-                        currentPosition
-                    )
-                }
-                if (id == null) throw NullPointerException()
-                performUpdate(id, currentPosition)
-            }
-        }
-
-        @Synchronized
-        private fun processRemovedHabits() {
-            val before: Set<Long?> = data.idToHabit.keys
-            val after: Set<Long?> = newData.idToHabit.keys
-            val removed: MutableSet<Long?> = TreeSet(before)
-            removed.removeAll(after)
-            for (id in removed) remove(id!!)
         }
     }
 

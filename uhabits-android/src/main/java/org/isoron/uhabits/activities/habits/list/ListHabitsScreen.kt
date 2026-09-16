@@ -35,11 +35,11 @@ import org.isoron.uhabits.activities.common.dialogs.CheckmarkDialog
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory
 import org.isoron.uhabits.activities.common.dialogs.ConfirmDeleteDialog
 import org.isoron.uhabits.activities.common.dialogs.NumberDialog
-import org.isoron.uhabits.activities.habits.edit.HabitTypeDialog
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.activities.settings.BackupDialog
 import org.isoron.uhabits.core.commands.ArchiveHabitsCommand
 import org.isoron.uhabits.core.commands.ChangeHabitColorCommand
+import org.isoron.uhabits.core.commands.ChangeHabitSectionCommand
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateHabitCommand
@@ -47,6 +47,7 @@ import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
 import org.isoron.uhabits.core.commands.UnarchiveHabitsCommand
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
@@ -169,9 +170,8 @@ class ListHabitsScreen
         activity.startActivity(intent)
     }
 
-    override fun showSelectHabitTypeDialog() {
-        val dialog = HabitTypeDialog()
-        dialog.show(activity.supportFragmentManager, "habitType")
+    override fun showCreateHabitScreen() {
+        activity.startActivity(intentFactory.startEditActivity(activity, HabitType.YES_NO.value))
     }
 
     override fun showDeleteConfirmationScreen(callback: OnConfirmedCallback, quantity: Int) {
@@ -309,6 +309,13 @@ class ListHabitsScreen
             is ArchiveHabitsCommand -> {
                 return activity.resources.getQuantityString(
                     R.plurals.toast_habits_archived,
+                    command.selected.size
+                )
+            }
+
+            is ChangeHabitSectionCommand -> {
+                return activity.resources.getQuantityString(
+                    R.plurals.toast_habits_changed,
                     command.selected.size
                 )
             }

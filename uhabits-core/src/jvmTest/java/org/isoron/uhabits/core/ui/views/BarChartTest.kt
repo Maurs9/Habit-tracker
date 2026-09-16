@@ -49,12 +49,14 @@ class BarChartTest {
     @Test
     fun testDrawDarkTheme() = runBlocking {
         component.theme = DarkTheme()
+        component.colors[0] = component.theme.color(8)
         assertRenders(300, 200, "$base/themeDark.png", component)
     }
 
     @Test
     fun testDrawWidgetTheme() = runBlocking {
         component.theme = WidgetTheme()
+        component.colors[0] = component.theme.color(8)
         assertRenders(300, 200, "$base/themeWidget.png", component)
     }
 

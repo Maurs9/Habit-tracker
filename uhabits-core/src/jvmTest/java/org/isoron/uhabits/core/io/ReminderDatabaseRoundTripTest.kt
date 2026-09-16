@@ -36,6 +36,7 @@ class ReminderDatabaseRoundTripTest : BaseUnitTest() {
             MigrationHelper(db).migrateTo(27)
             db.execute("PRAGMA user_version=27")
             assertEquals(27, db.version)
+            MigrationHelper(db).migrateTo(28)
             val record = Repository(HabitRecord::class.java, db).findAll("")[0]
             val habit = modelFactory.buildHabit()
             record.copyTo(habit)
@@ -70,7 +71,7 @@ class ReminderDatabaseRoundTripTest : BaseUnitTest() {
         } finally {
             db.close()
         }
-        val importer = LoopDBImporter(habitList, modelFactory, databaseOpener, commandRunner, StandardLogging())
+        val importer = LoopDBImporter(habitList, sectionList, modelFactory, databaseOpener, commandRunner, StandardLogging())
         assertTrue(importer.canHandle(file))
         importer.importHabitsFromFile(file)
         val imported = habitList.getByUUID("multiple-reminders")!!

@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.drawable.Drawable
 import androidx.annotation.AttrRes
-import org.isoron.uhabits.R
 
 class StyledResources(private val context: Context) {
 
@@ -59,12 +58,6 @@ class StyledResources(private val context: Context) {
         val f = ta.getFloat(0, 0f)
         ta.recycle()
         return f
-    }
-
-    fun getPalette(): IntArray {
-        val resourceId = getResource(R.attr.palette)
-        if (resourceId < 0) throw RuntimeException("palette resource not found")
-        return context.resources.getIntArray(resourceId)
     }
 
     fun getResource(@AttrRes attrId: Int): Int {

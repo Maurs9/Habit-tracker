@@ -24,6 +24,9 @@ import org.isoron.uhabits.core.BaseUnitTest
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.HabitMatcher
+import org.isoron.uhabits.core.models.HabitType
+import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getToday
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -39,11 +42,12 @@ class HabitCardListCacheTest : BaseUnitTest() {
     @Throws(Exception::class)
     override fun setUp() {
         super.setUp()
+        today = getToday()
         habitList.removeAll()
         for (i in 0..9) {
             if (i == 3) habitList.add(fixtures.createLongHabit()) else habitList.add(fixtures.createShortHabit())
         }
-        cache = HabitCardListCache(habitList, commandRunner, taskRunner, mock())
+        cache = HabitCardListCache(habitList, sectionList, commandRunner, taskRunner, mock())
         cache.setCheckmarkCount(10)
         cache.refreshAllHabits()
         cache.onAttached()
@@ -53,6 +57,7 @@ class HabitCardListCacheTest : BaseUnitTest() {
 
     override fun tearDown() {
         cache.onDetached()
+        super.tearDown()
     }
 
     @Test
@@ -90,6 +95,73 @@ class HabitCardListCacheTest : BaseUnitTest() {
             .getByInterval(today.minus(9), today)
             .map { it.value }.toIntArray()
         assertThat(actualCheckmarks, equalTo(expectedCheckmarks))
+    }
+
+    @Test
+    fun testCompletedTodayCount() {
+        habitList.removeAll()
+        cache.refreshAllHabits()
+        val values = listOf(Entry.YES_MANUAL, Entry.SKIP, Entry.NO, Entry.UNKNOWN, 10000, 12000, 9999, Entry.SKIP, 0)
+        val habits = values.mapIndexed { index, value ->
+            modelFactory.buildHabit().apply {
+                if (index >= 4) {
+                    type = HabitType.NUMERICAL
+                    targetValue = 10.0
+                    targetType = if (index == 8) NumericalHabitType.AT_MOST else NumericalHabitType.AT_LEAST
+                }
+                originalEntries.add(Entry(today, value))
+                recompute()
+                habitList.add(this)
+            }
+        }
+        cache.refreshAllHabits()
+        assertThat(cache.completedTodayCount(), equalTo(4))
+
+        commandRunner.run(CreateRepetitionCommand(habitList, habits[0], today, Entry.NO, ""))
+        assertThat(cache.completedTodayCount(), equalTo(3))
+        commandRunner.run(CreateRepetitionCommand(habitList, habits[4], today, 9999, ""))
+        assertThat(cache.completedTodayCount(), equalTo(2))
+
+        habits[5].originalEntries.add(Entry(today, Entry.NO))
+        habits[5].recompute()
+        assertThat(cache.completedTodayCount(), equalTo(2))
+        cache.refreshAllHabits()
+        assertThat(cache.completedTodayCount(), equalTo(1))
+    }
+
+    @Test
+    fun testCompletedTodayCount_automaticAndFiltered() {
+        habitList.removeAll()
+        cache.refreshAllHabits()
+        val habit = modelFactory.buildHabit().apply {
+            tags = setOf("Morning")
+            habitList.add(this)
+        }
+        habit.computedEntries.add(Entry(today, Entry.YES_AUTO))
+        cache.refreshAllHabits()
+        assertThat(cache.completedTodayCount(), equalTo(1))
+
+        cache.setFilter(HabitMatcher(requiredTags = setOf("Evening")))
+        cache.refreshAllHabits()
+        assertThat(cache.habitCount, equalTo(0))
+        assertThat(cache.completedTodayCount(), equalTo(0))
+        cache.setFilter(HabitMatcher(requiredTags = setOf("Morning")))
+        cache.refreshAllHabits()
+        assertThat(cache.completedTodayCount(), equalTo(1))
+
+        cache.setFilter(HabitMatcher(isCompletedAllowed = false))
+        cache.refreshAllHabits()
+        assertThat(cache.completedTodayCount(), equalTo(0))
+        assertThat(cache.habitCount, equalTo(0))
+    }
+
+    @Test
+    fun testCompletedTodayCount_emptyCache() {
+        val emptyCache = HabitCardListCache(habitList, sectionList, commandRunner, taskRunner, mock())
+        assertThat(emptyCache.completedTodayCount(), equalTo(0))
+        habitList.removeAll()
+        cache.refreshAllHabits()
+        assertThat(cache.completedTodayCount(), equalTo(0))
     }
 
     @Test

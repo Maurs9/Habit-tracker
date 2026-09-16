@@ -19,7 +19,6 @@
 
 package org.isoron.uhabits.utils
 
-import android.content.Context
 import android.graphics.Color
 import org.isoron.uhabits.core.models.PaletteColor
 
@@ -30,9 +29,4 @@ object PaletteUtils {
 
 fun PaletteColor.toFixedAndroidColor(): Int {
     return Color.parseColor(toCsvColor())
-}
-
-fun Int.toPaletteColor(context: Context): PaletteColor {
-    val palette = StyledResources(context).getPalette()
-    return PaletteColor(palette.indexOf(this))
 }

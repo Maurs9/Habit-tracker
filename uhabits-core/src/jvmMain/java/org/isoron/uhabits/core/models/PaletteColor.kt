@@ -26,46 +26,46 @@ data class PaletteColor(val paletteIndex: Int) {
 
     fun toCsvColor(): String {
         return arrayOf(
-            "#F44336", //  0 Red (Vibrant)
-            "#EF9A9A", //  1 Red (Soft)
+            "#D32F2F", //  0 Red (Vibrant)
+            "#A65050", //  1 Red (Muted)
             "#B71C1C", //  2 Red (Deep)
-            "#FF5722", //  3 Coral (Vibrant)
-            "#FFAB91", //  4 Coral (Soft)
-            "#BF360C", //  5 Coral (Deep)
-            "#FF9800", //  6 Orange (Vibrant)
-            "#FFCC80", //  7 Orange (Soft)
-            "#E65100", //  8 Orange (Deep)
-            "#FFC107", //  9 Amber (Vibrant)
-            "#FFE082", // 10 Amber (Soft)
-            "#FF8F00", // 11 Amber (Deep)
-            "#FDD835", // 12 Yellow (Vibrant)
-            "#FFF59D", // 13 Yellow (Soft)
-            "#F57F17", // 14 Yellow (Deep)
-            "#C0CA33", // 15 Lime (Vibrant)
-            "#E6EE9C", // 16 Lime (Soft)
-            "#827717", // 17 Lime (Deep)
-            "#4CAF50", // 18 Green (Vibrant)
-            "#A5D6A7", // 19 Green (Soft)
+            "#C43E12", //  3 Coral (Vibrant)
+            "#A6563D", //  4 Coral (Muted)
+            "#8F2809", //  5 Coral (Deep)
+            "#AE5800", //  6 Orange (Vibrant)
+            "#96602A", //  7 Orange (Muted)
+            "#8A3300", //  8 Orange (Deep)
+            "#9C6800", //  9 Amber (Vibrant)
+            "#8C6A2E", // 10 Amber (Muted)
+            "#7A4A00", // 11 Amber (Deep)
+            "#827000", // 12 Yellow (Vibrant)
+            "#7C7038", // 13 Yellow (Muted)
+            "#665500", // 14 Yellow (Deep)
+            "#657400", // 15 Lime (Vibrant)
+            "#6A6B45", // 16 Lime (Muted)
+            "#4A4D00", // 17 Lime (Deep)
+            "#2E7D32", // 18 Green (Vibrant)
+            "#4A764D", // 19 Green (Muted)
             "#1B5E20", // 20 Green (Deep)
-            "#009688", // 21 Teal (Vibrant)
-            "#80CBC4", // 22 Teal (Soft)
+            "#00796B", // 21 Teal (Vibrant)
+            "#34766F", // 22 Teal (Muted)
             "#004D40", // 23 Teal (Deep)
-            "#00BCD4", // 24 Cyan (Vibrant)
-            "#80DEEA", // 25 Cyan (Soft)
+            "#007B88", // 24 Cyan (Vibrant)
+            "#3A7078", // 25 Cyan (Muted)
             "#006064", // 26 Cyan (Deep)
-            "#2196F3", // 27 Blue (Vibrant)
-            "#90CAF9", // 28 Blue (Soft)
+            "#1565C0", // 27 Blue (Vibrant)
+            "#3E6FA0", // 28 Blue (Muted)
             "#0D47A1", // 29 Blue (Deep)
-            "#9C27B0", // 30 Purple (Vibrant)
-            "#CE93D8", // 31 Purple (Soft)
+            "#7B1FA2", // 30 Purple (Vibrant)
+            "#7D4894", // 31 Purple (Muted)
             "#4A148C", // 32 Purple (Deep)
-            "#E91E63", // 33 Pink (Vibrant)
-            "#F48FB1", // 34 Pink (Soft)
+            "#C2185B", // 33 Pink (Vibrant)
+            "#A6446B", // 34 Pink (Muted)
             "#880E4F", // 35 Pink (Deep)
-            "#BDBDBD", // 36 Light Gray
-            "#757575", // 37 Gray
-            "#455A64", // 38 Dark Slate
-            "#212121"  // 39 Charcoal
+            "#6E6E6E", // 36 Gray
+            "#4F4F4F", // 37 Dark Gray
+            "#455A64", // 38 Slate
+            "#212121" // 39 Charcoal
         )[paletteIndex]
     }
 
@@ -74,7 +74,8 @@ data class PaletteColor(val paletteIndex: Int) {
     }
 
     companion object {
-        // Persisted indexes are append-only: never reorder or replace existing colors.
+        // Persisted slots are append-only: values may be tuned, but never reorder indexes.
         const val COUNT = 40
+        val DEFAULT = PaletteColor(27)
     }
 }

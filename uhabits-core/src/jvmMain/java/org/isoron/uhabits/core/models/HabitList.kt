@@ -179,7 +179,7 @@ abstract class HabitList : Iterable<Habit> {
      * @throws IOException if write operations fail
      */
     @Throws(IOException::class)
-    fun writeCSV(out: Writer) {
+    fun writeCSV(out: Writer, sectionNames: Map<Long, String> = emptyMap()) {
         val header = arrayOf(
             "Position",
             "Name",
@@ -194,6 +194,7 @@ abstract class HabitList : Iterable<Habit> {
             "Target Value",
             "Archived?",
             "Tags",
+            "Section",
             "ReminderTimes",
             "ReminderDays"
         )
@@ -215,6 +216,7 @@ abstract class HabitList : Iterable<Habit> {
                 if (habit.isNumerical) habit.targetValue.toString() else "",
                 habit.isArchived.toString(),
                 HabitTags.format(habit.tags),
+                sectionNames[habit.sectionId].orEmpty(),
                 ReminderTimes.formatClock(habit.reminderTimes),
                 habit.reminder?.days?.toInteger()?.toString().orEmpty()
             )

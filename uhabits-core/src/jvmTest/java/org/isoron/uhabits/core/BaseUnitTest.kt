@@ -25,6 +25,7 @@ import org.isoron.uhabits.core.database.JdbcDatabase
 import org.isoron.uhabits.core.database.MigrationHelper
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
+import org.isoron.uhabits.core.models.SectionList
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.models.memory.MemoryModelFactory
 import org.isoron.uhabits.core.tasks.SingleThreadTaskRunner
@@ -50,6 +51,7 @@ import java.sql.SQLException
 @RunWith(MockitoJUnitRunner::class)
 open class BaseUnitTest {
     protected open lateinit var habitList: HabitList
+    protected lateinit var sectionList: SectionList
     protected lateinit var fixtures: HabitFixtures
     protected lateinit var modelFactory: ModelFactory
     protected lateinit var taskRunner: SingleThreadTaskRunner
@@ -78,6 +80,7 @@ open class BaseUnitTest {
         setStartDayOffset(0, 0)
         val memoryModelFactory = MemoryModelFactory()
         habitList = spy(memoryModelFactory.buildHabitList())
+        sectionList = memoryModelFactory.buildSectionList()
         fixtures = HabitFixtures(memoryModelFactory, habitList)
         modelFactory = memoryModelFactory
         taskRunner = SingleThreadTaskRunner()
