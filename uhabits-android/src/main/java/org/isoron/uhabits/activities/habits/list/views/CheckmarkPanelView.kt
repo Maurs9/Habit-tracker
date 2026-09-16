@@ -22,6 +22,7 @@ package org.isoron.uhabits.activities.habits.list.views
 import android.content.Context
 import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Timestamp
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.ActivityContext
@@ -78,7 +79,15 @@ class CheckmarkPanelView(
             setupButtons()
         }
 
-    override fun createButton(): CheckmarkButtonView = buttonFactory.create()
+    override fun createButton(): CheckmarkButtonView = buttonFactory.create().apply {
+        listDensity = this@CheckmarkPanelView.listDensity
+    }
+
+    override fun applyListDensity(density: ListDensity) {
+        for (button in buttons) {
+            button.listDensity = density
+        }
+    }
 
     @Synchronized
     override fun setupButtons() {

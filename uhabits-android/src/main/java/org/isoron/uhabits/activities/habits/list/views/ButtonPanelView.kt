@@ -24,8 +24,10 @@ import android.view.View
 import android.view.View.MeasureSpec.EXACTLY
 import android.widget.LinearLayout
 import org.isoron.uhabits.R
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.utils.dim
+import org.isoron.uhabits.utils.dp
 import org.isoron.uhabits.utils.toMeasureSpec
 
 abstract class ButtonPanelView<T : View>(
@@ -46,13 +48,22 @@ abstract class ButtonPanelView<T : View>(
             setupButtons()
         }
 
+    var listDensity = ListDensity.STANDARD
+        set(value) {
+            field = value
+            buttonHeight = dp(value.rowHeightDp.toFloat()).toInt()
+            applyListDensity(value)
+        }
+
     var buttonHeight = dim(R.dimen.checkmarkHeight).toInt()
         set(value) {
-            require(value >= dim(R.dimen.checkmarkHeight)) { "Entry buttons must remain at least 48dp tall" }
+            require(value >= dp(36f).toInt()) { "Entry buttons must remain at least 36dp tall" }
             if (field == value) return
             field = value
             requestLayout()
         }
+
+    protected open fun applyListDensity(density: ListDensity) {}
 
     var buttons = mutableListOf<T>()
 

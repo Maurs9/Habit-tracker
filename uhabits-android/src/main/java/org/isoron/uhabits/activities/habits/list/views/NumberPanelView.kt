@@ -23,6 +23,7 @@ import android.content.Context
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.models.Timestamp
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.ActivityContext
@@ -91,7 +92,15 @@ class NumberPanelView(
             setupButtons()
         }
 
-    override fun createButton() = buttonFactory.create()
+    override fun createButton() = buttonFactory.create().apply {
+        listDensity = this@NumberPanelView.listDensity
+    }
+
+    override fun applyListDensity(density: ListDensity) {
+        for (button in buttons) {
+            button.listDensity = density
+        }
+    }
 
     @Synchronized
     override fun setupButtons() {

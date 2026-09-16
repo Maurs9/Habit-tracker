@@ -104,7 +104,13 @@ open class Preferences(private val storage: Storage) {
         }
 
     var listDensity: ListDensity
-        get() = ListDensity.valueOf(storage.getString("pref_list_density", ListDensity.STANDARD.name))
+        get() {
+            val name = storage.getString("pref_list_density", ListDensity.STANDARD.name)
+            return when (name) {
+                "SPACIOUS" -> ListDensity.LARGE
+                else -> ListDensity.valueOf(name)
+            }
+        }
         set(value) {
             if (listDensity == value) return
             storage.putString("pref_list_density", value.name)

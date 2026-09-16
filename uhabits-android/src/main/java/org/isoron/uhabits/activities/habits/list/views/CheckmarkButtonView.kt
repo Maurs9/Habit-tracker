@@ -37,6 +37,7 @@ import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
 import org.isoron.uhabits.core.models.Timestamp
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.utils.drawNotesIndicator
@@ -60,6 +61,12 @@ class CheckmarkButtonView(
 ) : View(context),
     View.OnClickListener,
     View.OnLongClickListener {
+
+    var listDensity: ListDensity = ListDensity.STANDARD
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     var color: Int = Color.BLACK
         set(value) {
@@ -208,10 +215,11 @@ class CheckmarkButtonView(
                 }
                 else -> R.string.fa_check
             }
+            val baseSize = listDensity.checkmarkIconSizeSp
             paint.textSize = when {
-                id == R.string.fa_question -> sp(12.0f)
-                value == YES_AUTO -> sp(13.0f)
-                else -> sp(14.0f)
+                id == R.string.fa_question -> sp(baseSize - 2.0f)
+                value == YES_AUTO -> sp(baseSize - 1.0f)
+                else -> sp(baseSize)
             }
             if (value == YES_AUTO) {
                 paint.strokeWidth = 5f
