@@ -24,17 +24,19 @@
 
 ---
 
-## 🌟 What's New in this Version
+## 🌟 What's New in v2.5
 
-* **📁 Habit Sections**: Organize your daily routines by grouping habits into custom sections (e.g., Morning Routine, Health & Fitness, Evening & Learning). Customize section order, see each section's done/total count on the main list, and reassign habits with ease.
-* **🎯 Flexible Frequencies for Measurable Habits**: Measurable habits support the frequency picker previously exclusive to yes/no habits (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days display automatic checkmarks, distinct from recorded measurements.
-* **🎨 4-Ring Donut Color Wheel Picker**: Replaced the legacy flat color grid with an intuitive 4-ring non-overlapping color wheel based on harmonic color theory:
-  * **12 Radial Hue Sectors** (spaced 30° apart across the color spectrum).
-  * **4 Concentric Rings**: Outer (Deep tones), Middle-outer (Vibrant tones), Middle-inner (Soft tones), and Inner (Pastel tones).
-  * **Center Hub**: 4 distinct neutral swatches (Light Gray, Gray, Slate, Charcoal).
-  * High-contrast 52-color palette calibrated for both Light and Dark themes.
-* **🏷️ Interactive Tag Picker**: Easily assign and manage tags with a multi-selection checklist dialog. Filter your habits and save custom views.
-* **⏰ Multiple Daily Reminders**: Schedule multiple notification times for any habit across selected days of the week, with integrated snooze support directly from the notification shade.
+* **📏 Habit List Density (Compact, Standard, Spacious)**: Customize the layout of your main habit list under **Settings → Interface → List density** with a live visual preview:
+  * **Compact**: Minimalist 1dp row spacing and streamlined headers to view maximum habits at a glance without scrolling.
+  * **Standard**: Balanced default layout with 3dp row gaps and classic 48dp action buttons.
+  * **Spacious**: Generous touch targets with 64dp action buttons and enhanced row breathing room.
+* **📁 Habit Sections & Collapsible Headers**: Organize daily routines into custom sections (e.g., *Morning Routine*, *Health & Fitness*, *Evening & Learning*). View live *done / total* counts in section headers and collapse sections to stay focused.
+* **↕️ Seamless Long-Press Habit Reordering**: Reorder habits cleanly inside their sections via smooth drag-and-drop when sorted Manually. Clean card design with no intrusive drag handle icons, haptic feedback on elevation, atomic database persistence upon release, and instant in-place long-press for multi-selection mode (CAB).
+* **🎯 Flexible Frequencies for Measurable Habits**: Measurable/numerical habits now enjoy full frequency support (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days automatically receive outline checkmarks (`YES_AUTO`), cleanly distinguished from measured values across cards, widgets, and CSV exports.
+* **🎨 4-Ring Donut Color Wheel Picker**: Intuitive harmonic color wheel with 52 vibrant, non-overlapping colors across 4 concentric rings (Deep, Vibrant, Soft, Pastel) and 12 radial hue sectors, plus 4 neutral swatches in the center hub. High contrast calibrated for both Light and Dark themes.
+* **☀️ High-Contrast "Today" Column**: Subtle, adaptive vertical highlight behind today's checkmark column (calibrated at 6% light, 16% dark, and 20% AMOLED pure black) keeping today's entries instantly recognizable.
+* **🏷️ Interactive Tag Picker**: Easily assign, organize, and filter habits with an interactive multi-select tag checklist dialog.
+* **⏰ Multiple Daily Reminders & Snooze**: Schedule multiple notification times for any habit across chosen weekdays, with direct snooze actions from the notification tray.
 
 ---
 
@@ -71,7 +73,7 @@ Because this enhanced edition contains custom features (Sections, 4-Ring Color W
    *(If prompted, allow your browser or file manager permission to "Install unknown apps").*
 
 > [!NOTE]
-> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Measurable Habit Frequencies, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
+> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Habit List Density, Measurable Habit Frequencies, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
 
 ---
 
