@@ -24,10 +24,12 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.GestureDetector
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import org.isoron.uhabits.utils.dp
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.DOWN
 import androidx.recyclerview.widget.ItemTouchHelper.END
@@ -134,6 +136,14 @@ class HabitCardListView(
         cardView.unit = habit.unit
         cardView.threshold = habit.targetValue
         cardView.notes = notes
+        cardView.isDragHandleVisible = adapter.isSortable
+
+        cardView.dragHandle.setOnTouchListener { _, ev ->
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                touchHelper.startDrag(holder)
+            }
+            false
+        }
 
         cardView.setOnClickListener {
             val position = holder.adapterPosition
@@ -192,6 +202,7 @@ class HabitCardListView(
 
     interface Controller {
         fun drop(from: Int, to: Int) {}
+        fun onReorderFinished(from: Habit, to: Habit) {}
         fun onItemClick(pos: Int) {}
         fun onItemLongClick(pos: Int) {}
         fun startDrag(position: Int) {}
@@ -202,7 +213,7 @@ class HabitCardListView(
     ) : GestureDetector.SimpleOnGestureListener() {
 
         override fun onLongPress(e: MotionEvent) {
-            if (holder.itemView.performLongClick() && adapter.isSortable) touchHelper.startDrag(holder)
+            holder.itemView.performLongClick()
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
@@ -212,25 +223,90 @@ class HabitCardListView(
     }
 
     inner class TouchHelperCallback : ItemTouchHelper.Callback() {
+        private var draggedHabit: Habit? = null
+        private var lastTargetHabit: Habit? = null
+        private var initialPosition: Int = NO_POSITION
+
         override fun getMovementFlags(
             recyclerView: RecyclerView,
             viewHolder: ViewHolder
         ): Int {
+            if (!adapter.isSortable) return 0
             if (adapter.getItem(viewHolder.adapterPosition) == null) return 0
-            return makeMovementFlags(UP or DOWN, START or END)
+            return makeMovementFlags(UP or DOWN, 0)
         }
 
-        override fun canDropOver(recyclerView: RecyclerView, current: ViewHolder, target: ViewHolder): Boolean =
-            adapter.isSameSection(current.adapterPosition, target.adapterPosition)
+        override fun canDropOver(
+            recyclerView: RecyclerView,
+            current: ViewHolder,
+            target: ViewHolder
+        ): Boolean {
+            val fromPos = current.adapterPosition
+            val toPos = target.adapterPosition
+            if (fromPos == NO_POSITION || toPos == NO_POSITION) return false
+            if (adapter.getItem(toPos) == null) return false
+            return adapter.isSameSection(fromPos, toPos)
+        }
 
         override fun onMove(
             recyclerView: RecyclerView,
             from: ViewHolder,
             to: ViewHolder
         ): Boolean {
+            val fromPos = from.adapterPosition
+            val toPos = to.adapterPosition
+            if (fromPos == NO_POSITION || toPos == NO_POSITION) return false
             if (!canDropOver(recyclerView, from, to)) return false
-            controller.get().drop(from.adapterPosition, to.adapterPosition)
+
+            val target = adapter.getItem(toPos)
+            if (target != null) {
+                lastTargetHabit = target
+            }
+            adapter.performReorder(fromPos, toPos)
             return true
+        }
+
+        override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
+            super.onSelectedChanged(viewHolder, actionState)
+            if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && viewHolder != null) {
+                val pos = viewHolder.adapterPosition
+                initialPosition = pos
+                draggedHabit = if (pos != NO_POSITION) adapter.getItem(pos) else null
+                lastTargetHabit = null
+                viewHolder.itemView.animate()
+                    .scaleX(1.02f)
+                    .scaleY(1.02f)
+                    .translationZ(dp(6f))
+                    .setDuration(120)
+                    .start()
+                viewHolder.itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            }
+        }
+
+        override fun clearView(
+            recyclerView: RecyclerView,
+            viewHolder: ViewHolder
+        ) {
+            super.clearView(recyclerView, viewHolder)
+            viewHolder.itemView.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .translationZ(0f)
+                .setDuration(120)
+                .start()
+
+            val from = draggedHabit
+            val to = lastTargetHabit
+            val currentPos = viewHolder.adapterPosition
+            val initialPos = initialPosition
+
+            draggedHabit = null
+            lastTargetHabit = null
+            initialPosition = NO_POSITION
+
+            if (from != null && to != null && currentPos != NO_POSITION && currentPos != initialPos) {
+                controller.get().onReorderFinished(from, to)
+            }
         }
 
         override fun onSwiped(

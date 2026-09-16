@@ -13,6 +13,8 @@ import org.isoron.uhabits.activities.habits.list.views.CheckmarkPanelViewFactory
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListController
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListViewFactory
+import org.isoron.uhabits.activities.habits.list.views.HabitCardView
+import org.isoron.uhabits.activities.habits.list.views.HabitCardViewHolder
 import org.isoron.uhabits.activities.habits.list.views.HabitCardViewFactory
 import org.isoron.uhabits.activities.habits.list.views.NumberButtonViewFactory
 import org.isoron.uhabits.activities.habits.list.views.NumberPanelViewFactory
@@ -100,6 +102,10 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         assertEquals(0, root.listView.TouchHelperCallback().getMovementFlags(root.listView, header))
         assertFalse(header.itemView.performClick())
         assertFalse(header.itemView.performLongClick())
+        val cardHolder = adapter.onCreateViewHolder(root.listView, 0) as HabitCardViewHolder
+        adapter.onBindViewHolder(cardHolder, 1)
+        val cardView = cardHolder.itemView as HabitCardView
+        assertTrue(cardView.isDragHandleVisible)
         val selectionMenu: ListHabitsSelectionMenu = mock()
         val controller = HabitCardListController(adapter, mock(), Lazy { selectionMenu })
         controller.onItemClick(0)

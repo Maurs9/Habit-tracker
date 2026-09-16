@@ -33,6 +33,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import org.isoron.platform.gui.toInt
@@ -134,13 +135,33 @@ class HabitCardView(
 
     var checkmarkPanel: CheckmarkPanelView
     private var numberPanel: NumberPanelView
+    val dragHandle: ImageView
     private var innerFrame: LinearLayout
     private var label: TextView
     private var scoreRing: RingView
 
+    var isDragHandleVisible: Boolean
+        get() = dragHandle.visibility == VISIBLE
+        set(value) {
+            dragHandle.visibility = if (value) VISIBLE else GONE
+        }
+
     private var currentToggleTaskId = 0
 
     init {
+        dragHandle = ImageView(context).apply {
+            setImageResource(R.drawable.ic_drag_handle)
+            val iconSize = dp(24f).toInt()
+            val leftMargin = dp(6f).toInt()
+            val rightMargin = dp(2f).toInt()
+            layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply {
+                setMargins(leftMargin, 0, rightMargin, 0)
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            contentDescription = context.getString(R.string.habit_drag_handle)
+            visibility = GONE
+        }
+
         scoreRing = RingView(context).apply {
             val thickness = dp(3f)
             val margin = dp(8f).toInt()
@@ -199,6 +220,7 @@ class HabitCardView(
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             elevation = dp(1f)
 
+            addView(dragHandle)
             addView(scoreRing)
             addView(label)
             addView(checkmarkPanel)
