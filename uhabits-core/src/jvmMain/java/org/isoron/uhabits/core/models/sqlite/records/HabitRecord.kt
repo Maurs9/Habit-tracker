@@ -133,17 +133,17 @@ class HabitRecord {
 
     fun copyTo(habit: Habit) {
         habit.id = id
-        habit.name = name!!
-        habit.description = description!!
-        habit.question = question!!
-        habit.frequency = Frequency(freqNum!!, freqDen!!)
-        habit.color = PaletteColor(color!!)
-        habit.isArchived = archived != 0
-        habit.type = HabitType.fromInt(type!!)
-        habit.targetType = NumericalHabitType.fromInt(targetType!!)
-        habit.targetValue = targetValue!!
-        habit.unit = unit!!
-        habit.position = position!!
+        habit.name = name ?: ""
+        habit.description = description ?: ""
+        habit.question = question ?: ""
+        habit.frequency = Frequency(freqNum ?: 1, freqDen ?: 1)
+        habit.color = PaletteColor(color ?: 0)
+        habit.isArchived = archived != null && archived != 0
+        habit.type = type?.let { HabitType.fromInt(it) } ?: HabitType.YES_NO
+        habit.targetType = targetType?.let { NumericalHabitType.fromInt(it) } ?: NumericalHabitType.AT_LEAST
+        habit.targetValue = targetValue ?: 0.0
+        habit.unit = unit ?: ""
+        habit.position = position ?: 0
         habit.uuid = uuid
         habit.tags = HabitTags.parse(tags.orEmpty())
         habit.sectionId = sectionId
@@ -151,7 +151,7 @@ class HabitRecord {
             Reminder(
                 reminderHour!!,
                 reminderMin!!,
-                WeekdayList(reminderDays!!)
+                WeekdayList(reminderDays ?: 0)
             )
         } else {
             null

@@ -25,14 +25,37 @@ class SQLiteSectionList(modelFactory: ModelFactory) : SectionList() {
     @Synchronized
     override fun getAll(): List<Section> {
         if (sections == null) {
-            val loaded = repository.findAll("ORDER BY position, id").map { it.toSection() }
-            require(loaded.map { normalizeName(it.name) }.distinct().size == loaded.size) {
-                "Duplicate section names"
+            val records = repository.findAll("ORDER BY position, id")
+            val loaded = records.mapNotNull { rec ->
+                val id = rec.id ?: return@mapNotNull null
+                val name = rec.name?.trim().takeIf { !it.isNullOrBlank() } ?: "Section $id"
+                val position = rec.position ?: 0
+                Section(id, name, position)
             }
-            if (loaded.withIndex().any { (position, section) -> section.position != position }) {
-                transaction { rebuildOrder(loaded) }
+            val seen = mutableSetOf<String>()
+            val sanitized = mutableListOf<Section>()
+            var needsOrderUpdate = false
+            for ((idx, section) in loaded.withIndex()) {
+                var name = section.name
+                var counter = 1
+                while (normalizeName(name) in seen) {
+                    name = "${section.name} ($counter)"
+                    counter++
+                }
+                seen.add(normalizeName(name))
+                if (section.position != idx || section.name != name) {
+                    needsOrderUpdate = true
+                }
+                sanitized.add(section.copy(name = name, position = idx))
             }
-            sections = loaded.mapIndexed { position, section -> section.copy(position = position) }
+            if (needsOrderUpdate) {
+                transaction {
+                    sanitized.forEach { sec ->
+                        repository.execSQL("UPDATE sections SET position = ?, name = ? WHERE id = ?", sec.position, sec.name, sec.id)
+                    }
+                }
+            }
+            sections = sanitized
         }
         return sections!!.toList()
     }
