@@ -269,10 +269,10 @@ entry point, summary, preview-only selection, Save/Cancel, rotation, and dark
 themes.
 
 `HabitListAppearanceTest` checks both entry types at all three densities,
-including RTL, minimum 48dp touch targets, fixed date-column widths, and
-returning to Standard on the same view. Its Standard screenshot baselines are
-unchanged; Compact and Spacious have separate light, dark, and pure-black
-baselines. `SectionHeaderViewTest` checks Compact's 8/20/4dp spacing and
+including RTL, minimum touch targets (40dp in Compact, 48dp in Standard, 64dp in Large),
+fixed date-column widths, and returning to Standard on the same view. Its Standard screenshot
+baselines are unchanged; Compact and Large have separate light, dark, and pure-black
+baselines. `SectionHeaderViewTest` checks Compact's 6/16/3dp spacing and
 restoration of Standard's 12/28/6dp spacing.
 
 All 20 density, appearance, header, and settings tests pass on the API 35 ARM64
