@@ -64,4 +64,17 @@ class StreakListTest : BaseUnitTest() {
         assertThat(best.size, equalTo(1))
         assertThat(best[0].length, equalTo(1))
     }
+
+    @Test
+    fun testNumericalNonDailyStreak() {
+        val numericalHabit = fixtures.createEmptyNumericalHabit(NumericalHabitType.AT_LEAST)
+        numericalHabit.frequency = Frequency(1, 3)
+        numericalHabit.targetValue = 5.0
+        numericalHabit.originalEntries.add(Entry(today, 5000))
+        numericalHabit.originalEntries.add(Entry(today.minus(2), 6000))
+        numericalHabit.recompute()
+        val best = numericalHabit.streaks.getBest(1)
+        assertThat(best.size, equalTo(1))
+        assertThat(best[0].length, equalTo(5))
+    }
 }

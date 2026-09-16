@@ -96,9 +96,6 @@ class EditHabitActivity : AppCompatActivity() {
     var reminderDays: WeekdayList = WeekdayList.EVERY_DAY
     var targetType = NumericalHabitType.AT_LEAST
     private var validatedTarget = 0.0
-    private var booleanFreqNum = 1
-    private var booleanFreqDen = 1
-    private var numericalFreqDen = 1
     private var moreExpanded = false
 
     override fun onCreate(state: Bundle?) {
@@ -157,9 +154,6 @@ class EditHabitActivity : AppCompatActivity() {
             reminderMin = state.getInt("reminderMin")
             reminderDays = WeekdayList(state.getInt("reminderDays"))
             targetType = NumericalHabitType.fromInt(state.getInt("targetType", targetType.value))
-            booleanFreqNum = state.getInt("booleanFreqNum", 1)
-            booleanFreqDen = state.getInt("booleanFreqDen", 1)
-            numericalFreqDen = state.getInt("numericalFreqDen", 1)
             moreExpanded = state.getBoolean("moreExpanded", moreExpanded)
         }
 
@@ -171,16 +165,6 @@ class EditHabitActivity : AppCompatActivity() {
             if (checked && habitId < 0) {
                 val newType = if (id == R.id.typeMeasurable) HabitType.NUMERICAL else HabitType.YES_NO
                 if (newType != habitType) {
-                    if (habitType == HabitType.YES_NO) {
-                        booleanFreqNum = freqNum
-                        booleanFreqDen = freqDen
-                        freqNum = 1
-                        freqDen = numericalFreqDen
-                    } else {
-                        numericalFreqDen = freqDen
-                        freqNum = booleanFreqNum
-                        freqDen = booleanFreqDen
-                    }
                     habitType = newType
                     applyHabitType()
                     populateFrequency()
@@ -234,22 +218,6 @@ class EditHabitActivity : AppCompatActivity() {
             }
             val dialog = builder.create()
             dialog.dismissCurrentAndShow()
-        }
-
-        binding.numericalFrequencyPicker.setOnClickListener {
-            val builder = MaterialAlertDialogBuilder(this, R.style.HabitControlsDialogTheme)
-            val choices = arrayOf(getString(R.string.every_day), getString(R.string.every_week), getString(R.string.every_month))
-            builder.setTitle(R.string.frequency)
-            builder.setSingleChoiceItems(choices, listOf(1, 7, 30).indexOf(freqDen)) { dialog, which ->
-                freqDen = when (which) {
-                    1 -> 7
-                    2 -> 30
-                    else -> 1
-                }
-                populateFrequency()
-                dialog.dismiss()
-            }
-            builder.show()
         }
 
         populateReminder()
@@ -421,7 +389,7 @@ class EditHabitActivity : AppCompatActivity() {
         binding.unitOuterBox.visibility = if (numerical) View.VISIBLE else View.GONE
         binding.targetOuterBox.visibility = binding.unitOuterBox.visibility
         binding.targetTypeOuterBox.visibility = binding.unitOuterBox.visibility
-        binding.frequencyOuterBox.visibility = if (numerical) View.GONE else View.VISIBLE
+        binding.frequencyOuterBox.visibility = View.VISIBLE
         binding.nameInput.setHint(if (numerical) R.string.measurable_short_example else R.string.yes_or_no_short_example)
         binding.questionInput.setHint(if (numerical) R.string.measurable_question_example else R.string.example_question_boolean)
         if (!numerical) binding.targetInput.error = null
@@ -453,12 +421,6 @@ class EditHabitActivity : AppCompatActivity() {
     @SuppressLint("StringFormatMatches")
     private fun populateFrequency() {
         binding.booleanFrequencyPicker.text = formatFrequency(freqNum, freqDen, resources)
-        binding.numericalFrequencyPicker.text = when (freqDen) {
-            1 -> getString(R.string.every_day)
-            7 -> getString(R.string.every_week)
-            30 -> getString(R.string.every_month)
-            else -> "$freqNum/$freqDen"
-        }
     }
 
     private fun populateTargetType() {
@@ -509,9 +471,6 @@ class EditHabitActivity : AppCompatActivity() {
             putInt("reminderMin", reminderMin)
             putInt("reminderDays", reminderDays.toInteger())
             putInt("targetType", targetType.value)
-            putInt("booleanFreqNum", booleanFreqNum)
-            putInt("booleanFreqDen", booleanFreqDen)
-            putInt("numericalFreqDen", numericalFreqDen)
             putBoolean("moreExpanded", moreExpanded)
         }
     }

@@ -82,7 +82,7 @@ class EditHabitActivityTest : BaseAndroidTest() {
             activity.findViewById<EditText>(R.id.nameInput).setText("Read chapters")
             activity.findViewById<View>(R.id.typeMeasurable).performClick()
             assertEquals(HabitType.NUMERICAL, activity.habitType)
-            assertEquals(View.GONE, activity.findViewById<View>(R.id.frequencyOuterBox).visibility)
+            assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.frequencyOuterBox).visibility)
             for (id in listOf(R.id.unitOuterBox, R.id.targetOuterBox, R.id.targetTypeOuterBox)) {
                 assertEquals(View.VISIBLE, activity.findViewById<View>(id).visibility)
             }
@@ -95,6 +95,7 @@ class EditHabitActivityTest : BaseAndroidTest() {
             target.setText("12.5")
             activity.findViewById<EditText>(R.id.unitInput).setText("chapters")
             activity.targetType = NumericalHabitType.AT_MOST
+            activity.freqNum = 3
             activity.freqDen = 7
         }
         val saved = habitList.first { it.name == "Read chapters" }
@@ -102,7 +103,7 @@ class EditHabitActivityTest : BaseAndroidTest() {
         assertEquals(12.5, saved.targetValue)
         assertEquals("chapters", saved.unit)
         assertEquals(NumericalHabitType.AT_MOST, saved.targetType)
-        assertEquals(Frequency(1, 7), saved.frequency)
+        assertEquals(Frequency(3, 7), saved.frequency)
     }
 
     @Test
@@ -112,8 +113,8 @@ class EditHabitActivityTest : BaseAndroidTest() {
             activity.freqNum = 3
             activity.freqDen = 7
             activity.findViewById<View>(R.id.typeMeasurable).performClick()
-            assertEquals(1, activity.freqNum)
-            assertEquals(1, activity.freqDen)
+            assertEquals(3, activity.freqNum)
+            assertEquals(7, activity.freqDen)
             activity.findViewById<EditText>(R.id.targetInput).setText("")
             activity.findViewById<View>(R.id.buttonSave).performClick()
             assertFalse(activity.isFinishing)
@@ -163,10 +164,10 @@ class EditHabitActivityTest : BaseAndroidTest() {
             scenario.onActivity { activity ->
                 assertEquals(HabitType.YES_NO, activity.habitType)
                 assertEquals(3, activity.freqNum)
-                assertEquals(7, activity.freqDen)
+                assertEquals(30, activity.freqDen)
                 assertEquals(View.GONE, activity.findViewById<View>(R.id.moreGroup).visibility)
                 activity.findViewById<View>(R.id.typeMeasurable).performClick()
-                assertEquals(1, activity.freqNum)
+                assertEquals(3, activity.freqNum)
                 assertEquals(30, activity.freqDen)
                 assertEquals(NumericalHabitType.AT_MOST, activity.targetType)
                 assertEquals(section.id, activity.sectionId)

@@ -134,6 +134,7 @@ class NumberButtonView(
         super.onInitializeAccessibilityNodeInfo(info)
         info.className = android.widget.Button::class.java.name
         val state = when {
+            value == Entry.YES_AUTO.toDouble() / 1000 -> context.getString(R.string.habit_entry_automatic)
             value == Entry.SKIP.toDouble() / 1000 -> context.getString(R.string.habit_entry_skipped)
             value < 0 -> context.getString(R.string.habit_entry_unknown)
             else -> {
@@ -212,7 +213,9 @@ class NumberButtonView(
 
         fun draw(canvas: Canvas) {
             if (isToday) canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), todayHighlight.paint)
+            val isAuto = value == Entry.YES_AUTO.toDouble() / 1000
             val activeColor = when {
+                isAuto -> color
                 value < 0.0 -> lowContrast
                 (targetType == AT_LEAST) && (value >= threshold) -> color
                 (targetType == AT_MOST) && (value <= threshold) -> color
@@ -224,6 +227,12 @@ class NumberButtonView(
             val textSize: Float
 
             when {
+                isAuto -> {
+                    label = resources.getString(R.string.fa_check)
+                    textSize = dim(R.dimen.smallTextSize)
+                    typeface = getFontAwesome()
+                }
+
                 value == Entry.SKIP.toDouble() / 1000 -> {
                     label = resources.getString(R.string.fa_skipped)
                     textSize = dim(R.dimen.smallTextSize)
@@ -249,12 +258,20 @@ class NumberButtonView(
                 }
             }
 
+            if (isAuto) {
+                pNumber.strokeWidth = 5f
+                pNumber.style = Paint.Style.STROKE
+            } else {
+                pNumber.strokeWidth = 0f
+                pNumber.style = Paint.Style.FILL
+            }
+
             pNumber.textSize = textSize
             pNumber.color = if (isToday) todayHighlight.foreground(activeColor) else activeColor
             pNumber.typeface = typeface
             pUnit.color = pNumber.color
 
-            if (units.isBlank()) {
+            if (units.isBlank() || isAuto) {
                 // Draw number without units
                 rect.set(0f, 0f, width.toFloat(), height.toFloat())
                 rect.offset(0f, 0.5f * em)

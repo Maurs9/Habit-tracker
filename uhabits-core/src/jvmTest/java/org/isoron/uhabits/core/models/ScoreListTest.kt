@@ -382,6 +382,20 @@ class NumericalAtLeastScoreListTest : NumericalScoreListTest() {
         habit.recompute()
         assertThat(habit.scores[today].value, IsCloseTo.closeTo(0.051922, E))
     }
+
+    @Test
+    fun testNonDailyNumericalScore() {
+        habit = fixtures.createEmptyNumericalHabit(NumericalHabitType.AT_LEAST)
+        habit.frequency = Frequency(3, 7)
+        habit.targetValue = 5.0
+        for (w in 0..9) {
+            addEntry(7 * w + 0, 5000)
+            addEntry(7 * w + 2, 6000)
+            addEntry(7 * w + 4, 5000)
+        }
+        habit.recompute()
+        assertThat(habit.scores[today].value, OrderingComparison.greaterThan(0.90))
+    }
 }
 
 class NumericalAtLeastScoreListWithSkipTest : NumericalScoreListTest() {

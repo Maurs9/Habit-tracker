@@ -139,6 +139,38 @@ class EntryListTest {
     }
 
     @Test
+    fun testComputeNumericalNonDaily() {
+        val today = DateUtils.getToday()
+
+        val original = EntryList()
+        original.add(Entry(today.minus(4), 5000))
+        original.add(Entry(today.minus(9), 5000))
+        original.add(Entry(today.minus(10), 5000))
+
+        val computed = EntryList()
+        computed.recomputeFrom(
+            original,
+            Frequency(1, 3),
+            isNumerical = true,
+            targetValue = 5.0,
+            targetType = NumericalHabitType.AT_LEAST
+        )
+
+        val expected = listOf(
+            Entry(today.minus(2), YES_AUTO),
+            Entry(today.minus(3), YES_AUTO),
+            Entry(today.minus(4), 5000),
+            Entry(today.minus(7), YES_AUTO),
+            Entry(today.minus(8), YES_AUTO),
+            Entry(today.minus(9), 5000),
+            Entry(today.minus(10), 5000),
+            Entry(today.minus(11), YES_AUTO),
+            Entry(today.minus(12), YES_AUTO)
+        )
+        assertEquals(expected, computed.getKnown())
+    }
+
+    @Test
     fun testGroupByNumerical() {
         val offsets = intArrayOf(
             0, 5, 9, 15, 17, 21, 23, 27, 28, 35, 41, 45, 47, 53, 56, 62, 70, 73, 78,

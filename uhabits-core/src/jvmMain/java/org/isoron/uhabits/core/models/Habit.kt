@@ -82,8 +82,8 @@ data class Habit(
     fun isCompleted(value: Int): Boolean {
         return if (isNumerical) {
             when (targetType) {
-                NumericalHabitType.AT_LEAST -> value / 1000.0 >= targetValue
-                NumericalHabitType.AT_MOST -> false
+                NumericalHabitType.AT_LEAST -> value / 1000.0 >= targetValue || value == Entry.YES_AUTO
+                NumericalHabitType.AT_MOST -> value == Entry.YES_AUTO
             }
         } else {
             value != Entry.NO && value != Entry.UNKNOWN
@@ -105,7 +105,9 @@ data class Habit(
         computedEntries.recomputeFrom(
             originalEntries = originalEntries,
             frequency = frequency,
-            isNumerical = isNumerical
+            isNumerical = isNumerical,
+            targetValue = targetValue,
+            targetType = targetType
         )
 
         val today = DateUtils.getTodayWithOffset()

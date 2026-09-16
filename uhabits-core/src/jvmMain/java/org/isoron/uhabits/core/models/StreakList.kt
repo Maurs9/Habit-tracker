@@ -49,8 +49,8 @@ class StreakList {
                 val value = it.value
                 if (isNumerical) {
                     when (targetType) {
-                        NumericalHabitType.AT_LEAST -> value / 1000.0 >= targetValue
-                        NumericalHabitType.AT_MOST -> value != Entry.UNKNOWN && value / 1000.0 <= targetValue
+                        NumericalHabitType.AT_LEAST -> value / 1000.0 >= targetValue || value == Entry.YES_AUTO
+                        NumericalHabitType.AT_MOST -> (value != Entry.UNKNOWN && value != Entry.SKIP && value / 1000.0 <= targetValue) || value == Entry.YES_AUTO
                     }
                 } else {
                     value > 0

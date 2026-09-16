@@ -82,57 +82,42 @@ class ScoreList {
         val values = computedEntries.getByInterval(from, to).map { it.value }.toIntArray()
         val isAtMost = numericalHabitType == NumericalHabitType.AT_MOST
 
-        // For non-daily boolean habits, we double the numerator and the denominator to smooth
-        // out irregular repetition schedules (for example, weekly habits performed on different
-        // days of the week)
-        if (!isNumerical && freq < 1.0) {
+        // For non-daily boolean habits and multi-frequency numerical habits, we double the numerator
+        // and denominator to smooth out irregular repetition schedules across different days of the week.
+        if ((!isNumerical || frequency.numerator > 1) && freq < 1.0) {
             numerator *= 2
             denominator *= 2
+        }
+
+        val dayScores = DoubleArray(values.size)
+        for (i in values.indices) {
+            val v = values[i]
+            dayScores[i] = when {
+                v == Entry.SKIP || v == Entry.YES_AUTO || v == Entry.UNKNOWN -> 0.0
+                !isNumerical -> if (v == Entry.YES_MANUAL) 1.0 else 0.0
+                !isAtMost -> if (targetValue > 0) min(1.0, max(0.0, v / 1000.0) / targetValue) else 1.0
+                else -> {
+                    val norm = v / 1000.0
+                    if (targetValue > 0) {
+                        (1.0 - ((norm - targetValue) / targetValue)).coerceIn(0.0, 1.0)
+                    } else {
+                        if (norm > 0) 0.0 else 1.0
+                    }
+                }
+            }
         }
 
         var previousValue = if (isNumerical && isAtMost) 1.0 else 0.0
         for (i in values.indices) {
             val offset = values.size - i - 1
-            if (isNumerical) {
-                rollingSum += max(0, values[offset])
-                if (offset + denominator < values.size) {
-                    rollingSum -= max(0, values[offset + denominator])
-                }
+            rollingSum += dayScores[offset]
+            if (offset + denominator < values.size) {
+                rollingSum -= dayScores[offset + denominator]
+            }
 
-                val normalizedRollingSum = rollingSum / 1000
-                if (values[offset] != Entry.SKIP) {
-                    val percentageCompleted = if (!isAtMost) {
-                        if (targetValue > 0) {
-                            min(1.0, normalizedRollingSum / targetValue)
-                        } else {
-                            1.0
-                        }
-                    } else {
-                        if (targetValue > 0) {
-                            (1 - ((normalizedRollingSum - targetValue) / targetValue)).coerceIn(
-                                0.0,
-                                1.0
-                            )
-                        } else {
-                            if (normalizedRollingSum > 0) 0.0 else 1.0
-                        }
-                    }
-
-                    previousValue = compute(freq, previousValue, percentageCompleted)
-                }
-            } else {
-                if (values[offset] == Entry.YES_MANUAL) {
-                    rollingSum += 1.0
-                }
-                if (offset + denominator < values.size) {
-                    if (values[offset + denominator] == Entry.YES_MANUAL) {
-                        rollingSum -= 1.0
-                    }
-                }
-                if (values[offset] != Entry.SKIP) {
-                    val percentageCompleted = min(1.0, rollingSum / numerator)
-                    previousValue = compute(freq, previousValue, percentageCompleted)
-                }
+            if (values[offset] != Entry.SKIP) {
+                val percentageCompleted = min(1.0, rollingSum / numerator)
+                previousValue = compute(freq, previousValue, percentageCompleted)
             }
             val timestamp = from.plus(i)
             map[timestamp] = Score(timestamp, previousValue)

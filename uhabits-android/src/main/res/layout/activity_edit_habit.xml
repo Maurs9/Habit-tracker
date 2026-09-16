@@ -168,22 +168,6 @@
                 </LinearLayout>
             </FrameLayout>
 
-            <!-- Frequency -->
-            <FrameLayout
-                android:id="@+id/frequencyOuterBox"
-                style="@style/FormOuterBox">
-                <LinearLayout style="@style/FormInnerBox">
-                    <TextView
-                        style="@style/FormLabel"
-                        android:labelFor="@id/boolean_frequency_picker"
-                        android:text="@string/frequency" />
-                    <TextView
-                        style="@style/FormDropdown"
-                        android:id="@+id/boolean_frequency_picker"
-                        android:text="@string/every_day" />
-                </LinearLayout>
-            </FrameLayout>
-
             <!-- Target value, unit and frequency -->
             <FrameLayout
                 android:id="@+id/unitOuterBox"
@@ -202,47 +186,22 @@
                 </LinearLayout>
             </FrameLayout>
 
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/targetOuterBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
-                <FrameLayout
-                    style="@style/FormOuterBox"
-                    android:layout_width="0dp"
-                    android:layout_weight="1">
-                    <LinearLayout style="@style/FormInnerBox">
-                        <TextView
-                            style="@style/FormLabel"
-                            android:labelFor="@id/targetInput"
-                            android:text="@string/target" />
-                        <EditText
-                            style="@style/FormInput"
-                            android:id="@+id/targetInput"
-                            android:maxLines="1"
-                            android:inputType="numberDecimal"
-                            android:hint="@string/example_target"/>
-                    </LinearLayout>
-                </FrameLayout>
-                <FrameLayout
-                    style="@style/FormOuterBox"
-                    android:layout_width="0dp"
-                    android:layout_weight="1">
-                    <LinearLayout style="@style/FormInnerBox">
-                        <TextView
-                            style="@style/FormLabel"
-                            android:labelFor="@id/numericalFrequencyPicker"
-                            android:text="@string/frequency" />
-                        <TextView
-                            style="@style/FormDropdown"
-                            android:id="@+id/numericalFrequencyPicker"
-                            android:text="@string/every_week"
-                            android:textColor="?attr/contrast100"
-                            />
-                    </LinearLayout>
-                </FrameLayout>
-            </LinearLayout>
+                style="@style/FormOuterBox">
+                <LinearLayout style="@style/FormInnerBox">
+                    <TextView
+                        style="@style/FormLabel"
+                        android:labelFor="@id/targetInput"
+                        android:text="@string/target" />
+                    <EditText
+                        style="@style/FormInput"
+                        android:id="@+id/targetInput"
+                        android:maxLines="1"
+                        android:inputType="numberDecimal"
+                        android:hint="@string/example_target"/>
+                </LinearLayout>
+            </FrameLayout>
 
             <FrameLayout
                 android:id="@+id/targetTypeOuterBox"
@@ -257,6 +216,22 @@
                         android:id="@+id/targetTypePicker"
                         android:textColor="?attr/contrast100"
                         />
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- Frequency -->
+            <FrameLayout
+                android:id="@+id/frequencyOuterBox"
+                style="@style/FormOuterBox">
+                <LinearLayout style="@style/FormInnerBox">
+                    <TextView
+                        style="@style/FormLabel"
+                        android:labelFor="@id/boolean_frequency_picker"
+                        android:text="@string/frequency" />
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/boolean_frequency_picker"
+                        android:text="@string/every_day" />
                 </LinearLayout>
             </FrameLayout>
 

@@ -90,12 +90,19 @@ open class EntryList {
     open fun recomputeFrom(
         originalEntries: EntryList,
         frequency: Frequency,
-        isNumerical: Boolean
+        isNumerical: Boolean,
+        targetValue: Double = 0.0,
+        targetType: NumericalHabitType = NumericalHabitType.AT_LEAST
     ) {
         clear()
         val original = originalEntries.getKnown()
-        if (isNumerical) {
+        if (isNumerical && frequency.numerator == frequency.denominator) {
             original.forEach { add(it) }
+        } else if (isNumerical) {
+            val intervals = buildNumericalIntervals(frequency, original, targetValue, targetType)
+            snapIntervalsTogether(intervals)
+            val computed = buildNumericalEntriesFromInterval(original, intervals)
+            computed.filter { it.value != UNKNOWN || it.notes.isNotEmpty() }.forEach { add(it) }
         } else {
             val intervals = buildIntervals(frequency, original)
             snapIntervalsTogether(intervals)
@@ -270,6 +277,86 @@ open class EntryList {
                 }
             }
             return intervals
+        }
+
+        fun buildNumericalIntervals(
+            freq: Frequency,
+            entries: List<Entry>,
+            targetValue: Double,
+            targetType: NumericalHabitType
+        ): ArrayList<Interval> {
+            val filtered = entries.filter { entry ->
+                when (targetType) {
+                    NumericalHabitType.AT_LEAST -> entry.value / 1000.0 >= targetValue
+                    NumericalHabitType.AT_MOST -> entry.value != UNKNOWN && entry.value != SKIP && entry.value / 1000.0 <= targetValue
+                }
+            }
+            val num = freq.numerator
+            val den = freq.denominator
+            val intervals = arrayListOf<Interval>()
+            for (i in num - 1 until filtered.size) {
+                val (begin, _) = filtered[i]
+                val (center, _) = filtered[i - num + 1]
+                var size = den
+                if (den == 30 || den == 31) {
+                    val beginDate = begin.toLocalDate()
+                    size = if (beginDate.day == beginDate.monthLength) {
+                        beginDate.plus(1).monthLength
+                    } else {
+                        beginDate.monthLength
+                    }
+                }
+                if (begin.daysUntil(center) < size) {
+                    val end = begin.plus(size - 1)
+                    intervals.add(Interval(begin, center, end))
+                }
+            }
+            return intervals
+        }
+
+        fun buildNumericalEntriesFromInterval(
+            original: List<Entry>,
+            intervals: ArrayList<Interval>
+        ): ArrayList<Entry> {
+            val result = ArrayList<Entry>()
+            if (original.isEmpty()) return result
+
+            var from = original[0].timestamp
+            var to = original[0].timestamp
+
+            for (e in original) {
+                if (e.timestamp < from) from = e.timestamp
+                if (e.timestamp > to) to = e.timestamp
+            }
+            for (interval in intervals) {
+                if (interval.begin < from) from = interval.begin
+                if (interval.end > to) to = interval.end
+            }
+
+            // Create unknown entries
+            var current = to
+            while (current >= from) {
+                result.add(Entry(current, UNKNOWN))
+                current = current.minus(1)
+            }
+
+            // Create YES_AUTO entries
+            intervals.forEach { interval ->
+                current = interval.end
+                while (current >= interval.begin) {
+                    val offset = current.daysUntil(to)
+                    result[offset] = Entry(current, YES_AUTO)
+                    current = current.minus(1)
+                }
+            }
+
+            // Copy original entries: user's logged numeric values always take precedence
+            original.forEach { entry ->
+                val offset = entry.timestamp.daysUntil(to)
+                result[offset] = Entry(entry.timestamp, entry.value, entry.notes)
+            }
+
+            return result
         }
     }
 }

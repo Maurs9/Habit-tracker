@@ -132,7 +132,7 @@ class HabitCardListView(
         cardView.dataOffset = dataOffset
         cardView.score = score
         cardView.unit = habit.unit
-        cardView.threshold = habit.targetValue / habit.frequency.denominator
+        cardView.threshold = habit.targetValue
         cardView.notes = notes
 
         cardView.setOnClickListener {

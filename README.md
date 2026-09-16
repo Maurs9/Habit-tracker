@@ -26,12 +26,13 @@
 
 ## 🌟 What's New in this Version
 
-* **📁 Habit Sections**: Organize your daily routines by grouping habits into custom sections (e.g., Morning, Work, Fitness, Evening). Customize section order, collapse or expand sections on the main list, and reassign habits with ease.
-* **🎨 3-Ring Donut Color Wheel Picker**: Replaced the legacy flat color grid with an intuitive 3-ring color wheel based on color theory:
+* **📁 Habit Sections**: Organize your daily routines by grouping habits into custom sections (e.g., Morning Routine, Health & Fitness, Evening & Learning). Customize section order, collapse or expand sections on the main list, and reassign habits with ease.
+* **🎯 Full Frequency Parity for Measurable Habits**: Measurable habits now support the complete flexible frequency system previously exclusive to yes/no habits (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days display clean auto-completion indicators (`YES_AUTO`), streak calculation seamlessly bridges rest days, and habit score calculations dynamically reflect your target rate.
+* **🎨 4-Ring Donut Color Wheel Picker**: Replaced the legacy flat color grid with an intuitive 4-ring non-overlapping color wheel based on harmonic color theory:
   * **12 Radial Hue Sectors** (spaced 30° apart across the color spectrum).
-  * **3 Concentric Rings**: Outer (Vibrant / Primary tones), Middle (Soft / Pastel tones), and Inner (Deep / Rich tones).
+  * **4 Concentric Rings**: Outer (Deep tones), Middle-outer (Vibrant tones), Middle-inner (Soft tones), and Inner (Pastel tones).
   * **Center Hub**: 4 distinct neutral swatches (Light Gray, Gray, Slate, Charcoal).
-  * High-contrast palette calibrated for both Light and Dark themes.
+  * High-contrast 52-color palette calibrated for both Light and Dark themes.
 * **🏷️ Interactive Tag Picker**: Easily assign and manage tags with a multi-selection checklist dialog. Filter your habits and save custom views.
 * **⏰ Multiple Daily Reminders**: Schedule multiple notification times for any habit across selected days of the week, with integrated snooze support directly from the notification shade.
 
@@ -39,12 +40,12 @@
 
 ## 📱 Screenshots
 
-[![Main screen](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/1.png)
-[![Edit habit](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/2.png)
-[![Habit strength](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/3.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/3.png)
-[![Habit history and streaks](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/4.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/4.png)
-[![Widgets](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/5.png)
-[![Night mode](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.thumb.png)](https://raw.githubusercontent.com/iSoron/uhabits/master/screenshots/6.png)
+[![Main screen](screenshots/1.thumb.png)](screenshots/1.png)
+[![Edit habit](screenshots/2.thumb.png)](screenshots/2.png)
+[![Color picker](screenshots/3.thumb.png)](screenshots/3.png)
+[![Night mode](screenshots/4.thumb.png)](screenshots/4.png)
+[![Habit statistics](screenshots/5.thumb.png)](screenshots/5.png)
+[![Home screen widgets](screenshots/6.thumb.png)](screenshots/6.png)
 
 ---
 
@@ -62,7 +63,7 @@
 
 ## 📥 Installation
 
-Because this enhanced edition contains custom features (Sections, 3-Ring Color Wheel, Tag Picker) not present in upstream app stores, install the APK directly from GitHub:
+Because this enhanced edition contains custom features (Sections, 4-Ring Color Wheel, Measurable Habit Frequencies, Tag Picker) not present in upstream app stores, install the APK directly from GitHub:
 
 1. Go to the [**Releases Page**](https://github.com/Maurs9/Habit-tracker/releases/latest).
 2. Download the latest `uhabits-v...apk` file.
@@ -70,7 +71,7 @@ Because this enhanced edition contains custom features (Sections, 3-Ring Color W
    *(If prompted, allow your browser or file manager permission to "Install unknown apps").*
 
 > [!NOTE]
-> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
+> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Measurable Habit Frequencies, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
 
 ---
 
