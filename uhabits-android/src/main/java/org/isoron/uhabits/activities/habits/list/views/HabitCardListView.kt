@@ -141,8 +141,10 @@ class HabitCardListView(
         cardView.dragHandle.setOnTouchListener { _, ev ->
             if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
                 touchHelper.startDrag(holder)
+                true
+            } else {
+                false
             }
-            false
         }
 
         cardView.setOnClickListener {
@@ -213,7 +215,11 @@ class HabitCardListView(
     ) : GestureDetector.SimpleOnGestureListener() {
 
         override fun onLongPress(e: MotionEvent) {
-            holder.itemView.performLongClick()
+            if (adapter.isSortable) {
+                touchHelper.startDrag(holder)
+            } else {
+                holder.itemView.performLongClick()
+            }
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
