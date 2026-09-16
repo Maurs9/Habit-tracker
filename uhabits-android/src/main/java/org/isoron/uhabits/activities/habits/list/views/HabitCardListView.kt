@@ -38,6 +38,7 @@ import dagger.Lazy
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.BundleSavedState
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.utils.dp
@@ -112,8 +113,15 @@ class HabitCardListView(
 
     fun createSectionHeaderView() = SectionHeaderView(context)
 
-    fun bindHeaderView(holder: SectionHeaderViewHolder, header: HabitCardListCache.ListItem.Header) {
-        (holder.itemView as SectionHeaderView).bind(header)
+    fun bindHeaderView(
+        holder: SectionHeaderViewHolder,
+        header: HabitCardListCache.ListItem.Header,
+        density: ListDensity = ListDensity.STANDARD
+    ) {
+        (holder.itemView as SectionHeaderView).apply {
+            listDensity = density
+            bind(header)
+        }
     }
 
     fun bindCardView(
@@ -122,9 +130,11 @@ class HabitCardListView(
         score: Double,
         checkmarks: IntArray,
         notes: Array<String>,
-        selected: Boolean
+        selected: Boolean,
+        density: ListDensity = ListDensity.STANDARD
     ): View {
         val cardView = holder.itemView as HabitCardView
+        cardView.listDensity = density
         cardView.habit = habit
         cardView.isSelected = selected
         cardView.values = checkmarks

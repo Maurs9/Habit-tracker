@@ -66,7 +66,7 @@ class ListHabitsRootView @Inject constructor(
     runner: TaskRunner,
     private val listAdapter: HabitCardListAdapter,
     habitCardListViewFactory: HabitCardListViewFactory
-) : FrameLayout(context), ModelObservable.Listener {
+) : FrameLayout(context), ModelObservable.Listener, Preferences.Listener {
 
     val listView: HabitCardListView = habitCardListViewFactory.create()
     val llEmpty = EmptyListView(context)
@@ -111,6 +111,10 @@ class ListHabitsRootView @Inject constructor(
         updateSubtitle()
     }
 
+    override fun onListDensityChanged() {
+        listAdapter.notifyDataSetChanged()
+    }
+
     private fun setupControllers() {
         header.setScrollController(
             object : ScrollableChart.ScrollController {
@@ -125,11 +129,14 @@ class ListHabitsRootView @Inject constructor(
         super.onAttachedToWindow()
         setupControllers()
         listAdapter.observable.addListener(this)
+        preferences.addListener(this)
+        onListDensityChanged()
         updateSubtitle()
     }
 
     override fun onDetachedFromWindow() {
         listAdapter.observable.removeListener(this)
+        preferences.removeListener(this)
         super.onDetachedFromWindow()
     }
 

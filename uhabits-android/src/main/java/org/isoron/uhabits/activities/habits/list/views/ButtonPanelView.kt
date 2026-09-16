@@ -46,6 +46,14 @@ abstract class ButtonPanelView<T : View>(
             setupButtons()
         }
 
+    var buttonHeight = dim(R.dimen.checkmarkHeight).toInt()
+        set(value) {
+            require(value >= dim(R.dimen.checkmarkHeight)) { "Entry buttons must remain at least 48dp tall" }
+            if (field == value) return
+            field = value
+            requestLayout()
+        }
+
     var buttons = mutableListOf<T>()
 
     init {
@@ -65,9 +73,9 @@ abstract class ButtonPanelView<T : View>(
 
         removeAllViews()
         if (reverse) {
-            buttons.reversed().forEach { addView(it) }
+            buttons.reversed().forEach { addView(it, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)) }
         } else {
-            buttons.forEach { addView(it) }
+            buttons.forEach { addView(it, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)) }
         }
         setupButtons()
         requestLayout()
@@ -85,11 +93,10 @@ abstract class ButtonPanelView<T : View>(
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         val buttonWidth = dim(R.dimen.checkmarkWidth)
-        val buttonHeight = dim(R.dimen.checkmarkHeight)
         val width = (buttonWidth * buttonCount)
         super.onMeasure(
             width.toMeasureSpec(EXACTLY),
-            buttonHeight.toMeasureSpec(EXACTLY)
+            buttonHeight.toFloat().toMeasureSpec(EXACTLY)
         )
     }
 

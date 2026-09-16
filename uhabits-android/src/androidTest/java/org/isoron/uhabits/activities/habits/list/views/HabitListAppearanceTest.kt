@@ -18,6 +18,7 @@ import org.isoron.uhabits.activities.habits.edit.EditHabitActivity
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.ThemeSwitcher
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache.ListItem.Header
 import org.isoron.uhabits.inject.ActivityContextModule
@@ -36,6 +37,65 @@ class HabitListAppearanceTest : BaseViewTest() {
 
     @Test
     fun testRenderPureBlack() = render(R.style.AppBaseThemeDark_PureBlack, "pure_black.png")
+
+    @Test
+    fun testRenderCompactLight() = render(R.style.AppBaseTheme, "compact_light.png", ListDensity.COMPACT)
+
+    @Test
+    fun testRenderCompactDark() = render(R.style.AppBaseThemeDark, "compact_dark.png", ListDensity.COMPACT)
+
+    @Test
+    fun testRenderCompactPureBlack() = render(R.style.AppBaseThemeDark_PureBlack, "compact_pure_black.png", ListDensity.COMPACT)
+
+    @Test
+    fun testRenderSpaciousLight() = render(R.style.AppBaseTheme, "spacious_light.png", ListDensity.SPACIOUS)
+
+    @Test
+    fun testRenderSpaciousDark() = render(R.style.AppBaseThemeDark, "spacious_dark.png", ListDensity.SPACIOUS)
+
+    @Test
+    fun testRenderSpaciousPureBlack() = render(R.style.AppBaseThemeDark_PureBlack, "spacious_pure_black.png", ListDensity.SPACIOUS)
+
+    @Test
+    fun testDensityChangesResizeBothEntryTypesWithoutChangingDateColumns() {
+        val habits = listOf(fixtures.createLongHabit(), fixtures.createLongNumericalHabit())
+        for (style in listOf(R.style.AppBaseTheme, R.style.AppBaseThemeDark, R.style.AppBaseThemeDark_PureBlack)) {
+            withThemedActivity(style) { _, factory ->
+                for (habit in habits) {
+                    val card = factory.create().apply {
+                        this.habit = habit
+                        buttonCount = 5
+                        isSelected = false
+                    }
+                    for (direction in listOf(View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL)) {
+                        card.layoutDirection = direction
+                        for (density in ListDensity.entries + ListDensity.STANDARD) {
+                            card.listDensity = density
+                            card.measure(
+                                MeasureSpec.makeMeasureSpec(dpToPixels(400).toInt(), MeasureSpec.EXACTLY),
+                                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+                            )
+                            card.layout(0, 0, card.measuredWidth, card.measuredHeight)
+                            assertEquals(dpToPixels(density.rowHeightDp + density.rowGapDp).toInt(), card.height)
+                            val inner = card.getChildAt(0) as ViewGroup
+                            val panel = (0 until inner.childCount).map { inner.getChildAt(it) }
+                                .filterIsInstance<ButtonPanelView<*>>().single { it.visibility == View.VISIBLE }
+                            assertEquals(dpToPixels(density.rowHeightDp).toInt(), panel.height)
+                            assertEquals(dpToPixels(48 * 5).toInt(), panel.width)
+                            for (button in panel.buttons) {
+                                assertEquals(dpToPixels(48).toInt(), button.width)
+                                assertEquals(dpToPixels(density.rowHeightDp).toInt(), button.height)
+                                assertTrue(button.isClickable)
+                                assertTrue(button.isLongClickable)
+                            }
+                            assertSame(habit, card.habit)
+                            assertEquals(5, card.buttonCount)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Test
     fun testRowSeparatorsInEveryThemeAndSelectionState() {
@@ -90,10 +150,10 @@ class HabitListAppearanceTest : BaseViewTest() {
         }
     }
 
-    private fun render(style: Int, filename: String) {
+    private fun render(style: Int, filename: String, density: ListDensity = ListDensity.STANDARD) {
         var bitmap: Bitmap? = null
         withThemedActivity(style) { activity, factory ->
-            bitmap = renderView(createList(activity, factory))
+            bitmap = renderView(createList(activity, factory, density))
         }
         val rendered = checkNotNull(bitmap)
         try {
@@ -103,14 +163,19 @@ class HabitListAppearanceTest : BaseViewTest() {
         }
     }
 
-    private fun createList(activity: EditHabitActivity, factory: HabitCardViewFactory): LinearLayout {
+    private fun createList(activity: EditHabitActivity, factory: HabitCardViewFactory, density: ListDensity): LinearLayout {
         val root = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(StyledResources(activity).getColor(R.attr.windowBackgroundColor))
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         }
         fun header(value: Header) {
-            root.addView(SectionHeaderView(activity).apply { bind(value) })
+            root.addView(
+                SectionHeaderView(activity).apply {
+                    listDensity = density
+                    bind(value)
+                }
+            )
         }
         fun habit(name: String, color: Int, values: IntArray, numerical: Boolean = false) {
             val model = fixtures.createEmptyHabit().apply {
@@ -129,6 +194,7 @@ class HabitListAppearanceTest : BaseViewTest() {
                     score = 0.65
                     isSelected = false
                     buttonCount = 5
+                    listDensity = density
                 }
             )
         }

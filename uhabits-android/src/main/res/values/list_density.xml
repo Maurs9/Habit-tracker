@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_density_title">List density</string>
+    <string name="list_density_compact">Compact</string>
+    <string name="list_density_standard">Standard</string>
+    <string name="list_density_spacious">Spacious</string>
+    <string name="list_density_description">Changes row and section spacing. Text size and date column widths stay the same.</string>
+    <string name="list_density_preview">Preview</string>
+    <item name="list_density_compact" type="id" />
+    <item name="list_density_standard" type="id" />
+    <item name="list_density_spacious" type="id" />
+</resources>

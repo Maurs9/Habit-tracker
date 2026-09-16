@@ -103,6 +103,14 @@ open class Preferences(private val storage: Storage) {
             storage.putBoolean("pref_group_by_section", value)
         }
 
+    var listDensity: ListDensity
+        get() = ListDensity.valueOf(storage.getString("pref_list_density", ListDensity.STANDARD.name))
+        set(value) {
+            if (listDensity == value) return
+            storage.putString("pref_list_density", value.name)
+            for (listener in listeners) listener.onListDensityChanged()
+        }
+
     var showCompleted: Boolean
         get() = storage.getBoolean("pref_show_completed", true)
         set(showCompleted) {
@@ -263,6 +271,7 @@ open class Preferences(private val storage: Storage) {
         }
 
     interface Listener {
+        fun onListDensityChanged() {}
         fun onCheckmarkSequenceChanged() {}
         fun onNotificationsChanged() {}
         fun onQuestionMarksChanged() {}

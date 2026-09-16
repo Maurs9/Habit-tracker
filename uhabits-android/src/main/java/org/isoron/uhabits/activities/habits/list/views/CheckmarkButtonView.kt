@@ -162,7 +162,7 @@ class CheckmarkButtonView(
         val width = resources.getDimensionPixelSize(R.dimen.checkmarkWidth)
         super.onMeasure(
             width.toMeasureSpec(EXACTLY),
-            height.toMeasureSpec(EXACTLY)
+            resolveSize(height, heightMeasureSpec).toMeasureSpec(EXACTLY)
         )
     }
 

@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.R
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache.ListItem.Header
 import org.isoron.uhabits.utils.StyledResources
 import org.junit.Test
@@ -112,6 +113,25 @@ class SectionHeaderViewTest : BaseViewTest() {
         assertTrue(view.countView.right <= view.nameView.left)
         assertTrue(view.countView.left >= view.paddingLeft)
         assertTrue(view.nameView.right <= view.width - view.paddingRight)
+    }
+
+    @Test
+    fun testCompactHeaderSpacingAndRestoringStandard() {
+        val view = SectionHeaderView(targetContext)
+        for (density in ListDensity.entries + ListDensity.STANDARD) {
+            view.listDensity = density
+            for (first in listOf(true, false)) {
+                view.bind(Header(1, "Morning", 2, 3, isFirstSection = first))
+                assertEquals(
+                    dpToPixels(if (first) density.firstSectionTopDp else density.sectionTopDp).toInt(),
+                    view.paddingTop
+                )
+                assertEquals(dpToPixels(density.sectionBottomDp).toInt(), view.paddingBottom)
+                assertEquals(dpToPixels(34).toInt(), view.paddingStart)
+                assertEquals("2/3", view.countView.text.toString())
+                assertTrue(view.nameView.typeface.isBold)
+            }
+        }
     }
 
     private fun render(header: Header, filename: String) {

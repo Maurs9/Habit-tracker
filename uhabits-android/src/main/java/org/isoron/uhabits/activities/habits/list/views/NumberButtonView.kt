@@ -174,7 +174,7 @@ class NumberButtonView(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = getDimension(context, R.dimen.checkmarkWidth).toInt()
         val height = getDimension(context, R.dimen.checkmarkHeight).toInt()
-        setMeasuredDimension(width, height)
+        setMeasuredDimension(width, resolveSize(height, heightMeasureSpec))
     }
 
     private inner class Drawer(context: Context) {

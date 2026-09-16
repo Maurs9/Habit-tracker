@@ -43,6 +43,7 @@ import org.isoron.uhabits.activities.common.views.RingView
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.ModelObservable
 import org.isoron.uhabits.core.models.Timestamp
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.ActivityContext
@@ -145,6 +146,15 @@ class HabitCardView(
         color = sres.getColor(R.attr.habitRowDividerColor)
     }
     private val dividerHeight = dp(1f)
+    var listDensity = ListDensity.STANDARD
+        set(value) {
+            if (field == value) return
+            field = value
+            val rowHeight = dp(value.rowHeightDp.toFloat()).toInt()
+            checkmarkPanel.buttonHeight = rowHeight
+            numberPanel.buttonHeight = rowHeight
+            setPadding(paddingLeft, paddingTop, paddingRight, dp(value.rowGapDp.toFloat()).toInt())
+        }
 
     init {
         scoreRing = RingView(context).apply {

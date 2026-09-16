@@ -131,7 +131,11 @@ class HabitCardListAdapter @Inject constructor(
     ) {
         if (listView == null) return
         if (holder is SectionHeaderViewHolder) {
-            listView!!.bindHeaderView(holder, cache.getItemByPosition(position) as HabitCardListCache.ListItem.Header)
+            listView!!.bindHeaderView(
+                holder,
+                cache.getItemByPosition(position) as HabitCardListCache.ListItem.Header,
+                preferences.listDensity
+            )
             return
         }
         holder as HabitCardViewHolder
@@ -140,7 +144,7 @@ class HabitCardListAdapter @Inject constructor(
         val checkmarks = cache.getCheckmarks(habit.id!!)
         val notes = cache.getNotes(habit.id!!)
         val selected = selected.contains(habit)
-        listView!!.bindCardView(holder, habit, score, checkmarks, notes, selected)
+        listView!!.bindCardView(holder, habit, score, checkmarks, notes, selected, preferences.listDensity)
     }
 
     override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {

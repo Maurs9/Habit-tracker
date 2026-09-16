@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.isoron.uhabits.R
+import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
 import org.isoron.uhabits.utils.StyledResources
 import org.isoron.uhabits.utils.dp
@@ -24,6 +25,12 @@ class SectionHeaderView(context: Context) : LinearLayout(context) {
     }
     private val dividerHeight = dp(1f)
     private val dividerTop = dp(8f)
+    var listDensity = ListDensity.STANDARD
+        set(value) {
+            if (field == value) return
+            field = value
+            updatePadding()
+        }
 
     init {
         orientation = HORIZONTAL
@@ -70,9 +77,9 @@ class SectionHeaderView(context: Context) : LinearLayout(context) {
     private fun updatePadding() {
         setPaddingRelative(
             dp(34f).toInt(),
-            dp(if (isFirstSection) 12f else 28f).toInt(),
+            dp((if (isFirstSection) listDensity.firstSectionTopDp else listDensity.sectionTopDp).toFloat()).toInt(),
             dp(16f).toInt(),
-            dp(6f).toInt()
+            dp(listDensity.sectionBottomDp.toFloat()).toInt()
         )
     }
 
