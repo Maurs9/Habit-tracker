@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2016-2021 Álinson Santos Xavier <git@axavier.org>
  *
  * This file is part of Loop Habit Tracker.
@@ -176,7 +176,7 @@ class ColorWheelView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (colors.size < 40) return
+        if (colors.size < PaletteColor.COUNT) return
 
         val cx = width / 2f
         val cy = height / 2f
@@ -184,11 +184,11 @@ class ColorWheelView @JvmOverloads constructor(
         val outerRadius = (min(width, height) / 2f) - padding
         if (outerRadius <= 0) return
 
-        val innerRadius = outerRadius * 0.38f
-        val ringWidth = (outerRadius - innerRadius) / 3f
-        val gap = 1.2f // angle gap in degrees
+        val innerRadius = outerRadius * 0.32f
+        val ringWidth = (outerRadius - innerRadius) / 4f
+        val gap = 1.0f // angle gap in degrees
 
-        // 1. Draw 12 hue sectors x 3 concentric rings (36 colors)
+        // 1. Draw 12 hue sectors x 4 concentric rings (48 colors)
         var selectedPath: Path? = null
         var selectedColor = Color.BLACK
         var selectedCenterX = cx
@@ -198,15 +198,17 @@ class ColorWheelView @JvmOverloads constructor(
             val startAngle = -90f + hue * 30f + gap / 2f
             val sweepAngle = 30f - gap
 
-            for (ring in 0 until 3) {
-                // Ring 0: Outer (Vibrant) -> palette index = hue * 3 + 0
-                // Ring 1: Middle (Muted)   -> palette index = hue * 3 + 1
-                // Ring 2: Inner (Deep)     -> palette index = hue * 3 + 2
-                val colorIndex = hue * 3 + ring
+            for (ring in 0 until 4) {
+                // Ring 0: Outermost (Deep)
+                // Ring 1: Vibrant
+                // Ring 2: Soft
+                // Ring 3: Innermost (Light)
+                val colorIndex = hue * 4 + ring
                 val (rIn, rOut) = when (ring) {
-                    0 -> Pair(innerRadius + 2 * ringWidth, outerRadius) // Outer
-                    1 -> Pair(innerRadius + ringWidth, innerRadius + 2 * ringWidth) // Middle
-                    else -> Pair(innerRadius, innerRadius + ringWidth) // Inner
+                    0 -> Pair(innerRadius + 3 * ringWidth, outerRadius)
+                    1 -> Pair(innerRadius + 2 * ringWidth, innerRadius + 3 * ringWidth)
+                    2 -> Pair(innerRadius + ringWidth, innerRadius + 2 * ringWidth)
+                    else -> Pair(innerRadius, innerRadius + ringWidth)
                 }
 
                 val path = buildArcPath(cx, cy, rIn, rOut, startAngle, sweepAngle)
@@ -215,7 +217,7 @@ class ColorWheelView @JvmOverloads constructor(
                 canvas.drawPath(path, fillPaint)
 
                 // Divider line between segments
-                strokePaint.color = Color.argb(40, 255, 255, 255)
+                strokePaint.color = Color.argb(60, 255, 255, 255)
                 strokePaint.strokeWidth = 1f * density
                 canvas.drawPath(path, strokePaint)
                 if (colorIndex == accessibilityHelper.keyboardFocusedVirtualViewId && colorIndex != selectedIndex) {
@@ -235,18 +237,18 @@ class ColorWheelView @JvmOverloads constructor(
             }
         }
 
-        // 2. Draw Center Neutral Swatches (indices 36..39)
-        val neutralRadius = innerRadius * 0.35f
-        val neutralOffset = innerRadius * 0.48f
+        // 2. Draw Center Neutral Swatches (indices 48..51)
+        val neutralRadius = innerRadius * 0.34f
+        val neutralOffset = innerRadius * 0.46f
         val neutralCenters = arrayOf(
-            Pair(cx - neutralOffset, cy - neutralOffset), // 36: Gray (top-left)
-            Pair(cx + neutralOffset, cy - neutralOffset), // 37: Dark Gray (top-right)
-            Pair(cx - neutralOffset, cy + neutralOffset), // 38: Slate (bottom-left)
-            Pair(cx + neutralOffset, cy + neutralOffset) // 39: Charcoal (bottom-right)
+            Pair(cx - neutralOffset, cy - neutralOffset), // 48: Light Gray (top-left)
+            Pair(cx + neutralOffset, cy - neutralOffset), // 49: Medium Gray (top-right)
+            Pair(cx - neutralOffset, cy + neutralOffset), // 50: Slate (bottom-left)
+            Pair(cx + neutralOffset, cy + neutralOffset)  // 51: Charcoal (bottom-right)
         )
 
         for (i in 0 until 4) {
-            val colorIndex = 36 + i
+            val colorIndex = 48 + i
             val (nx, ny) = neutralCenters[i]
 
             fillPaint.color = colors[colorIndex]
@@ -315,18 +317,25 @@ class ColorWheelView @JvmOverloads constructor(
         val cx = width / 2f
         val cy = height / 2f
         val outerRadius = (min(width, height) / 2f - 12 * density).coerceAtLeast(1f)
-        val innerRadius = outerRadius * 0.38f
+        val innerRadius = outerRadius * 0.32f
         val bounds = RectF()
-        if (index < 36) {
-            val ringWidth = (outerRadius - innerRadius) / 3f
-            val rOut = outerRadius - (index % 3) * ringWidth
-            buildArcPath(cx, cy, rOut - ringWidth, rOut, -90f + (index / 3) * 30f + 0.6f, 28.8f)
+        if (index < 48) {
+            val ringWidth = (outerRadius - innerRadius) / 4f
+            val ring = index % 4
+            val hue = index / 4
+            val (rIn, rOut) = when (ring) {
+                0 -> Pair(innerRadius + 3 * ringWidth, outerRadius)
+                1 -> Pair(innerRadius + 2 * ringWidth, innerRadius + 3 * ringWidth)
+                2 -> Pair(innerRadius + ringWidth, innerRadius + 2 * ringWidth)
+                else -> Pair(innerRadius, innerRadius + ringWidth)
+            }
+            buildArcPath(cx, cy, rIn, rOut, -90f + hue * 30f + 0.5f, 29f)
                 .computeBounds(bounds, true)
         } else {
-            val neutralRadius = innerRadius * 0.35f
-            val offset = innerRadius * 0.48f
-            val nx = cx + if (index % 2 == 0) -offset else offset
-            val ny = cy + if (index < 38) -offset else offset
+            val neutralRadius = innerRadius * 0.34f
+            val offset = innerRadius * 0.46f
+            val nx = cx + if ((index - 48) % 2 == 0) -offset else offset
+            val ny = cy + if ((index - 48) < 2) -offset else offset
             bounds.set(nx - neutralRadius, ny - neutralRadius, nx + neutralRadius, ny + neutralRadius)
         }
         return Rect().also { bounds.roundOut(it) }
@@ -335,28 +344,29 @@ class ColorWheelView @JvmOverloads constructor(
     private fun indexAt(x: Float, y: Float): Int {
         val outerRadius = min(width, height) / 2f - 12 * density
         if (outerRadius <= 0 || x < 0 || y < 0 || x >= width || y >= height) return ExploreByTouchHelper.INVALID_ID
-        val innerRadius = outerRadius * 0.38f
-        val ringWidth = (outerRadius - innerRadius) / 3f
+        val innerRadius = outerRadius * 0.32f
+        val ringWidth = (outerRadius - innerRadius) / 4f
         val dx = x - width / 2f
         val dy = y - height / 2f
         val dist = sqrt(dx * dx + dy * dy)
         return if (dist < innerRadius) {
             when {
-                dx < 0 && dy < 0 -> 36
-                dx >= 0 && dy < 0 -> 37
-                dx < 0 && dy >= 0 -> 38
-                else -> 39
+                dx < 0 && dy < 0 -> 48
+                dx >= 0 && dy < 0 -> 49
+                dx < 0 && dy >= 0 -> 50
+                else -> 51
             }
         } else if (dist <= outerRadius + 16 * density) {
             val degrees = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
             val angle = (degrees + 450f) % 360f
             val hue = (angle / 30f).toInt().coerceIn(0, 11)
             val ring = when {
-                dist >= innerRadius + 2 * ringWidth -> 0
-                dist >= innerRadius + ringWidth -> 1
-                else -> 2
+                dist >= innerRadius + 3 * ringWidth -> 0
+                dist >= innerRadius + 2 * ringWidth -> 1
+                dist >= innerRadius + ringWidth -> 2
+                else -> 3
             }
-            hue * 3 + ring
+            hue * 4 + ring
         } else {
             ExploreByTouchHelper.INVALID_ID
         }

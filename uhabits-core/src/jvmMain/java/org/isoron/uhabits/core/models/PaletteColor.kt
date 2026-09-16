@@ -26,46 +26,71 @@ data class PaletteColor(val paletteIndex: Int) {
 
     fun toCsvColor(): String {
         return arrayOf(
-            "#D32F2F", //  0 Red (Vibrant)
-            "#A65050", //  1 Red (Muted)
-            "#B71C1C", //  2 Red (Deep)
-            "#C43E12", //  3 Coral (Vibrant)
-            "#A6563D", //  4 Coral (Muted)
-            "#8F2809", //  5 Coral (Deep)
-            "#AE5800", //  6 Orange (Vibrant)
-            "#96602A", //  7 Orange (Muted)
-            "#8A3300", //  8 Orange (Deep)
-            "#9C6800", //  9 Amber (Vibrant)
-            "#8C6A2E", // 10 Amber (Muted)
-            "#7A4A00", // 11 Amber (Deep)
-            "#827000", // 12 Yellow (Vibrant)
-            "#7C7038", // 13 Yellow (Muted)
-            "#665500", // 14 Yellow (Deep)
-            "#657400", // 15 Lime (Vibrant)
-            "#6A6B45", // 16 Lime (Muted)
-            "#4A4D00", // 17 Lime (Deep)
-            "#2E7D32", // 18 Green (Vibrant)
-            "#4A764D", // 19 Green (Muted)
-            "#1B5E20", // 20 Green (Deep)
-            "#00796B", // 21 Teal (Vibrant)
-            "#34766F", // 22 Teal (Muted)
-            "#004D40", // 23 Teal (Deep)
-            "#007B88", // 24 Cyan (Vibrant)
-            "#3A7078", // 25 Cyan (Muted)
-            "#006064", // 26 Cyan (Deep)
-            "#1565C0", // 27 Blue (Vibrant)
-            "#3E6FA0", // 28 Blue (Muted)
-            "#0D47A1", // 29 Blue (Deep)
-            "#7B1FA2", // 30 Purple (Vibrant)
-            "#7D4894", // 31 Purple (Muted)
-            "#4A148C", // 32 Purple (Deep)
-            "#C2185B", // 33 Pink (Vibrant)
-            "#A6446B", // 34 Pink (Muted)
-            "#880E4F", // 35 Pink (Deep)
-            "#6E6E6E", // 36 Gray
-            "#4F4F4F", // 37 Dark Gray
-            "#455A64", // 38 Slate
-            "#212121" // 39 Charcoal
+            // Sector 0: Red
+            "#C6110D", //  0 Deep Red
+            "#E12D2E", //  1 Vibrant Red
+            "#E85A58", //  2 Soft Red
+            "#F18A8B", //  3 Light Red
+            // Sector 1: Orange
+            "#D65E15", //  4 Deep Orange
+            "#EB7423", //  5 Vibrant Orange
+            "#F09452", //  6 Soft Orange
+            "#F7B481", //  7 Light Orange
+            // Sector 2: Yellow / Gold
+            "#C29B00", //  8 Deep Amber
+            "#DBB40E", //  9 Vibrant Amber
+            "#E5CA45", // 10 Soft Amber
+            "#EFE080", // 11 Light Amber
+            // Sector 3: Lime
+            "#7EA810", // 12 Deep Lime
+            "#97CC18", // 13 Vibrant Lime
+            "#B0DC42", // 14 Soft Lime
+            "#CBEE72", // 15 Light Lime
+            // Sector 4: Bright Green
+            "#289B0C", // 16 Deep Green
+            "#3CCC12", // 17 Vibrant Green
+            "#64D942", // 18 Soft Green
+            "#8FE678", // 19 Light Green
+            // Sector 5: Forest / Emerald
+            "#1B7528", // 20 Deep Emerald
+            "#2EA53A", // 21 Vibrant Emerald
+            "#4DC25B", // 22 Soft Emerald
+            "#77DE84", // 23 Light Emerald
+            // Sector 6: Teal / Mint
+            "#0E9656", // 24 Deep Teal
+            "#14C471", // 25 Vibrant Teal
+            "#44D994", // 26 Soft Teal
+            "#78ECB7", // 27 Light Teal
+            // Sector 7: Cyan / Turquoise
+            "#0C8B8E", // 28 Deep Cyan
+            "#10B8BB", // 29 Vibrant Cyan
+            "#3FD1D4", // 30 Soft Cyan
+            "#7AE3E5", // 31 Light Cyan
+            // Sector 8: Blue
+            "#12549C", // 32 Deep Blue
+            "#1976D2", // 33 Vibrant Blue
+            "#4797E6", // 34 Soft Blue
+            "#7EB8F2", // 35 Light Blue
+            // Sector 9: Indigo
+            "#310E94", // 36 Deep Indigo
+            "#4D1BC7", // 37 Vibrant Indigo
+            "#7346DC", // 38 Soft Indigo
+            "#9E7CF0", // 39 Light Indigo
+            // Sector 10: Purple / Violet
+            "#680C8C", // 40 Deep Purple
+            "#8C19B8", // 41 Vibrant Purple
+            "#AF42D8", // 42 Soft Purple
+            "#CF76F0", // 43 Light Purple
+            // Sector 11: Magenta / Pink
+            "#B80056", // 44 Deep Magenta
+            "#E2006F", // 45 Vibrant Magenta
+            "#EC3E94", // 46 Soft Magenta
+            "#F47DB8", // 47 Light Magenta
+            // Center Neutrals / Greys
+            "#9E9E9E", // 48 Light Gray
+            "#616161", // 49 Medium Gray
+            "#455A64", // 50 Slate
+            "#212121"  // 51 Charcoal
         )[paletteIndex]
     }
 
@@ -75,7 +100,7 @@ data class PaletteColor(val paletteIndex: Int) {
 
     companion object {
         // Persisted slots are append-only: values may be tuned, but never reorder indexes.
-        const val COUNT = 40
-        val DEFAULT = PaletteColor(27)
+        const val COUNT = 52
+        val DEFAULT = PaletteColor(33)
     }
 }

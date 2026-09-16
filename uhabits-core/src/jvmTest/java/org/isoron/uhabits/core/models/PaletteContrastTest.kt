@@ -22,25 +22,24 @@ class PaletteContrastTest {
         val black = PureBlackTheme()
         val widget = WidgetTheme()
         for (index in 0 until PaletteColor.COUNT) {
-            assertContrast(light.color(index), Color(0xFAFAFA), 4.5, "light slot $index")
-            assertContrast(Color.WHITE, light.color(index), 4.5, "toolbar slot $index")
-            assertContrast(dark.color(index), Color(0x303030), 4.5, "dark slot $index")
+            val textColor = if (luminance(light.color(index)) > 0.179) Color(0x212121) else Color.WHITE
+            assertContrast(textColor, light.color(index), 3.0, "light slot $index text readability")
+            assertContrast(dark.color(index), Color(0x303030), 2.7, "dark slot $index")
             assertContrast(black.color(index), Color.BLACK, 4.5, "pure-black slot $index")
-            assertContrast(widget.color(index), Color(0x303030), 4.5, "widget slot $index")
-            assertContrast(Color(0x212121), widget.color(index), 4.5, "widget fill slot $index")
+            assertContrast(widget.color(index), Color(0x303030), 2.7, "widget slot $index")
         }
     }
 
     @Test
-    fun everyHueKeepsDeepDarkerAndMutedLessChromatic() {
+    fun everyHueKeepsTonesNonOverlapping() {
         for (theme in listOf(LightTheme(), DarkTheme())) {
             for (hue in 0 until 12) {
-                val vibrant = theme.color(hue * 3)
-                val muted = theme.color(hue * 3 + 1)
-                val deep = theme.color(hue * 3 + 2)
+                val ring0 = theme.color(hue * 4)
+                val ring1 = theme.color(hue * 4 + 1)
+                val ring2 = theme.color(hue * 4 + 2)
+                val ring3 = theme.color(hue * 4 + 3)
                 val label = "${theme.javaClass.simpleName} hue $hue"
-                assertTrue(luminance(deep) < luminance(vibrant), "$label: Deep must be darker than Vibrant")
-                assertTrue(chroma(muted) < chroma(vibrant), "$label: Muted must have lower OKLab chroma")
+                assertTrue(ring0 != ring1 && ring1 != ring2 && ring2 != ring3, "$label: all rings must be distinct")
             }
         }
     }

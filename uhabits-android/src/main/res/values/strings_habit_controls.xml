@@ -19,44 +19,69 @@
     <string name="habit_action_select">Change habit selection</string>
     <string name="habit_color_description">Habit color: %1$s</string>
     <string-array name="habit_color_names">
-        <item>Vibrant Red</item>
-        <item>Muted Red</item>
+        <!-- 0..3: Red -->
         <item>Deep Red</item>
-        <item>Vibrant Coral</item>
-        <item>Muted Coral</item>
-        <item>Deep Coral</item>
-        <item>Vibrant Orange</item>
-        <item>Muted Orange</item>
+        <item>Vibrant Red</item>
+        <item>Soft Red</item>
+        <item>Light Red</item>
+        <!-- 4..7: Orange -->
         <item>Deep Orange</item>
-        <item>Vibrant Amber</item>
-        <item>Muted Amber</item>
+        <item>Vibrant Orange</item>
+        <item>Soft Orange</item>
+        <item>Light Orange</item>
+        <!-- 8..11: Amber / Gold -->
         <item>Deep Amber</item>
-        <item>Vibrant Yellow</item>
-        <item>Muted Yellow</item>
-        <item>Deep Yellow</item>
-        <item>Vibrant Lime</item>
-        <item>Muted Lime</item>
+        <item>Vibrant Amber</item>
+        <item>Soft Amber</item>
+        <item>Light Amber</item>
+        <!-- 12..15: Lime -->
         <item>Deep Lime</item>
-        <item>Vibrant Green</item>
-        <item>Muted Green</item>
+        <item>Vibrant Lime</item>
+        <item>Soft Lime</item>
+        <item>Light Lime</item>
+        <!-- 16..19: Bright Green -->
         <item>Deep Green</item>
-        <item>Vibrant Teal</item>
-        <item>Muted Teal</item>
+        <item>Vibrant Green</item>
+        <item>Soft Green</item>
+        <item>Light Green</item>
+        <!-- 20..23: Emerald / Forest -->
+        <item>Deep Emerald</item>
+        <item>Vibrant Emerald</item>
+        <item>Soft Emerald</item>
+        <item>Light Emerald</item>
+        <!-- 24..27: Teal / Mint -->
         <item>Deep Teal</item>
-        <item>Vibrant Cyan</item>
-        <item>Muted Cyan</item>
+        <item>Vibrant Teal</item>
+        <item>Soft Teal</item>
+        <item>Light Teal</item>
+        <!-- 28..31: Cyan / Turquoise -->
         <item>Deep Cyan</item>
-        <item>Vibrant Blue</item>
-        <item>Muted Blue</item>
+        <item>Vibrant Cyan</item>
+        <item>Soft Cyan</item>
+        <item>Light Cyan</item>
+        <!-- 32..35: Blue -->
         <item>Deep Blue</item>
-        <item>Vibrant Purple</item>
-        <item>Muted Purple</item>
+        <item>Vibrant Blue</item>
+        <item>Soft Blue</item>
+        <item>Light Blue</item>
+        <!-- 36..39: Indigo -->
+        <item>Deep Indigo</item>
+        <item>Vibrant Indigo</item>
+        <item>Soft Indigo</item>
+        <item>Light Indigo</item>
+        <!-- 40..43: Purple -->
         <item>Deep Purple</item>
-        <item>Vibrant Pink</item>
-        <item>Muted Pink</item>
-        <item>Deep Pink</item>
-        <item>Gray</item>
-        <item>Dark Gray</item>
+        <item>Vibrant Purple</item>
+        <item>Soft Purple</item>
+        <item>Light Purple</item>
+        <!-- 44..47: Magenta -->
+        <item>Deep Magenta</item>
+        <item>Vibrant Magenta</item>
+        <item>Soft Magenta</item>
+        <item>Light Magenta</item>
+        <!-- 48..51: Neutrals / Greys -->
+        <item>Light Gray</item>
+        <item>Medium Gray</item>
         <item>Slate</item>
         <item>Charcoal</item>
     </string-array>

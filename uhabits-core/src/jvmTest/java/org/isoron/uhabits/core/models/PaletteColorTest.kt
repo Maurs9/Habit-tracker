@@ -33,14 +33,14 @@ class PaletteColorTest {
 
     @Test
     fun newHabitsDefaultToVibrantBlue() {
-        assertEquals(PaletteColor(27), PaletteColor.DEFAULT)
-        assertEquals("#1565C0", PaletteColor.DEFAULT.toCsvColor())
+        assertEquals(PaletteColor(33), PaletteColor.DEFAULT)
+        assertEquals("#1976D2", PaletteColor.DEFAULT.toCsvColor())
         assertEquals(PaletteColor.DEFAULT, MemoryModelFactory().buildHabit().color)
     }
 
     @Test
-    fun includesFortyColorsAcrossAllThemesAndExport() {
-        assertEquals(40, PaletteColor.COUNT)
+    fun includesFiftyTwoColorsAcrossAllThemesAndExport() {
+        assertEquals(52, PaletteColor.COUNT)
         val light = LightTheme()
         val dark = DarkTheme()
 
