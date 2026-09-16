@@ -23,16 +23,17 @@ No emulator is needed. Android Studio also supports running an individual test c
   --tests '*StreakListTest'
 ```
 
-Run `./gradlew ktlintCheck` for Kotlin style checks. CI's `./build.sh build` additionally runs Android lint, the core build/tests, and assembles the app and instrumentation APKs. That script does **not** run Android JVM unit tests; CI runs `:uhabits-android:testDebugUnitTest` separately. Test reports are in each module's `build/reports/tests` directory.
+Run `./gradlew ktlintCheck` for Kotlin style checks. `./build.sh build` additionally runs Android lint, the core build/tests, and assembles the app and instrumentation APKs. That script does **not** run Android JVM unit tests; run `:uhabits-android:testDebugUnitTest` separately. Test reports are in each module's `build/reports/tests` directory.
 
 ### Palette and core chart checks
 
-`PaletteContrastTest` checks all 40 slots using WCAG relative luminance: text
-on light/dark/pure-black cards, white on light fills, and `#212121` on widget
-fills must reach 4.5:1. Text greys must reach 4.5:1 and inactive marks 3:1.
-Widget alpha is composited onto its `#303030` card. Every hue must keep Deep
-darker than Vibrant and Muted lower in OKLab chroma in both light and dark.
-`PaletteColorTest` checks theme/export consistency and the default blue slot.
+`PaletteContrastTest` iterates all 52 slots using WCAG relative luminance.
+Its current thresholds are 3:1 for contrasting text on light palette fills,
+2.7:1 for dark/widget palette colors on `#303030`, and 4.5:1 on pure black.
+These thresholds do not establish 4.5:1 normal-text compliance everywhere.
+Text greys are checked at 4.5:1 and inactive marks at 3:1. Widget alpha is
+composited onto its card. Each of the 12 hues has four distinct ring colors.
+`PaletteColorTest` checks theme/export consistency and the default blue slot, 33.
 
 Core chart failures write actual, expected, and diff PNGs to
 `uhabits-core/build/failed/views/`. Inspect all affected variants before copying
@@ -50,7 +51,19 @@ creation colors. Compiling them does not replace running them on a device.
 
 `HabitTest` and `HabitCardListCacheTest` cover the shared completion rule and
 cached, filtered counts: manual/automatic checks, yes/no skips, numeric targets,
-unknowns, toggles, and empty lists. Numerical "at most" remains never completed.
+unknowns, toggles, and empty lists. Recorded numerical "at most" values remain
+incomplete for the list's done count; automatic rest days are a separate state.
+
+`NumericalAutoEntryTest` covers thousandth-sized measurements, completion and
+reminder suppression, scores, streaks, history squares, and totals. Numerical
+automatic entries use a computed-only negative marker rather than the boolean
+`YES_AUTO` value of 1; original entries and the database schema are unchanged.
+`EntryTest` and `HabitsCSVExporterTest` cover readable CSV output for both states.
+`WidgetBehaviorTest` checks that increment/decrement actions do not treat the
+automatic marker as a quantity. `NumberButtonViewTest` covers decimal formatting
+and accessible state descriptions on Android. `NumberDialogTest` covers saving
+a thousandth-sized value through the real input dialog, and `CheckmarkWidgetTest`
+distinguishes its widget state from an automatic rest day.
 
 Device tests in `activities/habits/list/` assert subtitle text without golden
 images (`ListHabitsRootViewTest`) and active/reset filter icon colors
@@ -80,7 +93,7 @@ and card tint align at the existing 3dp outer inset in light, dark, and
 pure-black, including reversed/RTL layouts, and check toolbar subtitle
 truncation at narrow widths and larger system fonts.
 
-`ColorContrastTest` checks adjusted foregrounds across all 40 colors and three
+`ColorContrastTest` checks adjusted foregrounds across all 52 colors and three
 themes, including tinted selected cards and rendering-rounding margins.
 `TodayHighlightTest` checks them against rendered Android backgrounds: text
 must reach 4.5:1 and inactive marks 3:1. Today's theme-defined tint is 6% in
@@ -202,6 +215,18 @@ Use the same JDK, hardware, heap, parameters, and otherwise-idle machine for com
 `RecomputeDeterminismTest` exercises the same full histories with shuffled insertion order and repeated recomputation. `EntryListTest` also compares ordering against the previous ascending-sort-plus-reverse implementation. Neither these correctness checks nor the existence of a profiling task establishes a latency improvement for full recomputation. No historical cutoff or incremental algorithm is introduced.
 
 ### Sections and grouping
+
+`HabitCardListReorderTest` checks that the saved order matches the final preview
+after backtracking in either direction, returning to the original position,
+filtered/grouped moves, and consecutive drags. `SQLiteHabitListTest` injects a
+failure between reorder writes and verifies rollback of both stored positions
+and the in-memory list. `ListHabitsRootViewTest` exercises drag release, selection
+without movement, and delayed view cleanup between drags.
+
+The current Android Mockito setup cannot mock the final Kotlin classes used by
+`ListHabitsRootViewTest`; on API 36 this blocks that class during setup, before its
+assertions run. Its compilation and the passing JVM reorder regressions do not
+establish successful device execution.
 
 `HabitCardListCacheGroupingTest` checks stable section partitioning across all
 primary/secondary sorts, stable negative header IDs, notification-time item

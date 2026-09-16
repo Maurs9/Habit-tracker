@@ -157,15 +157,15 @@ class EntryListTest {
         )
 
         val expected = listOf(
-            Entry(today.minus(2), YES_AUTO),
-            Entry(today.minus(3), YES_AUTO),
+            Entry(today.minus(2), Entry.NUMERICAL_AUTO),
+            Entry(today.minus(3), Entry.NUMERICAL_AUTO),
             Entry(today.minus(4), 5000),
-            Entry(today.minus(7), YES_AUTO),
-            Entry(today.minus(8), YES_AUTO),
+            Entry(today.minus(7), Entry.NUMERICAL_AUTO),
+            Entry(today.minus(8), Entry.NUMERICAL_AUTO),
             Entry(today.minus(9), 5000),
             Entry(today.minus(10), 5000),
-            Entry(today.minus(11), YES_AUTO),
-            Entry(today.minus(12), YES_AUTO)
+            Entry(today.minus(11), Entry.NUMERICAL_AUTO),
+            Entry(today.minus(12), Entry.NUMERICAL_AUTO)
         )
         assertEquals(expected, computed.getKnown())
     }

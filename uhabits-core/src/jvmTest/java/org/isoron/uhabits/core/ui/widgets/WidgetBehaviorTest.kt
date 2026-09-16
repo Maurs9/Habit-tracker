@@ -117,6 +117,26 @@ class WidgetBehaviorTest : BaseUnitTest() {
     }
 
     @Test
+    fun testAdjustmentsDoNotTreatNumericalAutomaticStatusAsAQuantity() {
+        habit = fixtures.createNumericalHabit()
+        habit.computedEntries.add(Entry(today, Entry.NUMERICAL_AUTO, "Keep notes"))
+        behavior.onIncrement(habit, today, 100)
+        verify(commandRunner).run(
+            CreateRepetitionCommand(habitList, habit, today, 100, "Keep notes")
+        )
+        behavior.onDecrement(habit, today, 100)
+        verify(commandRunner).run(
+            CreateRepetitionCommand(habitList, habit, today, -100, "Keep notes")
+        )
+
+        habit.computedEntries.add(Entry(today, 1, "Measured"))
+        behavior.onIncrement(habit, today, 100)
+        verify(commandRunner).run(
+            CreateRepetitionCommand(habitList, habit, today, 101, "Measured")
+        )
+    }
+
+    @Test
     fun testOnDecrement() {
         habit = fixtures.createNumericalHabit()
         habit.originalEntries.add(Entry(today, 500))

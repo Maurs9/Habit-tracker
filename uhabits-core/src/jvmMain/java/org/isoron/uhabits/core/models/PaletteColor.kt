@@ -90,7 +90,7 @@ data class PaletteColor(val paletteIndex: Int) {
             "#9E9E9E", // 48 Light Gray
             "#616161", // 49 Medium Gray
             "#455A64", // 50 Slate
-            "#212121"  // 51 Charcoal
+            "#212121" // 51 Charcoal
         )[paletteIndex]
     }
 

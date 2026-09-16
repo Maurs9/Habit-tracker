@@ -138,6 +138,13 @@ abstract class HabitList : Iterable<Habit> {
      * @param to   the habit that currently occupies the desired position
      */
     abstract fun reorder(from: Habit, to: Habit)
+
+    protected fun validateReorder(from: Habit, to: Habit) {
+        check(primaryOrder == Order.BY_POSITION) { "cannot reorder automatically sorted list" }
+        require(indexOf(from) >= 0) { "list does not contain (from) habit" }
+        require(indexOf(to) >= 0) { "list does not contain (to) habit" }
+    }
+
     open fun repair() {}
 
     /**

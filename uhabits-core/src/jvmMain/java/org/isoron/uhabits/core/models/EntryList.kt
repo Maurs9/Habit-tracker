@@ -19,6 +19,7 @@
 
 package org.isoron.uhabits.core.models
 
+import org.isoron.uhabits.core.models.Entry.Companion.NUMERICAL_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.SKIP
 import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
@@ -84,7 +85,8 @@ open class EntryList {
      * Replaces all entries in this list by entries computed automatically from another list.
      *
      * For boolean habits, this function creates additional entries (with value YES_AUTO) according
-     * to the frequency of the habit. For numerical habits, this function simply copies all entries.
+     * to the frequency of the habit. Non-daily numerical habits use NUMERICAL_AUTO for rest days,
+     * preserving all originally recorded measurements.
      */
     @Synchronized
     open fun recomputeFrom(
@@ -286,9 +288,9 @@ open class EntryList {
             targetType: NumericalHabitType
         ): ArrayList<Interval> {
             val filtered = entries.filter { entry ->
-                when (targetType) {
+                entry.value >= 0 && entry.value != SKIP && when (targetType) {
                     NumericalHabitType.AT_LEAST -> entry.value / 1000.0 >= targetValue
-                    NumericalHabitType.AT_MOST -> entry.value != UNKNOWN && entry.value != SKIP && entry.value / 1000.0 <= targetValue
+                    NumericalHabitType.AT_MOST -> entry.value / 1000.0 <= targetValue
                 }
             }
             val num = freq.numerator
@@ -340,12 +342,12 @@ open class EntryList {
                 current = current.minus(1)
             }
 
-            // Create YES_AUTO entries
+            // Create automatic entries without colliding with recorded thousandths.
             intervals.forEach { interval ->
                 current = interval.end
                 while (current >= interval.begin) {
                     val offset = current.daysUntil(to)
-                    result[offset] = Entry(current, YES_AUTO)
+                    result[offset] = Entry(current, NUMERICAL_AUTO)
                     current = current.minus(1)
                 }
             }

@@ -73,7 +73,13 @@ internal class RecomputeFixture(val scenario: RecomputeScenario, entries: List<E
     }
 
     fun recomputeEntries() {
-        computed.recomputeFrom(original, scenario.frequency, scenario.isNumerical)
+        computed.recomputeFrom(
+            original,
+            scenario.frequency,
+            scenario.isNumerical,
+            scenario.targetValue,
+            scenario.targetType
+        )
     }
 
     fun recomputeScores() {

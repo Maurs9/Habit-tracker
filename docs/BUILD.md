@@ -27,14 +27,14 @@ In **Tools > SDK Manager**, install Android SDK Platform 36, Android SDK Build-T
 
 To create a complete copy of the source code repository, open the terminal (Linux/macOS) or Git Bash (Windows), navigate to the desired folder, then run:
 ```bash
-git clone https://github.com/iSoron/uhabits.git
+git clone https://github.com/Maurs9/Habit-tracker.git
 ```
-The repository will be downloaded to the directory `uhabits`.
+The repository will be downloaded to the directory `Habit-tracker`.
 
 ### Step 4: Open and run the project on Android Studio
 
 1. Launch Android Studio and select "Open an existing Android Studio project".
-2. When the IDE asks you for the project location, select `uhabits` and click "Ok".
+2. When the IDE asks you for the project location, select `Habit-tracker` and click "Ok".
 3. Android Studio will spend some time indexing the project. When this is complete, click the toolbar icon "Sync Project with Gradle File", located near the right corner of the top toolbar.
 4. If Gradle reports missing SDK components, install them using SDK Manager and sync again.
 5. To run the application, create a virtual Android device using **Tools > Device Manager**, with API 28 or later. Automated screenshot tests have stricter device requirements; see [Testing the project](TEST.md).
@@ -84,13 +84,13 @@ sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0"
 
 To create a complete copy of the source code repository, navigate to your home directory and run:
 ```bash
-git clone https://github.com/iSoron/uhabits.git
+git clone https://github.com/Maurs9/Habit-tracker.git
 ```
-The repository will be downloaded to the directory `uhabits`.
+The repository will be downloaded to the directory `Habit-tracker`.
 
 ### Step 4: Compile the source code
 
-1. Navigate to the directory `uhabits`
+1. Navigate to the directory `Habit-tracker`
 2. Run `./gradlew :uhabits-android:assembleDebug --stacktrace`
 
 If the compilation is successful, a debug APK will be generated somewhere inside the folder `uhabits-android/build/`. Currently, the full path is `./uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk`, but it may change in the future.

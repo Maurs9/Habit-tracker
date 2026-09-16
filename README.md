@@ -5,7 +5,7 @@
     <img alt="Latest Release" src="https://img.shields.io/github/v/release/Maurs9/Habit-tracker?label=Release&color=0099cc" />
   </a>
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%209.0%2B-brightgreen" />
-  <a href="LICENSE">
+  <a href="LICENSE.txt">
     <img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" />
   </a>
 </p>
@@ -26,8 +26,8 @@
 
 ## 🌟 What's New in this Version
 
-* **📁 Habit Sections**: Organize your daily routines by grouping habits into custom sections (e.g., Morning Routine, Health & Fitness, Evening & Learning). Customize section order, collapse or expand sections on the main list, and reassign habits with ease.
-* **🎯 Full Frequency Parity for Measurable Habits**: Measurable habits now support the complete flexible frequency system previously exclusive to yes/no habits (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days display clean auto-completion indicators (`YES_AUTO`), streak calculation seamlessly bridges rest days, and habit score calculations dynamically reflect your target rate.
+* **📁 Habit Sections**: Organize your daily routines by grouping habits into custom sections (e.g., Morning Routine, Health & Fitness, Evening & Learning). Customize section order, see each section's done/total count on the main list, and reassign habits with ease.
+* **🎯 Flexible Frequencies for Measurable Habits**: Measurable habits support the frequency picker previously exclusive to yes/no habits (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days display automatic checkmarks, distinct from recorded measurements.
 * **🎨 4-Ring Donut Color Wheel Picker**: Replaced the legacy flat color grid with an intuitive 4-ring non-overlapping color wheel based on harmonic color theory:
   * **12 Radial Hue Sectors** (spaced 30° apart across the color spectrum).
   * **4 Concentric Rings**: Outer (Deep tones), Middle-outer (Vibrant tones), Middle-inner (Soft tones), and Inner (Pastel tones).
@@ -78,8 +78,8 @@ Because this enhanced edition contains custom features (Sections, 4-Ring Color W
 ## 🛠️ Building from Source
 
 ### Prerequisites
-* **Java Development Kit (JDK)**: 17 or higher
-* **Android SDK**: API level 36 (Android 16 / Build-tools 36.x)
+* **Java Development Kit (JDK)**: 17
+* **Android SDK**: API level 36 (Android 16), Build-Tools 35.0.0
 * **Minimum Supported Device**: Android 9.0 (API level 28)
 
 ### Build Steps
@@ -106,12 +106,19 @@ Because this enhanced edition contains custom features (Sections, 4-Ring Color W
 
 4. Run unit tests:
    ```bash
-   .\gradlew.bat :uhabits-core:test
+   # On Windows:
+   .\gradlew.bat :uhabits-core:jvmTest :uhabits-android:testDebugUnitTest
+
+   # On Linux / macOS:
+   ./gradlew :uhabits-core:jvmTest :uhabits-android:testDebugUnitTest
    ```
+
+See [the build guide](docs/BUILD.md) for SDK setup and [the testing guide](docs/TEST.md)
+for focused checks and device requirements.
 
 ---
 
 ## 📄 License & Credits
 
 * Based on [Loop Habit Tracker](https://github.com/iSoron/uhabits) by Álinson Santos Xavier.
-* Licensed under the [GNU General Public License v3.0 (GPLv3)](LICENSE).
+* Licensed under the [GNU General Public License v3.0 (GPLv3)](LICENSE.txt).

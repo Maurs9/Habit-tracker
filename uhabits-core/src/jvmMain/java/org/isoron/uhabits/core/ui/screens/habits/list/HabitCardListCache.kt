@@ -219,6 +219,70 @@ class HabitCardListCache @Inject constructor(
     }
 
     @Synchronized
+    fun startReorder(position: Int): ReorderSession? {
+        if (primaryOrder != Order.BY_POSITION) return null
+        val habit = getHabitByPosition(position) ?: return null
+        return ReorderSession(habit, data.items.toList())
+    }
+
+    inner class ReorderSession internal constructor(
+        val habit: Habit,
+        private val originalItems: List<ListItem>
+    ) {
+        private val originalOtherIds = originalItems.map { it.itemId }.filter { it != habit.id }
+        private val originalGrouping = groupBySection
+        private val originalFilter = filteredHabits
+        var hasMoved = false
+            private set
+        private var finished = false
+
+        fun move(from: Int, to: Int): Boolean = synchronized(this@HabitCardListCache) {
+            if (finished) return false
+            if (!isSnapshotValid()) {
+                cancel()
+                return false
+            }
+            if (from == to || getHabitByPosition(from) != habit || !isSameSection(from, to)) {
+                return false
+            }
+            hasMoved = true
+            reorder(from, to)
+            true
+        }
+
+        fun finish(): Habit? = synchronized(this@HabitCardListCache) {
+            if (finished) return null
+            finished = true
+            if (!hasMoved) return null
+            if (!isSnapshotValid()) {
+                cancel()
+                return null
+            }
+            val position = data.items.indexOfFirst { it is ListItem.Row && it.habit == habit }
+            // Persistence still uses the pre-drag order, not the last row crossed while dragging.
+            val target = (originalItems.getOrNull(position) as? ListItem.Row)?.habit
+            val targetPosition = data.items.indexOfFirst { it.itemId == target?.id }
+            if (target == null || !isSameSection(position, targetPosition)) {
+                cancel()
+                return null
+            }
+            target.takeUnless { it == habit }
+        }
+
+        private fun isSnapshotValid(): Boolean =
+            primaryOrder == Order.BY_POSITION &&
+                groupBySection == originalGrouping &&
+                filteredHabits === originalFilter &&
+                data.items.size == originalItems.size &&
+                data.items.map { it.itemId }.filter { it != habit.id } == originalOtherIds
+
+        private fun cancel() {
+            finished = true
+            if (hasMoved) refreshAllHabits()
+        }
+    }
+
+    @Synchronized
     fun isSameSection(from: Int, to: Int): Boolean {
         val first = getHabitByPosition(from) ?: return false
         val second = getHabitByPosition(to) ?: return false

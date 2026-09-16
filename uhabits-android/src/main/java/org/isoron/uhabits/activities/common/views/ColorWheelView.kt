@@ -244,7 +244,7 @@ class ColorWheelView @JvmOverloads constructor(
             Pair(cx - neutralOffset, cy - neutralOffset), // 48: Light Gray (top-left)
             Pair(cx + neutralOffset, cy - neutralOffset), // 49: Medium Gray (top-right)
             Pair(cx - neutralOffset, cy + neutralOffset), // 50: Slate (bottom-left)
-            Pair(cx + neutralOffset, cy + neutralOffset)  // 51: Charcoal (bottom-right)
+            Pair(cx + neutralOffset, cy + neutralOffset) // 51: Charcoal (bottom-right)
         )
 
         for (i in 0 until 4) {

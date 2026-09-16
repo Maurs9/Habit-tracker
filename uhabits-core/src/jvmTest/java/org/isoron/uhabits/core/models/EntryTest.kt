@@ -30,6 +30,19 @@ import kotlin.test.assertEquals
 
 class EntryTest {
     @Test
+    fun testFormattingDistinguishesNumericalValuesFromBooleanStates() {
+        val timestamp = Timestamp(0)
+        assertEquals("YES_AUTO", Entry(timestamp, YES_AUTO).formatValue(isNumerical = false))
+        assertEquals("YES_MANUAL", Entry(timestamp, YES_MANUAL).formatValue(isNumerical = false))
+        for (value in listOf(0, 1, 2, 1000)) {
+            assertEquals(value.toString(), Entry(timestamp, value).formatValue(isNumerical = true))
+        }
+        assertEquals("YES_AUTO", Entry(timestamp, Entry.NUMERICAL_AUTO).formatValue(isNumerical = true))
+        assertEquals("SKIP", Entry(timestamp, SKIP).formatValue(isNumerical = true))
+        assertEquals("UNKNOWN", Entry(timestamp, UNKNOWN).formatValue(isNumerical = true))
+    }
+
+    @Test
     fun testNextValue() {
         check(
             mapOf(

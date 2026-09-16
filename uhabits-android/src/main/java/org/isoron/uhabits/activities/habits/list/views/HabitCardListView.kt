@@ -29,11 +29,8 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import org.isoron.uhabits.utils.dp
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.DOWN
-import androidx.recyclerview.widget.ItemTouchHelper.END
-import androidx.recyclerview.widget.ItemTouchHelper.START
 import androidx.recyclerview.widget.ItemTouchHelper.UP
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -43,6 +40,7 @@ import org.isoron.uhabits.activities.common.views.BundleSavedState
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
 import org.isoron.uhabits.inject.ActivityContext
+import org.isoron.uhabits.utils.dp
 import javax.inject.Inject
 
 class HabitCardListViewFactory
@@ -218,10 +216,8 @@ class HabitCardListView(
     }
 
     inner class TouchHelperCallback : ItemTouchHelper.Callback() {
-        private var draggedHabit: Habit? = null
-        private var lastTargetHabit: Habit? = null
-        private var initialPosition: Int = NO_POSITION
-        private var hasMoved: Boolean = false
+        private var reorderSession: HabitCardListCache.ReorderSession? = null
+        private var draggedViewHolder: ViewHolder? = null
 
         override fun getMovementFlags(
             recyclerView: RecyclerView,
@@ -253,24 +249,15 @@ class HabitCardListView(
             val toPos = to.adapterPosition
             if (fromPos == NO_POSITION || toPos == NO_POSITION) return false
             if (!canDropOver(recyclerView, from, to)) return false
-
-            hasMoved = true
-            val target = adapter.getItem(toPos)
-            if (target != null) {
-                lastTargetHabit = target
-            }
-            adapter.performReorder(fromPos, toPos)
-            return true
+            return reorderSession?.move(fromPos, toPos) == true
         }
 
         override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
             super.onSelectedChanged(viewHolder, actionState)
+            finishReorder()
             if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && viewHolder != null) {
-                val pos = viewHolder.adapterPosition
-                initialPosition = pos
-                draggedHabit = if (pos != NO_POSITION) adapter.getItem(pos) else null
-                lastTargetHabit = null
-                hasMoved = false
+                reorderSession = adapter.startReorder(viewHolder.adapterPosition) ?: return
+                draggedViewHolder = viewHolder
                 viewHolder.itemView.animate()
                     .scaleX(1.02f)
                     .scaleY(1.02f)
@@ -278,6 +265,21 @@ class HabitCardListView(
                     .setDuration(120)
                     .start()
                 viewHolder.itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            }
+        }
+
+        private fun finishReorder() {
+            val session = reorderSession ?: return
+            val holder = draggedViewHolder
+            reorderSession = null
+            draggedViewHolder = null
+
+            // clearView can arrive after the next drag has already started.
+            val target = session.finish()
+            if (target != null) {
+                controller.get().onReorderFinished(session.habit, target)
+            } else if (!session.hasMoved) {
+                holder?.itemView?.performLongClick()
             }
         }
 
@@ -292,23 +294,6 @@ class HabitCardListView(
                 .translationZ(0f)
                 .setDuration(120)
                 .start()
-
-            val from = draggedHabit
-            val to = lastTargetHabit
-            val currentPos = viewHolder.adapterPosition
-            val initialPos = initialPosition
-            val moved = hasMoved
-
-            draggedHabit = null
-            lastTargetHabit = null
-            initialPosition = NO_POSITION
-            hasMoved = false
-
-            if (moved && from != null && to != null && currentPos != NO_POSITION && currentPos != initialPos) {
-                controller.get().onReorderFinished(from, to)
-            } else if (!moved) {
-                viewHolder.itemView.performLongClick()
-            }
         }
 
         override fun onSwiped(

@@ -3,9 +3,11 @@
 ## Creating and editing
 
 The add button opens the editor directly with **Yes or No** selected. Choose
-**Measurable** to set a unit, target, target type, and period. Type can be changed
-only before the habit is created. Switching types keeps the draft fields and
-each type's frequency; a measurable period always has a numerator of one.
+**Measurable** to set a unit, target, target type, and frequency. Type can be changed
+only before the habit is created. Switching types keeps the draft fields.
+Both types support frequencies such as three times per week or every two days.
+For measurable habits, meeting the full target on a recorded day qualifies that
+day toward the selected frequency; eligible rest days receive automatic checkmarks.
 
 **Section** and **Tags** stay visible. **More options** reveals Question and
 Notes; **Fewer options** hides them without clearing their text. Editing a habit
@@ -28,18 +30,25 @@ alphabetical order. The filter icon turns blue when tags are selected or
 completed/entered habits are hidden; hiding archived habits alone does not tint
 it. An empty database has no subtitle.
 
-The done count keeps the existing completion rule: yes/no checks and skips
-count; numerical "at least" habits count at or above their full target, not a
-per-day fraction. Numerical "at most" habits never count as done. A numerical
-skip is not completion of a positive target. Hiding entered habits still uses
-the existing entered-day filter, not this done count.
+Yes/no checks and skips count as done. Recorded numerical "at least" values count
+at or above their full target, not a per-day fraction. Recorded numerical
+"at most" values do not count as done; qualifying automatic rest days do.
+A numerical skip is not completion of a target. Hiding entered habits still
+uses the existing entered-day filter, not this done count.
+
+Automatic numerical checkmarks are derived from the schedule, not recorded
+quantities. A value such as `0.001` stays a measurement and is compared with the
+target normally. CSV checkmark exports keep raw thousandths for numerical
+measurements (`0.001` exports as `1`) and label automatic rest days `YES_AUTO`.
+Existing database backups and recorded values require no migration.
 
 ## Colors
 
-Choose a habit color using the wheel: its outer, middle, and inner rings are
-Vibrant, Muted, and Deep. The four center colors are Gray, Dark Gray, Slate, and
-Charcoal. Select a color, then press **OK**; **Cancel** leaves the habit unchanged.
-All 40 choices have accessibility labels and support keyboard selection.
+Choose a habit color using the wheel: its four rings, from outside to inside,
+are Deep, Vibrant, Soft, and Light. Each ring has 12 hues. The four center colors
+are Light Gray, Medium Gray, Slate, and Charcoal. Select a color, then press
+**OK**; **Cancel** leaves the habit unchanged. All 52 choices have accessibility
+labels and support keyboard selection.
 
 New habits start with Vibrant Blue, or the last color saved when creating a
 habit. Editing an existing habit or canceling creation does not change that
@@ -87,12 +96,17 @@ off by default. Sections follow their saved order, while the selected primary
 and secondary sorts apply within each group. Headers show today's done/total
 count for visible habits only. Empty sections are hidden. Unsectioned habits,
 including missing section references, appear last under **Other**. If all visible
-habits are unsectioned, the list stays flat without an Other header.
+habits are unsectioned, the list stays flat without an Other header. Section
+headers are informational; sections cannot be collapsed.
 
 With manual sorting and grouping enabled, drag habits **within their section
 only**. Headers cannot be selected or dragged. Use the selection menu's
 **Section** action to move habits between sections. Turning grouping off restores
 the flat list and its existing manual reorder behavior.
+
+Long-press a habit and move it to reorder. Releasing without moving selects the
+habit instead. Reversing direction while dragging preserves the final drop
+position when the list is reopened.
 
 Open **Settings → Sections** to add sections, rename them, move them up or down,
 or delete them. Deletion asks for confirmation; habits and history are kept and

@@ -1,7 +1,10 @@
 package org.isoron.uhabits.activities.habits.list
 
 import android.content.Intent
+import android.view.View
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
@@ -12,9 +15,8 @@ import org.isoron.uhabits.activities.habits.list.views.CheckmarkButtonViewFactor
 import org.isoron.uhabits.activities.habits.list.views.CheckmarkPanelViewFactory
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListController
+import org.isoron.uhabits.activities.habits.list.views.HabitCardListView
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListViewFactory
-import org.isoron.uhabits.activities.habits.list.views.HabitCardView
-import org.isoron.uhabits.activities.habits.list.views.HabitCardViewHolder
 import org.isoron.uhabits.activities.habits.list.views.HabitCardViewFactory
 import org.isoron.uhabits.activities.habits.list.views.NumberButtonViewFactory
 import org.isoron.uhabits.activities.habits.list.views.NumberPanelViewFactory
@@ -30,6 +32,7 @@ import org.isoron.uhabits.core.models.memory.MemoryModelFactory
 import org.isoron.uhabits.core.tasks.SingleThreadTaskRunner
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
 import org.isoron.uhabits.core.ui.screens.habits.list.HintListFactory
+import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
@@ -102,7 +105,7 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         assertEquals(0, root.listView.TouchHelperCallback().getMovementFlags(root.listView, header))
         assertFalse(header.itemView.performClick())
         assertFalse(header.itemView.performLongClick())
-        val cardHolder = adapter.onCreateViewHolder(root.listView, 0) as HabitCardViewHolder
+        val cardHolder = adapter.onCreateViewHolder(root.listView, 0)
         adapter.onBindViewHolder(cardHolder, 1)
         val selectionMenu: ListHabitsSelectionMenu = mock()
         val controller = HabitCardListController(adapter, mock(), Lazy { selectionMenu })
@@ -163,6 +166,125 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         assertEquals("1 of 1 done · Morning", root.tbar.subtitle.toString())
     }
 
+    @Test
+    fun testDragBacktrackingPersistsThePreviewInBothDirections() = withRoot {
+        val (a, b, c, d) = prepareReorder()
+        val callback = root.listView.TouchHelperCallback()
+        callback.onSelectedChanged(holderAt(0), ItemTouchHelper.ACTION_STATE_DRAG)
+        move(callback, 0, 1)
+        move(callback, 1, 2)
+        move(callback, 2, 1)
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        assertReorderPersisted(listOf(b, a, c, d))
+
+        callback.onSelectedChanged(holderAt(3), ItemTouchHelper.ACTION_STATE_DRAG)
+        move(callback, 3, 2)
+        move(callback, 2, 1)
+        move(callback, 1, 2)
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        assertReorderPersisted(listOf(b, a, d, c))
+        assertTrue(adapter.isSelectionEmpty)
+    }
+
+    @Test
+    fun testDragReturningToStartDoesNotReorderOrSelect() = withRoot {
+        val original = prepareReorder()
+        val callback = root.listView.TouchHelperCallback()
+        val holder = holderAt(0)
+        callback.onSelectedChanged(holder, ItemTouchHelper.ACTION_STATE_DRAG)
+        move(callback, 0, 2)
+        move(callback, 2, 0)
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        callback.clearView(root.listView, holder)
+        assertTrue(adapter.isSelectionEmpty)
+        assertReorderPersisted(original)
+    }
+
+    @Test
+    fun testLongPressWithoutMovementStillSelectsExactlyOnce() = withRoot {
+        val original = prepareReorder()
+        val callback = root.listView.TouchHelperCallback()
+        val holder = holderAt(0)
+        callback.onSelectedChanged(holder, ItemTouchHelper.ACTION_STATE_DRAG)
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        callback.clearView(root.listView, holder)
+        callback.clearView(root.listView, holder)
+        assertEquals(listOf(original[0]), adapter.selected.toList())
+        assertReorderPersisted(original)
+    }
+
+    @Test
+    fun testDelayedClearViewDoesNotFinishTheNextDrag() = withRoot {
+        val (a, b, c, d) = prepareReorder()
+        val callback = root.listView.TouchHelperCallback()
+        val first = holderAt(0)
+        callback.onSelectedChanged(first, ItemTouchHelper.ACTION_STATE_DRAG)
+        move(callback, 0, 2)
+        move(callback, 2, 1)
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        assertReorderPersisted(listOf(b, a, c, d))
+
+        val second = holderAt(3)
+        callback.onSelectedChanged(second, ItemTouchHelper.ACTION_STATE_DRAG)
+        move(callback, 3, 1)
+        callback.clearView(root.listView, first)
+        assertTrue(adapter.isSelectionEmpty)
+        move(callback, 1, 2)
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        callback.clearView(root.listView, second)
+        callback.clearView(root.listView, first)
+        assertTrue(adapter.isSelectionEmpty)
+        assertReorderPersisted(listOf(b, a, d, c))
+    }
+
+    @Test
+    fun testChangedRowsCancelDragWithoutSelecting() = withRoot {
+        val (a, b, c, d) = prepareReorder()
+        val callback = root.listView.TouchHelperCallback()
+        val holder = holderAt(3)
+        callback.onSelectedChanged(holder, ItemTouchHelper.ACTION_STATE_DRAG)
+        move(callback, 3, 1)
+        testHabits.remove(b)
+        adapter.performRemove(listOf(b))
+
+        callback.onSelectedChanged(null, ItemTouchHelper.ACTION_STATE_IDLE)
+        callback.clearView(root.listView, holder)
+        assertTrue(adapter.isSelectionEmpty)
+        assertReorderPersisted(listOf(a, c, d))
+    }
+
+    private fun prepareReorder(): List<Habit> {
+        val habits = List(4) { addHabit(Entry.NO) }
+        adapter.primaryOrder = HabitList.Order.BY_POSITION
+        adapter.refresh()
+        root.listView.itemAnimator = null
+        layoutList()
+        return habits
+    }
+
+    private fun layoutList() {
+        root.measure(
+            View.MeasureSpec.makeMeasureSpec(800, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(1600, View.MeasureSpec.EXACTLY)
+        )
+        root.layout(0, 0, 800, 1600)
+    }
+
+    private fun holderAt(position: Int): RecyclerView.ViewHolder =
+        root.listView.findViewHolderForAdapterPosition(position)!!
+
+    private fun move(callback: HabitCardListView.TouchHelperCallback, from: Int, to: Int) {
+        assertTrue(callback.onMove(root.listView, holderAt(from), holderAt(to)))
+        layoutList()
+    }
+
+    private fun assertReorderPersisted(expected: List<Habit>) {
+        assertEquals(expected, testHabits.toList())
+        assertEquals(expected, (0 until adapter.itemCount).map { adapter.getItem(it) })
+        adapter.refresh()
+        assertEquals(expected, (0 until adapter.itemCount).map { adapter.getItem(it) })
+    }
+
     private fun addHabit(value: Int, numerical: Boolean = false, atMost: Boolean = false): Habit =
         memoryFactory.buildHabit().apply {
             if (numerical) {
@@ -183,6 +305,18 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
                 testHabits = memoryFactory.buildHabitList()
                 val cache = HabitCardListCache(testHabits, memoryFactory.buildSectionList(), commands, runner, mock())
                 adapter = HabitCardListAdapter(cache, prefs, mock())
+                val behavior = ListHabitsBehavior(
+                    testHabits,
+                    memoryFactory.buildSectionList(),
+                    mock(),
+                    runner,
+                    mock(),
+                    commands,
+                    prefs,
+                    mock()
+                )
+                val selectionMenu: ListHabitsSelectionMenu = mock()
+                val controller = HabitCardListController(adapter, behavior, Lazy { selectionMenu })
                 val cardFactory = HabitCardViewFactory(
                     activity,
                     CheckmarkPanelViewFactory(activity, prefs, CheckmarkButtonViewFactory(activity, prefs)),
@@ -196,7 +330,7 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
                     mock(),
                     runner,
                     adapter,
-                    HabitCardListViewFactory(activity, adapter, cardFactory, Lazy { mock() })
+                    HabitCardListViewFactory(activity, adapter, cardFactory, Lazy { controller })
                 )
                 container = FrameLayout(activity)
                 activity.setContentView(container)

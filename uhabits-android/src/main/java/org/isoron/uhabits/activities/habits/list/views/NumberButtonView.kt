@@ -58,6 +58,7 @@ fun Double.toShortString(): String = when {
     this >= 1e3 -> String.format("%.1fk", this / 1e3)
     this >= 1e2 -> DecimalFormat("#").format(this)
     this >= 1e1 -> DecimalFormat("#.#").format(this)
+    this > 0 && this < 0.01 -> DecimalFormat("#.###").format(this)
     else -> DecimalFormat("#.##").format(this)
 }
 
@@ -134,7 +135,7 @@ class NumberButtonView(
         super.onInitializeAccessibilityNodeInfo(info)
         info.className = android.widget.Button::class.java.name
         val state = when {
-            value == Entry.YES_AUTO.toDouble() / 1000 -> context.getString(R.string.habit_entry_automatic)
+            value == Entry.NUMERICAL_AUTO / 1000.0 -> context.getString(R.string.habit_entry_automatic)
             value == Entry.SKIP.toDouble() / 1000 -> context.getString(R.string.habit_entry_skipped)
             value < 0 -> context.getString(R.string.habit_entry_unknown)
             else -> {
@@ -213,7 +214,7 @@ class NumberButtonView(
 
         fun draw(canvas: Canvas) {
             if (isToday) canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), todayHighlight.paint)
-            val isAuto = value == Entry.YES_AUTO.toDouble() / 1000
+            val isAuto = value == Entry.NUMERICAL_AUTO / 1000.0
             val activeColor = when {
                 isAuto -> color
                 value < 0.0 -> lowContrast

@@ -31,9 +31,13 @@ import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.EntryList
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.HabitType
+import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getTodayWithOffset
+import org.isoron.uhabits.widgets.views.CheckmarkWidgetView
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -75,6 +79,29 @@ class CheckmarkWidgetTest : BaseViewTest() {
         button.performClick()
         sleep(1000)
         assertThat(entries.get(today).value, equalTo(Entry.NO))
+    }
+
+    @Test
+    fun testNumericalAutomaticDaysAndTinyMeasurementsHaveDifferentStates() {
+        val habit = fixtures.createEmptyHabit().apply {
+            type = HabitType.NUMERICAL
+            targetType = NumericalHabitType.AT_LEAST
+            frequency = Frequency(1, 3)
+            targetValue = 5.0
+            originalEntries.add(Entry(today.minus(1), 5000))
+            recompute()
+        }
+        val widget = CheckmarkWidget(targetContext, 0, habit)
+        val card = CheckmarkWidgetView(targetContext)
+        widget.refreshData(card)
+        assertThat(card.entryValue, equalTo(Entry.NUMERICAL_AUTO))
+        assertThat(card.entryState, equalTo(Entry.YES_AUTO))
+
+        habit.originalEntries.add(Entry(today, 1))
+        habit.recompute()
+        widget.refreshData(card)
+        assertThat(card.entryValue, equalTo(1))
+        assertThat(card.entryState, equalTo(Entry.NO))
     }
 
     @Test

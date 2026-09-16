@@ -61,17 +61,20 @@ class WidgetBehavior @Inject constructor(
 
     fun onIncrement(habit: Habit, timestamp: Timestamp, amount: Int) {
         val entry = habit.computedEntries.get(timestamp)
-        val currentValue = entry.value
+        val currentValue = valueForAdjustment(entry)
         setValue(habit, timestamp, currentValue + amount, entry.notes)
         notificationTray.cancel(habit)
     }
 
     fun onDecrement(habit: Habit, timestamp: Timestamp, amount: Int) {
         val entry = habit.computedEntries.get(timestamp)
-        val currentValue = entry.value
+        val currentValue = valueForAdjustment(entry)
         setValue(habit, timestamp, currentValue - amount, entry.notes)
         notificationTray.cancel(habit)
     }
+
+    private fun valueForAdjustment(entry: Entry): Int =
+        if (entry.value == Entry.NUMERICAL_AUTO) 0 else entry.value
 
     fun setValue(habit: Habit, timestamp: Timestamp?, newValue: Int, notes: String) {
         commandRunner.run(

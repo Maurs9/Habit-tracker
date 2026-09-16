@@ -93,7 +93,7 @@ class ScoreList {
         for (i in values.indices) {
             val v = values[i]
             dayScores[i] = when {
-                v == Entry.SKIP || v == Entry.YES_AUTO || v == Entry.UNKNOWN -> 0.0
+                v == Entry.SKIP || v == Entry.UNKNOWN || (isNumerical && v == Entry.NUMERICAL_AUTO) -> 0.0
                 !isNumerical -> if (v == Entry.YES_MANUAL) 1.0 else 0.0
                 !isAtMost -> if (targetValue > 0) min(1.0, max(0.0, v / 1000.0) / targetValue) else 1.0
                 else -> {

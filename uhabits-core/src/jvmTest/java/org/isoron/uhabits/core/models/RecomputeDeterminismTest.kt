@@ -21,6 +21,7 @@ package org.isoron.uhabits.core.models
 import org.junit.Test
 import kotlin.random.Random
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RecomputeDeterminismTest {
     @Test
@@ -42,7 +43,19 @@ class RecomputeDeterminismTest {
                 assertEquals(expectedStreaks, shuffled.streaks.getBest(scenario.days), scenario.toString())
             }
             if (scenario.isNumerical) {
-                assertEquals(reference.original.getKnown(), expectedEntries, scenario.toString())
+                val originalEntries = reference.original.getKnown()
+                for (entry in originalEntries) {
+                    assertEquals(entry, reference.computed.get(entry.timestamp), scenario.toString())
+                }
+                val originalDates = originalEntries.map { it.timestamp }.toSet()
+                assertTrue(
+                    expectedEntries.filter { it.timestamp !in originalDates }
+                        .all { it.value == Entry.NUMERICAL_AUTO },
+                    scenario.toString()
+                )
+                if (scenario.frequency == Frequency.DAILY) {
+                    assertEquals(originalEntries, expectedEntries, scenario.toString())
+                }
             }
             assertEquals(scenario.days, expectedScores.size)
             assertEquals(scenario.from, expectedScores.last().timestamp)

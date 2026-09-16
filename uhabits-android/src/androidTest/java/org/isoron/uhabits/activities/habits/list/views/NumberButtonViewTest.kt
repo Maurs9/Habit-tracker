@@ -19,11 +19,14 @@
 
 package org.isoron.uhabits.activities.habits.list.views
 
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.isoron.uhabits.BaseViewTest
+import org.isoron.uhabits.R
+import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.utils.PaletteUtils
 import org.junit.Before
@@ -53,6 +56,8 @@ class NumberButtonViewTest : BaseViewTest() {
 
     @Test
     fun testFormatValue() {
+        assertThat(0.001.toShortString(), equalTo("0.001"))
+        assertThat(0.002.toShortString(), equalTo("0.002"))
         assertThat(0.1235.toShortString(), equalTo("0.12"))
         assertThat(0.1000.toShortString(), equalTo("0.1"))
         assertThat(5.0.toShortString(), equalTo("5"))
@@ -67,6 +72,26 @@ class NumberButtonViewTest : BaseViewTest() {
         assertThat(87654321.2.toShortString(), equalTo("87.7M"))
         assertThat(987654321.2.toShortString(), equalTo("988M"))
         assertThat(1987654321.2.toShortString(), equalTo("2.0G"))
+    }
+
+    @Test
+    fun testAccessibilityDistinguishesTinyMeasurementsAndAutomaticDays() {
+        view.habitName = "Read"
+        view.timestamp = day(0)
+        view.value = 0.001
+        var info = AccessibilityNodeInfo.obtain()
+        view.onInitializeAccessibilityNodeInfo(info)
+        assertTrue(info.contentDescription.contains("0.001"))
+        assertTrue(info.contentDescription.contains("steps"))
+        assertFalse(info.contentDescription.contains(targetContext.getString(R.string.habit_entry_automatic)))
+        info.recycle()
+
+        view.value = Entry.NUMERICAL_AUTO / 1000.0
+        info = AccessibilityNodeInfo.obtain()
+        view.onInitializeAccessibilityNodeInfo(info)
+        assertTrue(info.contentDescription.contains(targetContext.getString(R.string.habit_entry_automatic)))
+        assertFalse(info.contentDescription.contains("-0.002"))
+        info.recycle()
     }
 
     @Test

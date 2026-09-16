@@ -225,6 +225,11 @@ class HabitCardListAdapter @Inject constructor(
         cache.reorder(from, to)
     }
 
+    fun startReorder(position: Int): HabitCardListCache.ReorderSession? {
+        if (!isSortable || !isSelectionEmpty) return null
+        return cache.startReorder(position)
+    }
+
     override fun refresh() {
         cache.refreshAllHabits()
     }

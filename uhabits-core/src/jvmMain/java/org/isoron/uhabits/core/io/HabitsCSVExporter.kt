@@ -97,7 +97,7 @@ class HabitsCSVExporter(
             File(exportDirName + habitDirName).mkdirs()
             generatedDirs.add(habitDirName)
             writeScores(habitDirName, h)
-            writeEntries(habitDirName, h.computedEntries)
+            writeEntries(habitDirName, h.computedEntries, h.isNumerical)
         }
         writeMultipleHabits()
     }
@@ -122,7 +122,7 @@ class HabitsCSVExporter(
         out.close()
     }
 
-    private fun writeEntries(habitDirName: String, entries: EntryList) {
+    private fun writeEntries(habitDirName: String, entries: EntryList, isNumerical: Boolean) {
         val filename = habitDirName + "Checkmarks.csv"
         val out = FileWriter(exportDirName + filename)
         generatedFilenames.add(filename)
@@ -134,7 +134,7 @@ class HabitsCSVExporter(
             csv.writeNext(
                 arrayOf(
                     date,
-                    entry.formattedValue,
+                    entry.formatValue(isNumerical),
                     entry.notes
                 ),
                 false
@@ -182,7 +182,7 @@ class HabitsCSVExporter(
             checksWriter.write(sb.toString())
             scoresWriter.write(sb.toString())
             for (j in selectedHabits.indices) {
-                checksWriter.write(checkmarks[j][i].formattedValue)
+                checksWriter.write(checkmarks[j][i].formatValue(selectedHabits[j].isNumerical))
                 checksWriter.write(delimiter)
                 val score = String.format(Locale.US, "%.4f", scores[j][i].value)
                 scoresWriter.write(score)

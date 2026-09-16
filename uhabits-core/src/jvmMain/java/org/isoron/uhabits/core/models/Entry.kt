@@ -26,14 +26,23 @@ data class Entry(
     val formattedValue: String
         get() = when (value) {
             YES_MANUAL -> "YES_MANUAL"
-            YES_AUTO -> "YES_AUTO"
+            YES_AUTO, NUMERICAL_AUTO -> "YES_AUTO"
             NO -> "NO"
             SKIP -> "SKIP"
             UNKNOWN -> "UNKNOWN"
             else -> value.toString()
         }
 
+    fun formatValue(isNumerical: Boolean): String =
+        if (isNumerical && value >= 0 && value != SKIP) value.toString() else formattedValue
+
     companion object {
+        /**
+         * Computed-only rest day for numerical habits, outside the nonnegative measurement range.
+         * Boolean YES_AUTO remains 1 for compatibility with existing entries and backups.
+         */
+        const val NUMERICAL_AUTO = -2
+
         /**
          * Value indicating that the habit is not applicable for this timestamp.
          */

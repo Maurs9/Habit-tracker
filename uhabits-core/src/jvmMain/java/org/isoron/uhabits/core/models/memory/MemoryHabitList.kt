@@ -185,10 +185,8 @@ class MemoryHabitList : HabitList {
     @Synchronized
     override fun reorder(from: Habit, to: Habit) {
         throwIfHasParent()
-        check(!(primaryOrder !== Order.BY_POSITION)) { "cannot reorder automatically sorted list" }
-        require(indexOf(from) >= 0) { "list does not contain (from) habit" }
+        validateReorder(from, to)
         val toPos = indexOf(to)
-        require(toPos >= 0) { "list does not contain (to) habit" }
         list.remove(from)
         list.add(toPos, from)
         var position = 0

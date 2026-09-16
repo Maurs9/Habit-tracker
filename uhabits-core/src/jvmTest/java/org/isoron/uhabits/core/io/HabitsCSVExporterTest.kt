@@ -19,7 +19,11 @@
 package org.isoron.uhabits.core.io
 
 import org.isoron.uhabits.core.BaseUnitTest
+import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.HabitType
+import org.isoron.uhabits.core.utils.DateUtils
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -41,6 +45,35 @@ class HabitsCSVExporterTest : BaseUnitTest() {
         habitList.add(fixtures.createEmptyHabit())
         baseDir = Files.createTempDirectory("csv").toFile()
         baseDir.deleteOnExit()
+    }
+
+    @Test
+    fun testNumericalExportSeparatesMeasurementsAndAutomaticDays() {
+        habitList.removeAll()
+        val today = DateUtils.getTodayWithOffset()
+        val habit = modelFactory.buildHabit().apply {
+            name = "Measure"
+            type = HabitType.NUMERICAL
+            targetValue = 5.0
+            frequency = Frequency(1, 3)
+            originalEntries.add(Entry(today.minus(2), 5000))
+            originalEntries.add(Entry(today.minus(1), 1))
+            recompute()
+        }
+        habitList.add(habit)
+        val filename = HabitsCSVExporter(habitList, sectionList, listOf(habit), baseDir).writeArchive()
+        try {
+            ZipFile(filename).use { archive ->
+                for (path in listOf("Checkmarks.csv", "001 Measure/Checkmarks.csv")) {
+                    val values = archive.getInputStream(archive.getEntry(path)).bufferedReader().use { reader ->
+                        reader.readLines().drop(1).map { it.split(',')[1] }
+                    }
+                    assertEquals(listOf("YES_AUTO", "1", "5000"), values, path)
+                }
+            }
+        } finally {
+            File(filename).delete()
+        }
     }
 
     @Test

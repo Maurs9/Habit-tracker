@@ -70,10 +70,10 @@ open class CheckmarkWidget(
     }
 
     private fun getNumericalEntryState(): Int {
-        return if (habit.isCompletedToday()) {
-            Entry.YES_MANUAL
-        } else {
-            Entry.NO
+        return when {
+            habit.computedEntries.get(DateUtils.getTodayWithOffset()).value == Entry.NUMERICAL_AUTO -> Entry.YES_AUTO
+            habit.isCompletedToday() -> Entry.YES_MANUAL
+            else -> Entry.NO
         }
     }
 }

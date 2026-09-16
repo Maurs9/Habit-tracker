@@ -169,32 +169,29 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
     @Synchronized
     override fun reorder(from: Habit, to: Habit) {
         loadRecords()
-        list.reorder(from, to)
-        val fromRecord = repository.find(
-            from.id!!
-        )
-        val toRecord = repository.find(
-            to.id!!
-        )
-        if (fromRecord == null) throw RuntimeException("habit not in database")
-        if (toRecord == null) throw RuntimeException("habit not in database")
-        if (toRecord.position!! < fromRecord.position!!) {
-            repository.execSQL(
-                "update habits set position = position + 1 " +
-                    "where position >= ? and position < ?",
-                toRecord.position!!,
-                fromRecord.position!!
-            )
-        } else {
-            repository.execSQL(
-                "update habits set position = position - 1 " +
-                    "where position > ? and position <= ?",
-                fromRecord.position!!,
-                toRecord.position!!
-            )
+        validateReorder(from, to)
+        repository.executeAsTransaction {
+            val fromRecord = repository.find(from.id!!) ?: throw RuntimeException("habit not in database")
+            val toRecord = repository.find(to.id!!) ?: throw RuntimeException("habit not in database")
+            if (toRecord.position!! < fromRecord.position!!) {
+                repository.execSQL(
+                    "update habits set position = position + 1 " +
+                        "where position >= ? and position < ?",
+                    toRecord.position!!,
+                    fromRecord.position!!
+                )
+            } else {
+                repository.execSQL(
+                    "update habits set position = position - 1 " +
+                        "where position > ? and position <= ?",
+                    fromRecord.position!!,
+                    toRecord.position!!
+                )
+            }
+            fromRecord.position = toRecord.position
+            repository.save(fromRecord)
         }
-        fromRecord.position = toRecord.position
-        repository.save(fromRecord)
+        list.reorder(from, to)
         observable.notifyListeners()
     }
 

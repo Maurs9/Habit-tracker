@@ -35,6 +35,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import java.util.ArrayList
 import kotlin.test.assertNull
 
@@ -185,4 +186,60 @@ class SQLiteHabitListTest : BaseUnitTest() {
         val record4 = repository.find(4L)!!
         assertThat(record4.position, equalTo(2))
     }
+
+    @Test
+    fun testReorderRollback_upward() {
+        assertReorderRollback(7, 2)
+    }
+
+    @Test
+    fun testReorderRollback_downward() {
+        assertReorderRollback(2, 7)
+    }
+
+    @Test
+    fun testReorderValidatesBeforeWriting() {
+        val original = storedOrder()
+        val missing = modelFactory.buildHabit()
+        val present = habitsArray[0]
+        assertThrows(IllegalArgumentException::class.java) { habitList.reorder(missing, present) }
+        assertThrows(IllegalArgumentException::class.java) { habitList.reorder(present, missing) }
+        assertThat(storedOrder(), equalTo(original))
+        assertThat(habitList.toList(), equalTo(habitsArray.toList()))
+        verifyNoInteractions(listener)
+
+        habitList.primaryOrder = HabitList.Order.BY_NAME_ASC
+        assertThrows(IllegalStateException::class.java) { habitList.reorder(habitsArray[0], habitsArray[3]) }
+        assertThat(storedOrder(), equalTo(original))
+    }
+
+    private fun assertReorderRollback(from: Int, to: Int) {
+        val original = storedOrder()
+        val originalPositions = habitList.map { it.position }
+        val originalActive = activeHabits.toList()
+        val source = habitsArray[from]
+        val target = habitsArray[to]
+        repository.execSQL(
+            "CREATE TRIGGER prevent_habit_move BEFORE UPDATE OF position ON habits " +
+                "WHEN OLD.id = ${source.id} BEGIN SELECT RAISE(ABORT, 'stop'); END"
+        )
+
+        assertThrows(RuntimeException::class.java) { habitList.reorder(source, target) }
+        assertThat(storedOrder(), equalTo(original))
+        assertThat(habitList.toList(), equalTo(habitsArray.toList()))
+        assertThat(habitList.map { it.position }, equalTo(originalPositions))
+        assertThat(activeHabits.toList(), equalTo(originalActive))
+        verifyNoInteractions(listener)
+
+        (habitList as SQLiteHabitList).reload()
+        assertThat(storedOrder(), equalTo(original))
+        assertThat(habitList.toList(), equalTo(habitsArray.toList()))
+        assertThat(habitList.map { it.position }, equalTo(originalPositions))
+        repository.execSQL("DROP TRIGGER prevent_habit_move")
+        habitList.reorder(source, target)
+        assertThat(source.position, equalTo(to))
+        assertThat(storedOrder(), equalTo(habitList.map { it.id to it.position }))
+    }
+
+    private fun storedOrder() = repository.findAll("order by position").map { it.id to it.position }
 }

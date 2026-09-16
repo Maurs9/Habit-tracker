@@ -28,6 +28,7 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.RingView
 import org.isoron.uhabits.activities.habits.list.views.toShortString
 import org.isoron.uhabits.core.models.Entry.Companion.NO
+import org.isoron.uhabits.core.models.Entry.Companion.NUMERICAL_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.SKIP
 import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
@@ -96,18 +97,15 @@ class CheckmarkWidgetView : HabitWidgetView {
     }
 
     private val strokedTextEnabled: Boolean
-        get() = if (isNumerical) {
-            false
-        } else {
-            when (entryState) {
-                YES_AUTO -> true
-                else -> false
-            }
-        }
+        get() = entryState == YES_AUTO
 
     private val text: String
         get() = if (isNumerical) {
-            (max(0, entryValue) / 1000.0).toShortString()
+            if (entryValue == NUMERICAL_AUTO) {
+                resources.getString(R.string.fa_check)
+            } else {
+                (max(0, entryValue) / 1000.0).toShortString()
+            }
         } else {
             when (entryState) {
                 YES_MANUAL, YES_AUTO -> resources.getString(R.string.fa_check)
