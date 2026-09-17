@@ -30,17 +30,11 @@ Dark and pure-black themes use thin separators in the existing gaps between
 habit rows. Pure-black card backgrounds stay black, and light mode retains its
 existing card spacing and shadows.
 
-**Settings -> Interface -> List density** offers **Compact**, **Standard**
-(the default), and **Spacious**, with a preview before saving. Cancel leaves
-the current density unchanged. This changes only the main habit list, not
-widgets or detail charts.
-
-Compact keeps 48dp entry buttons, reduces the row gap to 1dp, and uses smaller
-section headers: 8dp above the first header, 20dp above later headers, and 4dp
-below each title. Standard retains the existing 48dp buttons, 3dp row gaps,
-and 12/28/6dp header spacing. Spacious uses 64dp buttons with Standard's gaps
-and header spacing. Text size, horizontal date spacing, ordering, and habit
-history are unchanged; text continues to respect the device's font settings.
+The habit list uses the compact density layout, reducing the row gap to 1dp,
+retaining standard 48dp entry buttons, and using streamlined section headers:
+8dp above the first header, 20dp above later headers, and 4dp below each title.
+Text size, horizontal date spacing, ordering, and habit history are unchanged;
+text continues to respect the device's font settings.
 
 The toolbar shows **X of N done** for the current filtered list, or **N to go**
 when completed/entered habits are hidden. Selected tags follow the count in

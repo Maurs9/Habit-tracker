@@ -30,12 +30,6 @@
             android:summary="@string/sections_summary"
             app:iconSpaceReserved="false" />
 
-        <Preference
-            android:key="pref_list_density"
-            android:title="@string/list_density_title"
-            android:summary="@string/list_density_standard"
-            app:iconSpaceReserved="false" />
-
         <SwitchPreferenceCompat
                 android:defaultValue="false"
                 android:key="pref_short_toggle"

@@ -48,15 +48,6 @@ class HabitListAppearanceTest : BaseViewTest() {
     fun testRenderCompactPureBlack() = render(R.style.AppBaseThemeDark_PureBlack, "compact_pure_black.png", ListDensity.COMPACT)
 
     @Test
-    fun testRenderSpaciousLight() = render(R.style.AppBaseTheme, "spacious_light.png", ListDensity.SPACIOUS)
-
-    @Test
-    fun testRenderSpaciousDark() = render(R.style.AppBaseThemeDark, "spacious_dark.png", ListDensity.SPACIOUS)
-
-    @Test
-    fun testRenderSpaciousPureBlack() = render(R.style.AppBaseThemeDark_PureBlack, "spacious_pure_black.png", ListDensity.SPACIOUS)
-
-    @Test
     fun testDensityChangesResizeBothEntryTypesWithoutChangingDateColumns() {
         val habits = listOf(fixtures.createLongHabit(), fixtures.createLongNumericalHabit())
         for (style in listOf(R.style.AppBaseTheme, R.style.AppBaseThemeDark, R.style.AppBaseThemeDark_PureBlack)) {
@@ -69,7 +60,7 @@ class HabitListAppearanceTest : BaseViewTest() {
                     }
                     for (direction in listOf(View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL)) {
                         card.layoutDirection = direction
-                        for (density in ListDensity.entries + ListDensity.STANDARD) {
+                        for (density in ListDensity.entries) {
                             card.listDensity = density
                             card.measure(
                                 MeasureSpec.makeMeasureSpec(dpToPixels(400).toInt(), MeasureSpec.EXACTLY),
@@ -150,7 +141,7 @@ class HabitListAppearanceTest : BaseViewTest() {
         }
     }
 
-    private fun render(style: Int, filename: String, density: ListDensity = ListDensity.STANDARD) {
+    private fun render(style: Int, filename: String, density: ListDensity = ListDensity.COMPACT) {
         var bitmap: Bitmap? = null
         withThemedActivity(style) { activity, factory ->
             bitmap = renderView(createList(activity, factory, density))

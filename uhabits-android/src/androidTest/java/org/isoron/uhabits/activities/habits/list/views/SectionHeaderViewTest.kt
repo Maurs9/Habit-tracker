@@ -116,21 +116,20 @@ class SectionHeaderViewTest : BaseViewTest() {
     }
 
     @Test
-    fun testCompactHeaderSpacingAndRestoringStandard() {
+    fun testCompactHeaderSpacing() {
         val view = SectionHeaderView(targetContext)
-        for (density in ListDensity.entries + ListDensity.STANDARD) {
-            view.listDensity = density
-            for (first in listOf(true, false)) {
-                view.bind(Header(1, "Morning", 2, 3, isFirstSection = first))
-                assertEquals(
-                    dpToPixels(if (first) density.firstSectionTopDp else density.sectionTopDp).toInt(),
-                    view.paddingTop
-                )
-                assertEquals(dpToPixels(density.sectionBottomDp).toInt(), view.paddingBottom)
-                assertEquals(dpToPixels(34).toInt(), view.paddingStart)
-                assertEquals("2/3", view.countView.text.toString())
-                assertTrue(view.nameView.typeface.isBold)
-            }
+        val density = ListDensity.COMPACT
+        view.listDensity = density
+        for (first in listOf(true, false)) {
+            view.bind(Header(1, "Morning", 2, 3, isFirstSection = first))
+            assertEquals(
+                dpToPixels(if (first) density.firstSectionTopDp else density.sectionTopDp).toInt(),
+                view.paddingTop
+            )
+            assertEquals(dpToPixels(density.sectionBottomDp).toInt(), view.paddingBottom)
+            assertEquals(dpToPixels(34).toInt(), view.paddingStart)
+            assertEquals("2/3", view.countView.text.toString())
+            assertTrue(view.nameView.typeface.isBold)
         }
     }
 

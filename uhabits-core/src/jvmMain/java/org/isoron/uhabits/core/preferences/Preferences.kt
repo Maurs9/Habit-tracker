@@ -104,10 +104,9 @@ open class Preferences(private val storage: Storage) {
         }
 
     var listDensity: ListDensity
-        get() = ListDensity.valueOf(storage.getString("pref_list_density", ListDensity.STANDARD.name))
+        get() = ListDensity.COMPACT
         set(value) {
             if (listDensity == value) return
-            storage.putString("pref_list_density", value.name)
             for (listener in listeners) listener.onListDensityChanged()
         }
 

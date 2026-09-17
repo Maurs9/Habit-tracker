@@ -121,7 +121,7 @@ class HabitCardListView(
     fun bindHeaderView(
         holder: SectionHeaderViewHolder,
         header: HabitCardListCache.ListItem.Header,
-        density: ListDensity = ListDensity.STANDARD
+        density: ListDensity = ListDensity.COMPACT
     ) {
         (holder.itemView as SectionHeaderView).apply {
             listDensity = density
@@ -136,7 +136,7 @@ class HabitCardListView(
         checkmarks: IntArray,
         notes: Array<String>,
         selected: Boolean,
-        density: ListDensity = ListDensity.STANDARD
+        density: ListDensity = ListDensity.COMPACT
     ): View {
         val cardView = holder.itemView as HabitCardView
         cardView.listDensity = density
