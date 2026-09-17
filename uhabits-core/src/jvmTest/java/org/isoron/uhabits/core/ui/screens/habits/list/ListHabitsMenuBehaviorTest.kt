@@ -98,6 +98,21 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
     }
 
     @Test
+    fun testClearFiltersIncludesArchivedAndEnteredHabitsWithoutChangingSort() {
+        clearInvocations(prefs)
+        behavior.onClearFilters()
+        verify(prefs).showArchived = true
+        verify(prefs).showCompleted = true
+        verify(prefs).selectedTags = emptySet()
+        verify(adapter).setFilter(matcherCaptor.capture())
+        assertTrue(matcherCaptor.lastValue.isArchivedAllowed)
+        assertTrue(matcherCaptor.lastValue.isCompletedAllowed)
+        assertTrue(matcherCaptor.lastValue.isEnteredAllowed)
+        assertTrue(matcherCaptor.lastValue.requiredTags.isEmpty())
+        verify(adapter, never()).primaryOrder = any()
+    }
+
+    @Test
     fun testOnSortManually() {
         behavior.onSortByManually()
         verify(adapter).primaryOrder = orderCaptor.capture()

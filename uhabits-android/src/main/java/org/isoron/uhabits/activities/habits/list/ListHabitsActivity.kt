@@ -29,15 +29,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.checkSelfPermission
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.ThemeSwitcher.Companion.THEME_DARK
+import org.isoron.uhabits.core.ui.screens.habits.list.HabitListEmptyState
 import org.isoron.uhabits.core.utils.MidnightTimer
 import org.isoron.uhabits.database.AutoBackup
 import org.isoron.uhabits.inject.ActivityContextModule
@@ -48,7 +49,7 @@ import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.dismissCurrentDialog
 import org.isoron.uhabits.utils.restartWithFade
 
-class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
+class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
 
     var pureBlack: Boolean = false
     lateinit var appComponent: HabitsApplicationComponent
@@ -63,9 +64,9 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     private var permissionAlreadyRequested = false
     private val permissionLauncher =
         registerForActivityResult(RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
+            if (isGranted && isContentReady) {
                 scheduleReminders()
-            } else {
+            } else if (!isGranted) {
                 Log.i("ListHabitsActivity", "POST_NOTIFICATIONS denied")
             }
         }
@@ -77,9 +78,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         menu.behavior.onPreferencesChanged()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    override fun onCreateReady(savedInstanceState: Bundle?) {
         appComponent = (applicationContext as HabitsApplication).component
         component = DaggerHabitsActivityComponent
             .builder()
@@ -97,25 +96,37 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         adapter = component.habitCardListAdapter
         taskRunner = appComponent.taskRunner
         menu = component.listHabitsMenu
+        rootView.onEmptyAction = { state ->
+            when (state) {
+                HabitListEmptyState.NO_HABITS -> menu.behavior.onCreateHabit()
+                HabitListEmptyState.ARCHIVED -> {
+                    if (!prefs.showArchived) menu.behavior.onToggleShowArchived()
+                }
+                HabitListEmptyState.ENTERED,
+                HabitListEmptyState.COMPLETED -> {
+                    if (!prefs.showCompleted) menu.behavior.onToggleShowCompleted()
+                }
+                else -> menu.behavior.onClearFilters()
+            }
+            invalidateOptionsMenu()
+        }
         component.listHabitsBehavior.onStartup()
         rootView.applyRootViewInsets()
         setContentView(rootView)
     }
 
-    override fun onPause() {
+    override fun onPauseReady() {
         midnightTimer.onPause()
         screen.onDetached()
         adapter.cancelRefresh()
-        dismissCurrentDialog()
-        super.onPause()
+        dismissCurrentDialog(preserveEntryDrafts = true)
     }
 
-    override fun onDestroy() {
+    override fun onDestroyReady() {
         prefs.removeListener(this)
-        super.onDestroy()
     }
 
-    override fun onResume() {
+    override fun onResumeReady() {
         adapter.refresh()
         screen.onAttached()
         rootView.postInvalidate()
@@ -152,27 +163,24 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
             restartWithFade(ListHabitsActivity::class.java)
         }
         parseIntents()
-        super.onResume()
     }
 
     private fun scheduleReminders() {
         appComponent.reminderScheduler.scheduleAll()
     }
 
-    override fun onCreateOptionsMenu(m: Menu): Boolean {
-        menu.onCreate(menuInflater, m)
+    override fun onCreateOptionsMenuReady(menu: Menu): Boolean {
+        this.menu.onCreate(menuInflater, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    override fun onOptionsItemSelectedReady(item: MenuItem): Boolean {
         invalidateOptionsMenu()
-        return menu.onItemSelected(item)
+        return menu.onItemSelected(item) || super.onOptionsItemSelectedReady(item)
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(request: Int, result: Int, data: Intent?) {
-        super.onActivityResult(request, result, data)
-        screen.onResult(request, result, data)
+    override fun onActivityResultReady(requestCode: Int, resultCode: Int, data: Intent?) {
+        screen.onResult(requestCode, resultCode, data)
     }
 
     private fun parseIntents() {
@@ -192,8 +200,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         intent = null
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
+    override fun onNewIntentReady(intent: Intent?) {
         setIntent(intent)
     }
 

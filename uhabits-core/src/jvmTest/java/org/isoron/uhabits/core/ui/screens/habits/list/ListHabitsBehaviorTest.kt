@@ -80,6 +80,8 @@ class ListHabitsBehaviorTest : BaseUnitTest() {
     fun testOnEdit() {
         behavior.onEdit(habit2, getToday(), 0f, 0f)
         verify(screen).showNumberPopup(
+            eq(habit2),
+            eq(getToday()),
             eq(0.1),
             eq(""),
             picker.capture()
@@ -87,6 +89,21 @@ class ListHabitsBehaviorTest : BaseUnitTest() {
         picker.lastValue.onNumberPicked(100.0, "")
         val today = getTodayWithOffset()
         assertThat(habit2.computedEntries.get(today).value, equalTo(100000))
+    }
+
+    @Test
+    fun testBooleanEditPassesTheHabitAndHistoricalDate() {
+        val date = getToday().minus(2)
+        val entry = habit1.computedEntries.get(date)
+        behavior.onEdit(habit1, date, 0f, 0f)
+        verify(screen).showCheckmarkPopup(
+            eq(habit1),
+            eq(date),
+            eq(entry.value),
+            eq(entry.notes),
+            eq(habit1.color),
+            any()
+        )
     }
 
     @Test

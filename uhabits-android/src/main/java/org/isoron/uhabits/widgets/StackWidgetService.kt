@@ -37,6 +37,7 @@ import org.isoron.uhabits.core.utils.DateUtils.Companion.getTodayWithOffset
 import org.isoron.uhabits.intents.IntentFactory
 import org.isoron.uhabits.intents.PendingIntentFactory
 import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
+import java.util.concurrent.TimeoutException
 
 class StackWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
@@ -90,6 +91,16 @@ internal class StackRemoteViewsFactory(private val context: Context, intent: Int
         Log.i("StackRemoteViewsFactory", "getViewAt $position started")
         if (position < 0 || position >= habitIds.size) return null
         val app = context.applicationContext as HabitsApplication
+        try {
+            app.awaitStartup()
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            return initializationError(e)
+        } catch (e: TimeoutException) {
+            return initializationError(e)
+        } catch (e: IllegalStateException) {
+            return initializationError(e)
+        }
         val prefs = app.component.preferences
         val habitList = app.component.habitList
         val options = AppWidgetManager.getInstance(context).getAppWidgetOptions(widgetId)
@@ -108,6 +119,13 @@ internal class StackRemoteViewsFactory(private val context: Context, intent: Int
         val remoteViews = RemoteViews(landscapeViews, portraitViews)
         Log.i("StackRemoteViewsFactory", "getViewAt $position ended")
         return remoteViews
+    }
+
+    private fun initializationError(error: Exception): RemoteViews {
+        Log.e("StackRemoteViewsFactory", "Habit history is unavailable", error)
+        return RemoteViews(context.packageName, R.layout.widget_error).apply {
+            setTextViewText(R.id.label, context.getString(R.string.startup_failed))
+        }
     }
 
     private fun constructWidget(

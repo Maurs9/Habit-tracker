@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="color_picker_show_list">Choose from list</string>
+    <string name="color_picker_show_wheel">Show color wheel</string>
+    <string name="editor_discard_title">Discard changes?</string>
+    <string name="editor_discard_message">Your changes to this habit have not been saved.</string>
+    <string name="editor_discard_changes">Discard changes</string>
+    <string name="editor_keep_editing">Keep editing</string>
+</resources>

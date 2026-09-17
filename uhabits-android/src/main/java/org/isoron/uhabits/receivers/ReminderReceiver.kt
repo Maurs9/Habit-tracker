@@ -38,6 +38,10 @@ class ReminderReceiver : BroadcastReceiver() {
         if (context == null || intent == null) return
         if (intent.action == null) return
         lastReceivedIntent = intent
+        whenHabitsReady(context, intent) { onReceiveReady(context, intent) }
+    }
+
+    private fun onReceiveReady(context: Context, intent: Intent) {
         val app = context.applicationContext as HabitsApplication
         val appComponent = app.component
         val habits = appComponent.habitList

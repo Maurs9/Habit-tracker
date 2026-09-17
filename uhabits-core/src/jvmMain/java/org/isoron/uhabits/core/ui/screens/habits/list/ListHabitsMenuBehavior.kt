@@ -117,6 +117,15 @@ class ListHabitsMenuBehavior @Inject constructor(
         updateAdapterFilter()
     }
 
+    fun onClearFilters() {
+        showArchived = true
+        showCompleted = true
+        preferences.showArchived = true
+        preferences.showCompleted = true
+        preferences.selectedTags = emptySet()
+        updateAdapterFilter()
+    }
+
     fun currentFilter(name: String) = SavedHabitFilter(
         name.trim(),
         preferences.selectedTags,

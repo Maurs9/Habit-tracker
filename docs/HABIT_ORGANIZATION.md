@@ -12,8 +12,10 @@ day toward the selected frequency; eligible rest days receive automatic checkmar
 **Section** and **Tags** stay visible. **More options** reveals Question and
 Notes; **Fewer options** hides them without clearing their text. Editing a habit
 with either field filled starts expanded. The fold, type, organization choices,
-and draft fields survive rotation. Back or the toolbar arrow cancels the editor
-and returns to the previous screen; **Save** applies the habit.
+and draft fields survive rotation. Back or the toolbar arrow asks before
+discarding changed fields: choose **Keep editing** to retain the draft or
+**Discard changes** to leave. Unchanged drafts exit immediately; **Save** applies
+the habit without a discard prompt.
 
 ## Today's list
 
@@ -52,6 +54,16 @@ at or above their full target, not a per-day fraction. Recorded numerical
 A numerical skip is not completion of a target. Hiding entered habits still
 uses the existing entered-day filter, not this done count.
 
+Numerical "at most" entries use **Within limit** rather than implying the day is
+complete. Empty views explain whether habits are archived or hidden by the
+current filters and provide the relevant recovery action. The sort menu marks
+the active sort and includes its direction.
+
+Opening an entry shows its habit and date; measurements also show their unit
+and target. Unsubmitted values and notes survive app interruptions and rotation,
+and remain attached to the original habit and day. A missing habit is reported
+instead of saving the draft to a different list row.
+
 Automatic numerical checkmarks are derived from the schedule, not recorded
 quantities. A value such as `0.001` stays a measurement and is compared with the
 target normally. CSV checkmark exports keep raw thousandths for numerical
@@ -65,6 +77,12 @@ are Deep, Vibrant, Soft, and Light. Each ring has 12 hues. The four center color
 are Light Gray, Medium Gray, Slate, and Charcoal. Select a color, then press
 **OK**; **Cancel** leaves the habit unchanged. All 52 choices have accessibility
 labels and support keyboard selection.
+
+The picker also offers a named color list with larger touch targets. It contains
+the same 52 colors as the wheel, and preserves the selected view, color and list
+position across rotation. Switching views does not save a color; **OK** confirms
+the selection and **Cancel** leaves the habit unchanged. Preview labels use a
+contrasting foreground without changing saved palette colors.
 
 New habits start with Vibrant Blue, or the last color saved when creating a
 habit. Editing an existing habit or canceling creation does not change that
@@ -128,6 +146,11 @@ the flat list and its existing manual reorder behavior.
 Long-press a habit and move it to reorder. Releasing without moving selects the
 habit instead. Reversing direction while dragging preserves the final drop
 position when the list is reopened.
+
+Keyboard and accessibility users can also move a habit up or down, including
+through the selection menu or Ctrl+Up/Down. The same manual-order and section
+restrictions apply. The date header supports keyboard and accessibility
+navigation to older or newer dates.
 
 Open **Settings → Sections** to add sections, rename them, move them up or down,
 or delete them. Deletion asks for confirmation; habits and history are kept and

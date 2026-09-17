@@ -20,15 +20,14 @@
 package org.isoron.uhabits.automation
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.core.models.HabitMatcher
 import org.isoron.uhabits.utils.applyRootViewInsets
 
-class EditSettingActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+class EditSettingActivity : HabitsActivity() {
+    override fun onCreateReady(savedInstanceState: Bundle?) {
         val app = applicationContext as HabitsApplication
         val habits = app.component.habitList.getFiltered(
             HabitMatcher(

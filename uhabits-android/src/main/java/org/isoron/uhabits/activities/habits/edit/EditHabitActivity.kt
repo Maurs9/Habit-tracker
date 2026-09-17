@@ -29,8 +29,8 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.method.DigitsKeyListener
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
@@ -38,6 +38,7 @@ import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialog
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory
 import org.isoron.uhabits.activities.common.dialogs.FrequencyPickerDialog
@@ -75,7 +76,7 @@ fun formatFrequency(freqNum: Int, freqDen: Int, resources: Resources) = when {
     else -> resources.getString(R.string.x_times_per_y_days, freqNum, freqDen)
 }
 
-class EditHabitActivity : AppCompatActivity() {
+class EditHabitActivity : HabitsActivity() {
 
     private lateinit var themeSwitcher: AndroidThemeSwitcher
     private lateinit var binding: ActivityEditHabitBinding
@@ -97,10 +98,9 @@ class EditHabitActivity : AppCompatActivity() {
     var targetType = NumericalHabitType.AT_LEAST
     private var validatedTarget = 0.0
     private var moreExpanded = false
+    private lateinit var initialDraft: HabitEditorDraft
 
-    override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
-
+    protected override fun onCreateReady(state: Bundle?) {
         val component = (application as HabitsApplication).component
         sectionDialogs = SectionDialogs(this, component.sectionList)
         themeSwitcher = AndroidThemeSwitcher(this, component.preferences)
@@ -141,6 +141,10 @@ class EditHabitActivity : AppCompatActivity() {
             )
             habitType = HabitType.fromInt(intent.getIntExtra("habitType", HabitType.YES_NO.value))
         }
+
+        @Suppress("DEPRECATION")
+        val restoredInitialDraft = state?.getSerializable(INITIAL_DRAFT) as? HabitEditorDraft
+        initialDraft = restoredInitialDraft ?: currentDraft()
 
         if (state != null) {
             habitId = state.getLong("habitId")
@@ -277,10 +281,16 @@ class EditHabitActivity : AppCompatActivity() {
         binding.buttonSave.setOnClickListener {
             if (validate()) save()
         }
+        supportFragmentManager.setFragmentResultListener(DiscardHabitChangesDialog.REQUEST_KEY, this) { _, _ -> finish() }
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() = requestExit()
+            }
+        )
     }
 
-    override fun onStart() {
-        super.onStart()
+    protected override fun onStartReady() {
         (supportFragmentManager.findFragmentByTag("timePicker") as? MaterialTimePicker)?.let { bindReminderTimePicker(it) }
     }
 
@@ -420,14 +430,42 @@ class EditHabitActivity : AppCompatActivity() {
         binding.sectionPicker.text = section?.name ?: getString(R.string.section_none)
     }
 
-    override fun onDestroy() {
+    protected override fun onDestroyReady() {
         sectionDialogs.dismiss()
-        super.onDestroy()
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        finish()
+        requestExit()
         return true
+    }
+
+    private fun requestExit() {
+        if (!isContentReady || currentDraft() == initialDraft) {
+            finish()
+        } else if (supportFragmentManager.findFragmentByTag(DiscardHabitChangesDialog.TAG) == null) {
+            DiscardHabitChangesDialog().showNow(supportFragmentManager, DiscardHabitChangesDialog.TAG)
+        }
+    }
+
+    private fun currentDraft(): HabitEditorDraft {
+        val sections = (application as HabitsApplication).component.sectionList
+        return HabitEditorDraft(
+            name = binding.nameInput.text.toString(),
+            question = binding.questionInput.text.toString(),
+            notes = binding.notesInput.text.toString(),
+            type = habitType.value,
+            unit = binding.unitInput.text.toString(),
+            target = binding.targetInput.text.toString(),
+            targetType = targetType.value,
+            color = color.paletteIndex,
+            numerator = freqNum,
+            denominator = freqDen,
+            reminderHour = reminderHour,
+            reminderMinute = reminderMin,
+            reminderDays = reminderDays.toInteger(),
+            tags = tags,
+            sectionId = sectionId?.takeIf { sections.getById(it) != null }
+        ).normalized(resources.configuration.locales[0])
     }
 
     @SuppressLint("StringFormatMatches")
@@ -468,9 +506,9 @@ class EditHabitActivity : AppCompatActivity() {
         return Html.fromHtml(html)
     }
 
-    override fun onSaveInstanceState(state: Bundle) {
-        super.onSaveInstanceState(state)
+    protected override fun onSaveInstanceStateReady(state: Bundle) {
         with(state) {
+            putSerializable(INITIAL_DRAFT, initialDraft)
             putLong("habitId", habitId)
             putLong("sectionId", sectionId ?: -1)
             putStringArrayList("tags", ArrayList(tags))
@@ -485,5 +523,9 @@ class EditHabitActivity : AppCompatActivity() {
             putInt("targetType", targetType.value)
             putBoolean("moreExpanded", moreExpanded)
         }
+    }
+
+    companion object {
+        private const val INITIAL_DRAFT = "initialHabitDraft"
     }
 }

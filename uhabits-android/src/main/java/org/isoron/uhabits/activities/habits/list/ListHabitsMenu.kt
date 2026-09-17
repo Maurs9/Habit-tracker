@@ -67,7 +67,7 @@ class ListHabitsMenu @Inject constructor(
         hideArchivedItem.isChecked = !preferences.showArchived
         hideCompletedItem.isChecked = !preferences.showCompleted
         menu.findItem(R.id.actionGroupBySection).isChecked = preferences.groupBySection
-        if (preferences.areQuestionMarksEnabled || preferences.isSkipEnabled) {
+        if (preferences.areQuestionMarksEnabled) {
             hideCompletedItem.title = activity.resources.getString(R.string.hide_entered)
         } else {
             hideCompletedItem.title = activity.resources.getString(R.string.hide_completed)
@@ -94,6 +94,27 @@ class ListHabitsMenu @Inject constructor(
             HabitList.Order.BY_STATUS_ASC -> sortStatus.icon = arrowDown
             HabitList.Order.BY_STATUS_DESC -> sortStatus.icon = arrowUp
             HabitList.Order.BY_POSITION -> sortManual.icon = arrowUp
+        }
+        val order = preferences.defaultPrimaryOrder
+        val titles = mapOf(
+            sortManual to R.string.manually,
+            sortName to if (order == HabitList.Order.BY_NAME_DESC) R.string.sort_name_descending else R.string.sort_name_ascending,
+            sortColor to if (order == HabitList.Order.BY_COLOR_DESC) R.string.sort_color_descending else R.string.sort_color_ascending,
+            // The legacy score comparator's ASC order displays the highest score first.
+            sortScore to if (order == HabitList.Order.BY_SCORE_ASC) R.string.sort_score_highest else R.string.sort_score_lowest,
+            sortStatus to if (order == HabitList.Order.BY_STATUS_DESC) R.string.sort_status_descending else R.string.sort_status_ascending
+        )
+        val selected = when (order) {
+            HabitList.Order.BY_POSITION -> sortManual
+            HabitList.Order.BY_NAME_ASC, HabitList.Order.BY_NAME_DESC -> sortName
+            HabitList.Order.BY_COLOR_ASC, HabitList.Order.BY_COLOR_DESC -> sortColor
+            HabitList.Order.BY_SCORE_ASC, HabitList.Order.BY_SCORE_DESC -> sortScore
+            HabitList.Order.BY_STATUS_ASC, HabitList.Order.BY_STATUS_DESC -> sortStatus
+        }
+        titles.forEach { (item, title) ->
+            item.setTitle(title)
+            item.isCheckable = true
+            item.isChecked = item == selected
         }
     }
 

@@ -24,9 +24,11 @@ import android.view.Gravity.CENTER
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import org.isoron.uhabits.R
+import org.isoron.uhabits.core.ui.screens.habits.list.HabitListEmptyState
 import org.isoron.uhabits.utils.dp
 import org.isoron.uhabits.utils.getFontAwesome
 import org.isoron.uhabits.utils.sp
@@ -36,6 +38,10 @@ import org.isoron.uhabits.utils.str
 class EmptyListView(context: Context) : LinearLayout(context) {
     var textTextView: TextView
     var iconTextView: TextView
+    val recoveryButton = Button(context).apply {
+        minHeight = dp(48f).toInt()
+        visibility = GONE
+    }
 
     init {
         orientation = VERTICAL
@@ -43,6 +49,7 @@ class EmptyListView(context: Context) : LinearLayout(context) {
         visibility = View.GONE
 
         iconTextView = TextView(context).apply {
+            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             text = str(R.string.fa_star_half_o)
             typeface = getFontAwesome()
             textSize = sp(40.0f)
@@ -67,6 +74,27 @@ class EmptyListView(context: Context) : LinearLayout(context) {
             MATCH_PARENT,
             WRAP_CONTENT
         )
+        addView(recoveryButton, WRAP_CONTENT, WRAP_CONTENT)
+    }
+
+    fun showState(state: HabitListEmptyState, onRecover: () -> Unit) {
+        if (state == HabitListEmptyState.NONE) {
+            hide()
+            return
+        }
+        visibility = VISIBLE
+        val (message, action) = when (state) {
+            HabitListEmptyState.NO_HABITS -> R.string.no_habits_found to R.string.add_habit
+            HabitListEmptyState.ARCHIVED -> R.string.list_only_archived to R.string.list_show_archived
+            HabitListEmptyState.ENTERED -> R.string.list_entries_hidden to R.string.list_show_all_entries
+            HabitListEmptyState.COMPLETED -> R.string.list_completed_hidden to R.string.list_show_completed
+            else -> R.string.list_filtered_empty to R.string.list_clear_filters
+        }
+        iconTextView.text = str(R.string.fa_star_half_o)
+        textTextView.setText(message)
+        recoveryButton.setText(action)
+        recoveryButton.setOnClickListener { onRecover() }
+        recoveryButton.visibility = VISIBLE
     }
 
     fun showDone() {

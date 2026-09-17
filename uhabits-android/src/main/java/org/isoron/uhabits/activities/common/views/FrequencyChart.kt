@@ -23,6 +23,8 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.TypedValue
+import android.view.ViewGroup
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getShortWeekdayNames
@@ -31,6 +33,7 @@ import org.isoron.uhabits.core.utils.DateUtils.Companion.getStartOfTodayCalendar
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getWeekdaySequence
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getWeekdaysInMonth
 import org.isoron.uhabits.utils.ColorUtils.mixColors
+import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
 import org.isoron.uhabits.utils.StyledResources
 import org.isoron.uhabits.utils.toSimpleDataFormat
 import java.text.SimpleDateFormat
@@ -39,6 +42,7 @@ import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.Random
 import kotlin.collections.HashMap
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -53,6 +57,7 @@ class FrequencyChart : ScrollableChart {
     private var rect: RectF? = null
     private var prevRect: RectF? = null
     private var baseSize = 0
+    private var largeText = false
     private var internalPaddingTop = 0
     private var columnWidth = 0f
     private var columnHeight = 0
@@ -159,9 +164,22 @@ class FrequencyChart : ScrollableChart {
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = MeasureSpec.getSize(heightMeasureSpec)
+        val height = if (layoutParams?.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
+            val baseline = suggestedMinimumHeight
+            pText!!.textSize = textSizeForHeight(baseline)
+            resolveSize(max(baseline, ceil(pText!!.fontSpacing * 9.4f).toInt()), heightMeasureSpec)
+        } else {
+            MeasureSpec.getSize(heightMeasureSpec)
+        }
         setMeasuredDimension(width, height)
     }
+
+    private fun textSizeForHeight(height: Int): Float =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP,
+            (height / 8) * 0.4f / resources.displayMetrics.density,
+            resources.displayMetrics
+        )
 
     override fun onSizeChanged(
         width: Int,
@@ -171,17 +189,28 @@ class FrequencyChart : ScrollableChart {
     ) {
         var height = height
         if (height < 9) height = 200
-        baseSize = height / 8
-        setScrollerBucketSize(baseSize)
-        pText!!.textSize = baseSize * 0.4f
-        pGraph!!.textSize = baseSize * 0.4f
+        val nominalHeight = if (layoutParams?.height == ViewGroup.LayoutParams.WRAP_CONTENT) suggestedMinimumHeight else height
+        val nominalTextSize = (nominalHeight / 8) * 0.4f
+        pText!!.textSize = textSizeForHeight(nominalHeight)
+        largeText = pText!!.textSize > nominalTextSize * 1.01f
+        em = pText!!.fontSpacing
+        baseSize = if (largeText) {
+            max(1, ((height - 2 * em - dpToPixels(context, 4f)) / 7).toInt())
+        } else {
+            max(1, height / 8)
+        }
+        pGraph!!.textSize = pText!!.textSize
         pGraph!!.strokeWidth = baseSize * 0.1f
         pGrid!!.strokeWidth = baseSize * 0.05f
-        em = pText!!.fontSpacing
         columnWidth = baseSize.toFloat()
         columnWidth = max(columnWidth, maxMonthWidth * 1.2f)
+        if (largeText) {
+            val weekdayWidth = getShortWeekdayNames(firstWeekday).maxOf { pText!!.measureText(it) }
+            columnWidth = max(columnWidth, max(weekdayWidth, pText!!.measureText("8888")) + dpToPixels(context, 4f))
+        }
         columnHeight = 8 * baseSize
-        nColumns = (width / columnWidth).toInt()
+        nColumns = max(1, (width / columnWidth).toInt())
+        setScrollerBucketSize(if (largeText) columnWidth.toInt().coerceAtLeast(1) else baseSize)
         internalPaddingTop = 0
     }
 
@@ -192,7 +221,7 @@ class FrequencyChart : ScrollableChart {
         prevRect!!.set(rect)
         val localeWeekdayList: Array<Int> = getWeekdaySequence(firstWeekday)
         for (j in localeWeekdayList.indices) {
-            rect[0f, 0f, baseSize.toFloat()] = baseSize.toFloat()
+            rect[0f, 0f, if (largeText) columnWidth else baseSize.toFloat()] = baseSize.toFloat()
             rect.offset(prevRect!!.left, prevRect!!.top + baseSize * j)
             val i = localeWeekdayList[j] % 7
             if (values != null) {
@@ -205,6 +234,14 @@ class FrequencyChart : ScrollableChart {
 
     private fun drawFooter(canvas: Canvas, rect: RectF?, date: GregorianCalendar) {
         val time = date.time
+        if (largeText) {
+            val baseline = 7 * baseSize - pText!!.fontMetrics.ascent
+            canvas.drawText(dfMonth!!.format(time), rect!!.centerX(), baseline, pText!!)
+            if (date[Calendar.MONTH] == 1 && baseline + em + pText!!.fontMetrics.descent <= height) {
+                canvas.drawText(dfYear!!.format(time), rect.centerX(), baseline + em, pText!!)
+            }
+            return
+        }
         canvas.drawText(
             dfMonth!!.format(time),
             rect!!.centerX(),
@@ -227,13 +264,16 @@ class FrequencyChart : ScrollableChart {
         pText!!.textAlign = Paint.Align.LEFT
         pText!!.color = textColor
         pGrid!!.color = gridColor
-        for (day in getShortWeekdayNames(firstWeekday)) {
-            canvas.drawText(
-                day,
-                rGrid.right - columnWidth,
-                rGrid.top + rowHeight / 2 + 0.25f * em,
-                pText!!
-            )
+        val stride = if (largeText) max(1, ceil(em / rowHeight).toInt()) else 1
+        for ((index, day) in getShortWeekdayNames(firstWeekday).withIndex()) {
+            val baseline = if (largeText) {
+                max(-pText!!.fontMetrics.ascent, rGrid.top + rowHeight / 2 - (pText!!.ascent() + pText!!.descent()) / 2)
+            } else {
+                rGrid.top + rowHeight / 2 + 0.25f * em
+            }
+            if (index % stride == 0 && (!largeText || baseline + pText!!.descent() <= 7 * baseSize)) {
+                canvas.drawText(day, rGrid.right - columnWidth, baseline, pText!!)
+            }
             pGrid!!.strokeWidth = 1f
             canvas.drawLine(
                 rGrid.left,

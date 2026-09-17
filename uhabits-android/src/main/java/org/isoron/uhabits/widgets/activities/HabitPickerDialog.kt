@@ -19,7 +19,6 @@
 
 package org.isoron.uhabits.widgets.activities
 
-import android.app.Activity
 import android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID
 import android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID
 import android.content.Intent
@@ -33,6 +32,7 @@ import android.widget.TextView
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.SectionList
@@ -49,7 +49,7 @@ class NumericalHabitPickerDialog : HabitPickerDialog() {
     override fun getEmptyMessage() = R.string.no_numerical_habits
 }
 
-open class HabitPickerDialog : Activity() {
+open class HabitPickerDialog : HabitsActivity() {
 
     private var widgetId = 0
     private lateinit var habitList: HabitList
@@ -66,8 +66,7 @@ open class HabitPickerDialog : Activity() {
     protected open fun shouldHideBoolean() = false
     protected open fun getEmptyMessage() = R.string.no_habits
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateReady(savedInstanceState: Bundle?) {
         val component = (applicationContext as HabitsApplication).component
         AndroidThemeSwitcher(this, component.preferences).apply()
         habitList = component.habitList
@@ -103,10 +102,9 @@ open class HabitPickerDialog : Activity() {
         refreshHabits()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
+    override fun onSaveInstanceStateReady(outState: Bundle) {
         outState.putLongArray(STATE_CHECKED_IDS, checkedIds.toLongArray())
         outState.putBoolean(STATE_SELECTION_CHANGED, selectionChanged)
-        super.onSaveInstanceState(outState)
     }
 
     private fun isEligible(habit: Habit): Boolean =

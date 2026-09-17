@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="startup_loading">Loading your habit history\u2026</string>
+    <string name="startup_failed">Your habit history could not be loaded. Try again, or close and reopen the app.</string>
+    <string name="startup_retry">Try again</string>
+</resources>

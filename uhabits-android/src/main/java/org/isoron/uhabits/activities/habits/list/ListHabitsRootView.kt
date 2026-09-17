@@ -38,6 +38,7 @@ import org.isoron.uhabits.activities.habits.list.views.HintView
 import org.isoron.uhabits.core.models.ModelObservable
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
+import org.isoron.uhabits.core.ui.screens.habits.list.HabitListEmptyState
 import org.isoron.uhabits.core.ui.screens.habits.list.HintListFactory
 import org.isoron.uhabits.core.utils.MidnightTimer
 import org.isoron.uhabits.inject.ActivityContext
@@ -77,6 +78,7 @@ class ListHabitsRootView @Inject constructor(
     val progressBar = TaskProgressBar(context, runner)
     val hintView: HintView
     val header = HeaderView(context, preferences, midnightTimer)
+    var onEmptyAction: (HabitListEmptyState) -> Unit = {}
 
     init {
         val hints = resources.getStringArray(R.array.hints)
@@ -158,13 +160,8 @@ class ListHabitsRootView @Inject constructor(
 
     private fun updateEmptyView() {
         if (listAdapter.itemCount == 0) {
-            if (preferences.selectedTags.isNotEmpty()) {
-                llEmpty.showFiltered()
-            } else if (listAdapter.hasNoHabit()) {
-                llEmpty.showEmpty()
-            } else {
-                llEmpty.showDone()
-            }
+            val state = listAdapter.emptyState()
+            llEmpty.showState(state) { onEmptyAction(state) }
         } else {
             llEmpty.hide()
         }

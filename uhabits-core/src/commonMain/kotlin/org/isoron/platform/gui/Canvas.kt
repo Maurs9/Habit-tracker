@@ -45,6 +45,9 @@ interface Canvas {
     fun getWidth(): Double
     fun setFont(font: Font)
     fun setFontSize(size: Double)
+
+    /** Returns the rendered text size in canvas units, for matching layout geometry. */
+    fun getScaledFontSize(size: Double): Double = size
     fun setStrokeWidth(size: Double)
     fun fillArc(
         centerX: Double,

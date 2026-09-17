@@ -1,7 +1,6 @@
 package org.isoron.uhabits.activities.common.dialogs
 
 import android.content.Intent
-import android.os.Bundle
 import android.widget.EditText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -20,8 +19,7 @@ class NumberDialogTest : BaseAndroidTest() {
             scenario.onActivity { activity ->
                 var result: Pair<Int, String>? = null
                 val fragment = NumberDialog().apply {
-                    arguments = Bundle().apply {
-                        putInt("color", android.graphics.Color.BLUE)
+                    arguments = EntryDialogFragment.arguments(habitList.getByPosition(0), day(0), android.graphics.Color.BLUE).apply {
                         putDouble("value", 0.001)
                         putString("notes", "Measured")
                     }

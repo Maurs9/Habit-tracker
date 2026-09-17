@@ -66,6 +66,8 @@ class HabitCardListAdapter @Inject constructor(
         return cache.hasNoHabit()
     }
 
+    fun emptyState() = cache.emptyState()
+
     fun completedTodayCount(): Int = cache.completedTodayCount()
 
     val habitCount: Int get() = cache.habitCount

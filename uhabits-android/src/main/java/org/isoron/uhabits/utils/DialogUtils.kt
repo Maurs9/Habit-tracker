@@ -3,12 +3,14 @@ package org.isoron.uhabits.utils
 import android.app.Dialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import org.isoron.uhabits.activities.common.dialogs.EntryDialogFragment
 import java.lang.ref.WeakReference
 
 var currentDialog: WeakReference<Dialog> = WeakReference(null)
 var currentDialogFragment: WeakReference<DialogFragment> = WeakReference(null)
 
-fun dismissCurrentDialog() {
+fun dismissCurrentDialog(preserveEntryDrafts: Boolean = false) {
+    if (preserveEntryDrafts && currentDialogFragment.get() is EntryDialogFragment) return
     currentDialog.get()?.dismiss()
     currentDialog = WeakReference(null)
     currentDialogFragment.get()?.dismiss()

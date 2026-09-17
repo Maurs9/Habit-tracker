@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="startup_progress" type="id" />
+    <item name="startup_message" type="id" />
+    <item name="startup_retry" type="id" />
+    <item name="startup_cancel" type="id" />
+</resources>

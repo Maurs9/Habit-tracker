@@ -39,6 +39,7 @@ class FrequencyPickerDialog(
     private var _binding: FrequencyPickerDialogBinding? = null
     private val binding get() = _binding!!
     private var restoredFocusId = View.NO_ID
+    private var restoredSelectionId = View.NO_ID
 
     var onFrequencyPicked: (num: Int, den: Int) -> Unit = { _, _ -> }
 
@@ -105,6 +106,7 @@ class FrequencyPickerDialog(
 
         binding.everyDayRadioButton.setOnClickListener {
             check(binding.everyDayRadioButton)
+            if (!it.requestFocus()) binding.root.requestFocus()
         }
 
         binding.everyXDaysRadioButton.setOnClickListener {
@@ -154,7 +156,8 @@ class FrequencyPickerDialog(
                 input.setText(savedInstanceState.getString("input_${input.id}", input.text.toString()))
                 input.error = savedInstanceState.getString("error_${input.id}")
             }
-            radios.firstOrNull { it.id == savedInstanceState.getInt(SELECTED) }?.let { check(it) }
+            restoredSelectionId = savedInstanceState.getInt(SELECTED, View.NO_ID)
+            radios.firstOrNull { it.id == restoredSelectionId }?.let { check(it) }
             restoredFocusId = savedInstanceState.getInt(FOCUSED, View.NO_ID)
         }
 
@@ -167,10 +170,27 @@ class FrequencyPickerDialog(
     override fun onStart() {
         super.onStart()
         (requireDialog() as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { onSaveClicked() }
-        if (restoredFocusId != View.NO_ID) {
-            binding.root.findViewById<View>(restoredFocusId)?.requestFocus()
-            restoredFocusId = View.NO_ID
+        radios.firstOrNull { it.id == restoredSelectionId }?.let {
+            check(it)
+            if (!focusMatchesSelection(binding.root.findFocus()?.id ?: View.NO_ID)) binding.root.requestFocus()
         }
+        if (restoredFocusId != View.NO_ID) {
+            if (focusMatchesSelection(restoredFocusId)) {
+                binding.root.findViewById<View>(restoredFocusId)?.requestFocus()
+            } else {
+                binding.root.requestFocus()
+            }
+        }
+        restoredFocusId = View.NO_ID
+        restoredSelectionId = View.NO_ID
+    }
+
+    private fun focusMatchesSelection(id: Int): Boolean = when (id) {
+        R.id.everyXDaysTextView -> binding.everyXDaysRadioButton.isChecked
+        R.id.xTimesPerWeekTextView -> binding.xTimesPerWeekRadioButton.isChecked
+        R.id.xTimesPerMonthTextView -> binding.xTimesPerMonthRadioButton.isChecked
+        R.id.xTimesPerYDaysXTextView, R.id.xTimesPerYDaysYTextView -> binding.xTimesPerYDaysRadioButton.isChecked
+        else -> true
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

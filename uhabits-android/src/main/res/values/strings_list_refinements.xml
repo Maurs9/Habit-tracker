@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sort_name_ascending">Name, A to Z</string>
+    <string name="sort_name_descending">Name, Z to A</string>
+    <string name="sort_color_ascending">Color, ascending</string>
+    <string name="sort_color_descending">Color, descending</string>
+    <string name="sort_score_lowest">Strength, lowest first</string>
+    <string name="sort_score_highest">Strength, highest first</string>
+    <string name="sort_status_ascending">Status, incomplete first</string>
+    <string name="sort_status_descending">Status, complete first</string>
+    <string name="entry_within_limit">Within limit</string>
+    <string name="entry_above_limit">Above limit</string>
+    <string name="entry_context">%1$s\n%2$s</string>
+    <string name="entry_target_at_least">Target: at least %1$s</string>
+    <string name="entry_target_at_most">Limit: at most %1$s</string>
+    <string name="entry_habit_unavailable">This habit is no longer available. Your entry cannot be saved.</string>
+    <string name="entry_value_label">Value (%1$s)</string>
+    <string name="entry_value_without_unit">Value</string>
+    <string name="entry_number_context">%1$s\n%2$s</string>
+    <string name="list_only_archived">Your habits are archived and hidden from this list.</string>
+    <string name="list_filtered_empty">No habits match the current filters.</string>
+    <string name="list_entries_hidden">All matching habits have an entry today. Entered habits are hidden.</string>
+    <string name="list_completed_hidden">No matching habits remain. Completed and skipped habits are hidden.</string>
+    <string name="list_show_archived">Show archived habits</string>
+    <string name="list_clear_filters">Clear filters</string>
+    <string name="list_show_all_entries">Show entered habits</string>
+    <string name="list_show_completed">Show completed and skipped habits</string>
+</resources>

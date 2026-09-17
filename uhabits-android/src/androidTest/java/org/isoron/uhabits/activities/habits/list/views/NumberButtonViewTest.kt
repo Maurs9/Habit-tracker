@@ -95,6 +95,21 @@ class NumberButtonViewTest : BaseViewTest() {
     }
 
     @Test
+    fun testAtMostEntriesSayWithinLimitRatherThanTargetMet() {
+        view.targetType = NumericalHabitType.AT_MOST
+        view.threshold = 10.0
+        for (value in listOf(0.0, 5.0, 10.0, 11.0)) {
+            view.value = value
+            val info = AccessibilityNodeInfo.obtain()
+            view.onInitializeAccessibilityNodeInfo(info)
+            val expected = if (value <= 10.0) R.string.entry_within_limit else R.string.entry_above_limit
+            assertTrue(info.contentDescription.contains(targetContext.getString(expected)))
+            assertFalse(info.contentDescription.contains(targetContext.getString(R.string.habit_entry_target_met)))
+            info.recycle()
+        }
+    }
+
+    @Test
     fun testRender_aboveThreshold() {
         view.value = 500.0
         assertRenders(view, "$PATH/render_above.png")

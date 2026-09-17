@@ -29,6 +29,7 @@ import org.isoron.uhabits.core.ui.widgets.WidgetBehavior
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.receivers.ReceiverScope
+import org.isoron.uhabits.receivers.whenHabitsReady
 
 const val ACTION_CHECK = 0
 const val ACTION_UNCHECK = 1
@@ -44,6 +45,10 @@ class FireSettingReceiver : BroadcastReceiver() {
     private lateinit var allHabits: HabitList
 
     override fun onReceive(context: Context, intent: Intent) {
+        whenHabitsReady(context, intent) { onReceiveReady(context, intent) }
+    }
+
+    private fun onReceiveReady(context: Context, intent: Intent) {
         val app = context.applicationContext as HabitsApplication
         val component = DaggerFireSettingReceiver_ReceiverComponent
             .builder()

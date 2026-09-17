@@ -2,6 +2,7 @@ package org.isoron.uhabits.activities.habits.list
 
 import android.content.Intent
 import android.view.KeyEvent
+import android.view.MenuInflater
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.FrameLayout
@@ -37,6 +38,7 @@ import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.models.memory.MemoryModelFactory
 import org.isoron.uhabits.core.tasks.SingleThreadTaskRunner
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
+import org.isoron.uhabits.core.ui.screens.habits.list.HabitListEmptyState
 import org.isoron.uhabits.core.ui.screens.habits.list.HintListFactory
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
 import org.junit.Test
@@ -387,6 +389,47 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         assertTrue(root.header.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD, null))
         assertEquals(0, root.listView.dataOffset)
         assertEquals(day(0), card.checkmarkPanel.buttons[0].timestamp)
+    }
+
+    @Test
+    fun testArchivedOnlyAndFilteredEmptyStatesOfferRelevantRecovery() = withRoot {
+        addHabit(Entry.NO).isArchived = true
+        adapter.refresh()
+        var recovery: HabitListEmptyState? = null
+        root.onEmptyAction = { recovery = it }
+        assertEquals(root.context.getString(R.string.list_only_archived), root.llEmpty.textTextView.text.toString())
+        root.llEmpty.recoveryButton.performClick()
+        assertEquals(HabitListEmptyState.ARCHIVED, recovery)
+        adapter.setFilter(HabitMatcher(requiredTags = setOf("Missing")))
+        adapter.refresh()
+        assertEquals(root.context.getString(R.string.list_filtered_empty), root.llEmpty.textTextView.text.toString())
+        root.llEmpty.recoveryButton.performClick()
+        assertEquals(HabitListEmptyState.FILTERED, recovery)
+    }
+
+    @Test
+    fun testSortMenuExposesExactlyOneCheckedKeyAndItsDirection() = withRoot {
+        val renderer = ListHabitsMenu(root.context, prefs, mock(), mock(), mock())
+        val menu = PopupMenu(root.context, root).menu
+        val sortIds = listOf(R.id.actionSortManual, R.id.actionSortName, R.id.actionSortColor, R.id.actionSortScore, R.id.actionSortStatus)
+        val expected = mapOf(
+            HabitList.Order.BY_POSITION to (R.id.actionSortManual to R.string.manually),
+            HabitList.Order.BY_NAME_ASC to (R.id.actionSortName to R.string.sort_name_ascending),
+            HabitList.Order.BY_NAME_DESC to (R.id.actionSortName to R.string.sort_name_descending),
+            HabitList.Order.BY_COLOR_ASC to (R.id.actionSortColor to R.string.sort_color_ascending),
+            HabitList.Order.BY_COLOR_DESC to (R.id.actionSortColor to R.string.sort_color_descending),
+            HabitList.Order.BY_SCORE_ASC to (R.id.actionSortScore to R.string.sort_score_highest),
+            HabitList.Order.BY_SCORE_DESC to (R.id.actionSortScore to R.string.sort_score_lowest),
+            HabitList.Order.BY_STATUS_ASC to (R.id.actionSortStatus to R.string.sort_status_ascending),
+            HabitList.Order.BY_STATUS_DESC to (R.id.actionSortStatus to R.string.sort_status_descending)
+        )
+        expected.forEach { (order, item) ->
+            prefs.defaultPrimaryOrder = order
+            renderer.onCreate(MenuInflater(root.context), menu)
+            assertEquals(listOf(item.first), sortIds.filter { menu.findItem(it).isChecked })
+            assertTrue(sortIds.all { menu.findItem(it).isCheckable })
+            assertEquals(root.context.getString(item.second), menu.findItem(item.first).title.toString())
+        }
     }
 
     private fun moveActions(view: View): Set<Int> {

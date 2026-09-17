@@ -4,6 +4,10 @@
 
 ### Added
 
+- Add accessible chart data, keyboard date navigation and habit movement, and descriptive widget and entry actions.
+- Add habit/date and measurement context to check-in dialogs, with draft recovery after interruptions and rotation.
+- Add a larger-target named color list alongside the wheel and dirty-only confirmation before leaving the habit editor.
+- Show responsive loading, retry and cancel states while habit history initializes in the background.
 - Add a multi-habit widget checklist with section shortcuts, explicit Save/Cancel, and rotation-safe selections. Save follows list order, preserves widget type restrictions, and asks for review if selected habits become unavailable.
 - Show tags and sections in habit details and add detail-menu shortcuts for tags, reminder times, and skipping a date range.
 - Add the Sections data layer: ordered, validated section names, optional habit assignments, version 28 database backups, name-based import merging, and a Section column in CSV exports.
@@ -12,6 +16,9 @@
 
 ### Changed
 
+- Increase statistics selector targets, adapt chart text and geometry to system font sizing, and improve onboarding, calendar-action and color-preview contrast without changing saved palette colors.
+- Reuse entry buttons across ordinary row binds, expose sort direction to accessibility services, and distinguish within-limit measurements and filtered/archived empty states from completed goals.
+- Preserve original activity and fragment state until history is ready, and defer widget/reminder actions rather than reading partially initialized data.
 - Document macOS screenshot capture and per-image review, including the pending Android baselines and device checks.
 - Open habit creation directly with a Yes or No / Measurable toggle; keep type fixed for existing habits and move Question and Notes into a rotation-safe More options fold.
 - Replace free-text tags with a checklist and new-tag field; preserve selections and unfinished names through rotation.

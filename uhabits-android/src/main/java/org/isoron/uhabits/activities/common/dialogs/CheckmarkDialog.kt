@@ -24,24 +24,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import androidx.appcompat.app.AppCompatDialogFragment
-import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.dialogs.EntryDialogFragment.Companion.DRAFT_NOTES
 import org.isoron.uhabits.core.models.Entry.Companion.NO
 import org.isoron.uhabits.core.models.Entry.Companion.SKIP
 import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
+import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
 import org.isoron.uhabits.databinding.CheckmarkPopupBinding
 import org.isoron.uhabits.utils.InterfaceUtils.getFontAwesome
 import org.isoron.uhabits.utils.sres
 
-class CheckmarkDialog : AppCompatDialogFragment() {
-    var onToggle: (Int, String) -> Unit = { _, _ -> }
+class CheckmarkDialog : EntryDialogFragment() {
+    var onToggle: ((Int, String) -> Unit)? = null
+    private lateinit var view: CheckmarkPopupBinding
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val appComponent = (requireActivity().application as HabitsApplication).component
         val prefs = appComponent.preferences
-        val view = CheckmarkPopupBinding.inflate(LayoutInflater.from(context))
+        view = CheckmarkPopupBinding.inflate(LayoutInflater.from(context))
+        bindContext(view, numerical = false)
         val color = requireArguments().getInt("color")
         arrayOf(view.yesBtn, view.skipBtn).forEach {
             it.setTextColor(color)
@@ -56,7 +57,12 @@ class CheckmarkDialog : AppCompatDialogFragment() {
         view.noBtn.setEntryActionAccessibility(R.string.entry_action_not_complete)
         view.skipBtn.setEntryActionAccessibility(R.string.entry_action_skip)
         view.unknownBtn.setEntryActionAccessibility(R.string.entry_action_clear)
-        view.notes.setText(requireArguments().getString("notes")!!)
+        val value = requireArguments().getInt("value")
+        view.yesBtn.isSelected = value == YES_MANUAL || value == YES_AUTO
+        view.noBtn.isSelected = value == NO
+        view.skipBtn.isSelected = value == SKIP
+        view.unknownBtn.isSelected = value == UNKNOWN
+        view.notes.setText(savedInstanceState?.getString(DRAFT_NOTES) ?: requireArguments().getString("notes").orEmpty())
         if (!prefs.isSkipEnabled) view.skipBtn.visibility = GONE
         if (!prefs.areQuestionMarksEnabled) view.unknownBtn.visibility = GONE
         view.booleanButtons.visibility = VISIBLE
@@ -67,8 +73,13 @@ class CheckmarkDialog : AppCompatDialogFragment() {
         }
         fun onClick(v: Int) {
             val notes = view.notes.text.toString().trim()
-            onToggle(v, notes)
-            requireDialog().dismiss()
+            val callback = onToggle?.let { { it(v, notes) } }
+            if (submitEntry(v, notes, callback)) {
+                dismiss()
+            } else {
+                view.notes.error = getString(R.string.entry_habit_unavailable)
+                view.notes.requestFocus()
+            }
         }
         view.yesBtn.setOnClickListener { onClick(YES_MANUAL) }
         view.noBtn.setOnClickListener { onClick(NO) }
@@ -80,5 +91,15 @@ class CheckmarkDialog : AppCompatDialogFragment() {
         }
 
         return dialog
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::view.isInitialized) outState.putString(DRAFT_NOTES, view.notes.text.toString())
+    }
+
+    override fun onDestroyView() {
+        onToggle = null
+        super.onDestroyView()
     }
 }

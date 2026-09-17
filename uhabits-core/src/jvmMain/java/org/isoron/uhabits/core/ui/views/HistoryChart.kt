@@ -62,6 +62,8 @@ class HistoryChart(
     override var dataOffset = 0
 
     private var squareSize = 0.0
+    private var columnWidth = 0.0
+    private var largeText = false
     private var width = 0.0
     private var height = 0.0
     private var nColumns = 0
@@ -72,7 +74,7 @@ class HistoryChart(
     private var headerOverflow = 0.0
 
     override val dataColumnWidth: Double
-        get() = squareSpacing + squareSize
+        get() = squareSpacing + columnWidth
 
     override fun onClick(x: Double, y: Double) {
         onDateClicked(x, y, false)
@@ -84,10 +86,10 @@ class HistoryChart(
 
     private fun onDateClicked(x: Double, y: Double, isLongClick: Boolean) {
         if (width <= 0.0) throw IllegalStateException("onClick must be called after draw(canvas)")
-        val col = ((x - padding) / squareSize).toInt()
+        val col = ((x - padding) / columnWidth).toInt()
         val row = ((y - padding) / squareSize).toInt()
         val offset = col * 7 + (row - 1)
-        if (x - padding < 0 || row == 0 || row > 7 || col == nColumns) return
+        if (x - padding < 0 || row == 0 || row > 7 || col >= nColumns) return
         val clickedDate = topLeftDate.plus(offset)
         if (clickedDate.isNewerThan(today)) return
         if (isLongClick) {
@@ -104,14 +106,21 @@ class HistoryChart(
         canvas.setColor(theme.cardBackgroundColor)
         canvas.fill()
 
-        squareSize = round((height - 2 * padding) / 8.0)
-        canvas.setFontSize(min(14.0, height * 0.06))
+        squareSize = max(1.0, round((height - 2 * padding) / 8.0))
+        val fontSize = min(14.0, height * 0.06)
+        canvas.setFontSize(fontSize)
+        largeText = canvas.getScaledFontSize(fontSize) > fontSize * 1.01
+        columnWidth = if (largeText) {
+            max(squareSize, canvas.measureText("88") + squareSize * 0.3)
+        } else {
+            squareSize
+        }
 
         val weekdayColumnWidth = DayOfWeek.values().map { weekday ->
             canvas.measureText(dateFormatter.shortWeekdayName(weekday)) + squareSize * 0.15
         }.maxOrNull() ?: 0.0
 
-        nColumns = floor((width - 2 * padding - weekdayColumnWidth) / squareSize).toInt()
+        nColumns = max(0, floor((width - 2 * padding - weekdayColumnWidth) / columnWidth).toInt())
         val firstWeekdayOffset = (
             today.dayOfWeek.daysSinceSunday -
                 firstWeekday.daysSinceSunday + 7
@@ -137,7 +146,7 @@ class HistoryChart(
             canvas.setTextAlign(TextAlign.LEFT)
             canvas.drawText(
                 dateFormatter.shortWeekdayName(date),
-                padding + nColumns * squareSize + squareSize * 0.15,
+                padding + nColumns * columnWidth + squareSize * 0.15,
                 padding + squareSize * (row + 1) + squareSize / 2
             )
         }
@@ -156,9 +165,9 @@ class HistoryChart(
             if (offset < 0) return
             drawSquare(
                 canvas,
-                padding + column * squareSize,
+                padding + column * columnWidth,
                 padding + (row + 1) * squareSize,
-                squareSize - squareSpacing,
+                columnWidth - squareSpacing,
                 squareSize - squareSpacing,
                 date,
                 offset
@@ -185,14 +194,13 @@ class HistoryChart(
             }
         }
         canvas.setTextAlign(TextAlign.LEFT)
-        canvas.drawText(
-            headerText,
-            headerOverflow + padding + column * squareSize,
-            padding + squareSize / 2
-        )
+        val x = headerOverflow + padding + column * columnWidth
+        if (!largeText || x + canvas.measureText(headerText) <= width - padding) {
+            canvas.drawText(headerText, x, padding + squareSize / 2)
+        }
 
         headerOverflow += canvas.measureText(headerText) + 0.1 * squareSize
-        headerOverflow = max(0.0, headerOverflow - squareSize)
+        headerOverflow = max(0.0, headerOverflow - columnWidth)
     }
 
     private fun drawSquare(
@@ -253,7 +261,7 @@ class HistoryChart(
 
         canvas.setColor(textColor)
         canvas.setTextAlign(TextAlign.CENTER)
-        canvas.drawText(date.day.toString(), x + width / 2, y + width / 2)
+        canvas.drawText(date.day.toString(), x + width / 2, y + height / 2)
 
         if (hasNotes) {
             circleColor = when (value) {

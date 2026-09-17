@@ -30,11 +30,30 @@
     app:divider="@drawable/checkmark_dialog_divider"
     app:showDividers="middle">
 
+    <TextView
+        android:id="@+id/entryContext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:textSize="@dimen/smallTextSize" />
+
+    <TextView
+        android:id="@+id/entryDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        android:textSize="@dimen/smallerTextSize"
+        android:visibility="gone" />
+
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/notes"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:minHeight="48dp"
         android:background="@color/transparent"
         android:gravity="center"
         android:hint="@string/notes"

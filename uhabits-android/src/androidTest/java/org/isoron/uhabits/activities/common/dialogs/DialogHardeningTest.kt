@@ -1,7 +1,6 @@
 package org.isoron.uhabits.activities.common.dialogs
 
 import android.content.Intent
-import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
@@ -35,8 +34,7 @@ class DialogHardeningTest : BaseAndroidTest() {
                 )) {
                     var result: Pair<Int, String>? = null
                     val fragment = CheckmarkDialog().apply {
-                        arguments = Bundle().apply {
-                            putInt("color", android.graphics.Color.BLUE)
+                        arguments = EntryDialogFragment.arguments(habitList.getByPosition(0), day(0), android.graphics.Color.BLUE).apply {
                             putInt("value", Entry.NO)
                             putString("notes", "Keep my note")
                         }
@@ -64,7 +62,7 @@ class DialogHardeningTest : BaseAndroidTest() {
                 )) {
                     var result: Pair<Double, String>? = null
                     val fragment = NumberDialog().apply {
-                        arguments = Bundle().apply {
+                        arguments = EntryDialogFragment.arguments(habitList.getByPosition(0), day(0), android.graphics.Color.BLUE).apply {
                             putDouble("value", 2.5)
                             putString("notes", "Keep my note")
                         }
@@ -112,6 +110,47 @@ class DialogHardeningTest : BaseAndroidTest() {
             }
         } finally {
             instrumentation.setInTouchMode(true)
+        }
+    }
+
+    @Test
+    fun testDailySelectionSurvivesRecreationWithStaleInputFocus() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.setInTouchMode(true)
+        launchEditor().use { scenario ->
+            scenario.onActivity { activity ->
+                val fragment = FrequencyPickerDialog(3, 7)
+                fragment.showNow(activity.supportFragmentManager, "frequencyPicker")
+                val dialog = fragment.requireDialog()
+                val input = dialog.findViewById<EditText>(R.id.xTimesPerWeekTextView)
+                input.setText("4")
+                assertTrue(input.requestFocus())
+                dialog.findViewById<View>(R.id.everyDayRadioButton).performClick()
+                assertFalse(input.hasFocus())
+                assertTrue(dialog.findViewById<RadioButton>(R.id.everyDayRadioButton).isChecked)
+
+                // Reproduce a snapshot from an older version that left the weekly input focused.
+                input.requestFocus()
+                dialog.findViewById<RadioButton>(R.id.xTimesPerWeekRadioButton).isChecked = false
+                dialog.findViewById<RadioButton>(R.id.everyDayRadioButton).isChecked = true
+            }
+            scenario.recreate()
+            scenario.onActivity { activity ->
+                var result: Pair<Int, Int>? = null
+                activity.supportFragmentManager.setFragmentResultListener(
+                    FrequencyPickerDialog.REQUEST_KEY,
+                    activity
+                ) { _, data ->
+                    result = data.getInt(FrequencyPickerDialog.NUMERATOR) to
+                        data.getInt(FrequencyPickerDialog.DENOMINATOR)
+                }
+                val fragment = activity.supportFragmentManager.findFragmentByTag("frequencyPicker") as FrequencyPickerDialog
+                val dialog = fragment.requireDialog() as AlertDialog
+                assertTrue(dialog.findViewById<RadioButton>(R.id.everyDayRadioButton)!!.isChecked)
+                assertFalse(dialog.findViewById<EditText>(R.id.xTimesPerWeekTextView)!!.hasFocus())
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                assertEquals(1 to 1, result)
+            }
         }
     }
 

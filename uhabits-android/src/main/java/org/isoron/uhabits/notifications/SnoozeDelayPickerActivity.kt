@@ -23,12 +23,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.widget.Toast
-import androidx.fragment.app.FragmentActivity
 import com.android.datetimepicker.time.TimePickerDialog
 import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.ui.views.DarkTheme
@@ -37,18 +37,22 @@ import org.isoron.uhabits.receivers.ReminderController
 import org.isoron.uhabits.utils.SystemUtils
 import java.util.Calendar
 
-class SnoozeDelayPickerActivity : FragmentActivity() {
+class SnoozeDelayPickerActivity : HabitsActivity() {
     private lateinit var habits: HabitList
     private lateinit var reminderController: ReminderController
     private var dialog: AlertDialog? = null
     private var androidColor: Int = 0
 
-    override fun onCreate(bundle: Bundle?) {
+    override fun onBeforeCreate() {
+        val app = applicationContext as HabitsApplication
+        AndroidThemeSwitcher(this, app.component.preferences).setTheme()
+    }
+
+    override fun onCreateReady(savedInstanceState: Bundle?) {
         val app = applicationContext as HabitsApplication
         val appComponent = app.component
         val themeSwitcher = AndroidThemeSwitcher(this, appComponent.preferences)
         themeSwitcher.setTheme()
-        super.onCreate(bundle)
 
         habits = appComponent.habitList
         reminderController = appComponent.reminderController
@@ -64,8 +68,7 @@ class SnoozeDelayPickerActivity : FragmentActivity() {
         SystemUtils.unlockScreen(this)
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
+    override fun onNewIntentReady(intent: Intent?) {
         setIntent(intent)
         dismissDelayPicker()
         val timePicker = supportFragmentManager.findFragmentByTag(TIME_PICKER_TAG) as TimePickerDialog?
@@ -155,13 +158,12 @@ class SnoozeDelayPickerActivity : FragmentActivity() {
         dialog = null
     }
 
-    override fun onDestroy() {
+    override fun onDestroyReady() {
         dismissDelayPicker()
         (supportFragmentManager.findFragmentByTag(TIME_PICKER_TAG) as TimePickerDialog?)?.apply {
             setOnTimeSetListener(null)
             setDismissListener(null)
         }
-        super.onDestroy()
     }
 
     override fun finish() {

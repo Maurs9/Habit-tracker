@@ -56,7 +56,7 @@ class EditHabitActivityTest : BaseAndroidTest() {
     }
 
     @Test
-    fun testToolbarUpCancelsUnsavedChanges() {
+    fun testToolbarUpConfirmsBeforeDiscardingUnsavedChanges() {
         val existing = fixtures.createEmptyHabit().apply {
             name = "Unchanged habit"
             tags = setOf("Original")
@@ -69,6 +69,10 @@ class EditHabitActivityTest : BaseAndroidTest() {
                 addTag(picker, "Canceled tag")
                 picker.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
                 assertTrue(activity.onSupportNavigateUp())
+                assertFalse(activity.isFinishing)
+                val discard = activity.supportFragmentManager.findFragmentByTag(DiscardHabitChangesDialog.TAG)
+                    as DiscardHabitChangesDialog
+                (discard.requireDialog() as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).performClick()
                 assertTrue(activity.isFinishing)
             }
         }

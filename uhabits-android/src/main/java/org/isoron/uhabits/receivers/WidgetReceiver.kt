@@ -36,6 +36,11 @@ import org.isoron.uhabits.intents.IntentParser.CheckmarkIntentData
  */
 class WidgetReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        lastReceivedIntent = intent
+        whenHabitsReady(context, intent) { onReceiveReady(context, intent) }
+    }
+
+    private fun onReceiveReady(context: Context, intent: Intent) {
         val app = context.applicationContext as HabitsApplication
         val component = DaggerWidgetReceiver_WidgetComponent
             .builder()
@@ -46,7 +51,6 @@ class WidgetReceiver : BroadcastReceiver() {
         val prefs = app.component.preferences
         val widgetUpdater = app.component.widgetUpdater
         Log.i(TAG, String.format("Received intent: %s", intent.toString()))
-        lastReceivedIntent = intent
         try {
             var data: CheckmarkIntentData? = null
             if (intent.action !== ACTION_UPDATE_WIDGETS_VALUE) {

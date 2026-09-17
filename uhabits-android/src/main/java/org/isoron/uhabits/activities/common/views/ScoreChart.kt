@@ -27,6 +27,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.TypedValue
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Score
 import org.isoron.uhabits.core.models.Timestamp
@@ -42,6 +43,7 @@ import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Random
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -56,6 +58,7 @@ class ScoreChart : ScrollableChart {
     private var rect: RectF? = null
     private var prevRect: RectF? = null
     private var baseSize = 0
+    private var largeText = false
     private var internalPaddingTop = 0
     private var columnWidth = 0f
     private var columnHeight = 0
@@ -182,16 +185,22 @@ class ScoreChart : ScrollableChart {
         var height = height
         if (height < 9) height = 200
         val maxTextSize = getDimension(context, R.dimen.tinyTextSize)
-        val textSize = height * 0.06f
+        val textSize = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP,
+            height * 0.06f / resources.displayMetrics.density,
+            resources.displayMetrics
+        )
         pText!!.textSize = min(textSize, maxTextSize)
+        largeText = pText!!.textSize > min(height * 0.06f, dpToPixels(context, 10f)) * 1.01f
         em = pText!!.fontSpacing
         val footerHeight = (3 * em).toInt()
         internalPaddingTop = em.toInt()
-        baseSize = (height - footerHeight - internalPaddingTop) / 8
+        baseSize = max(1, (height - footerHeight - internalPaddingTop) / 8)
         columnWidth = baseSize.toFloat()
         columnWidth = max(columnWidth, maxDayWidth * 1.5f)
         columnWidth = max(columnWidth, maxMonthWidth * 1.2f)
-        nColumns = (width / columnWidth).toInt()
+        if (largeText) columnWidth = max(columnWidth, pText!!.measureText("8888") * 1.2f)
+        nColumns = max(1, (width / columnWidth).toInt())
         columnWidth = width.toFloat() / nColumns
         setScrollerBucketSize(columnWidth.toInt())
         columnHeight = 8 * baseSize
@@ -248,17 +257,21 @@ class ScoreChart : ScrollableChart {
     private fun drawGrid(canvas: Canvas?, rGrid: RectF?) {
         val nRows = 5
         val rowHeight = rGrid!!.height() / nRows
+        val bottom = rGrid.bottom
+        val stride = if (largeText) max(1, ceil(em / rowHeight).toInt()) else 1
         pText!!.textAlign = Paint.Align.LEFT
         pText!!.color = textColor
         pGrid!!.color = gridColor
         for (i in 0 until nRows) {
-            canvas!!.drawText(
-                String.format("%d%%", 100 - i * 100 / nRows),
-                rGrid.left + 0.5f * em,
-                rGrid.top + 1f * em,
-                pText!!
-            )
-            canvas.drawLine(
+            if (i % stride == 0 && (!largeText || rGrid.top + em + pText!!.descent() <= bottom)) {
+                canvas!!.drawText(
+                    String.format("%d%%", 100 - i * 100 / nRows),
+                    rGrid.left + 0.5f * em,
+                    rGrid.top + 1f * em,
+                    pText!!
+                )
+            }
+            canvas!!.drawLine(
                 rGrid.left,
                 rGrid.top,
                 rGrid.right,

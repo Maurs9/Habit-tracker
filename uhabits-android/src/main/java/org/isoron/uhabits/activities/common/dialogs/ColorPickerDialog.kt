@@ -22,9 +22,17 @@ import android.app.Dialog
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AbsListView
+import android.widget.BaseAdapter
+import android.widget.CheckedTextView
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDialogFragment
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ColorWheelView
@@ -32,13 +40,16 @@ import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.ui.callbacks.OnColorPickedCallback
 import org.isoron.uhabits.utils.ColorUtils.contrastingTextColor
 import org.isoron.uhabits.utils.dp
+import kotlin.math.ceil
 
 /**
- * Dialog that allows the user to choose a color using a 3-ring Donut Color Wheel.
+ * Color selection using a wheel or a named, scrollable swatch list.
  */
 class ColorPickerDialog : AppCompatDialogFragment() {
     private var onPicked: OnColorPickedCallback? = null
     private var currentSelection = 0
+    private var showingList = false
+    private var list: ListView? = null
 
     fun setListener(callback: OnColorPickedCallback) {
         onPicked = callback
@@ -49,6 +60,7 @@ class ColorPickerDialog : AppCompatDialogFragment() {
         val context = builder.context
         val colors = requireArguments().getIntArray("colors")!!
         currentSelection = (savedInstanceState ?: requireArguments()).getInt(SELECTED).coerceIn(0, colors.size - 1)
+        showingList = savedInstanceState?.getBoolean(SHOWING_LIST) ?: false
         val names = resources.getStringArray(R.array.habit_color_names)
 
         val container = LinearLayout(context).apply {
@@ -60,6 +72,7 @@ class ColorPickerDialog : AppCompatDialogFragment() {
 
         // Live Preview Badge
         val previewBadge = TextView(context).apply {
+            id = R.id.colorPickerPreview
             gravity = Gravity.CENTER
             val hp = dp(16f).toInt()
             val vp = dp(8f).toInt()
@@ -77,7 +90,7 @@ class ColorPickerDialog : AppCompatDialogFragment() {
         fun updateBadge(index: Int) {
             val color = colors[index]
             val textColor = contrastingTextColor(color)
-            previewBadge.text = names.getOrElse(index) { "Color" }
+            previewBadge.text = names[index]
             previewBadge.setTextColor(textColor)
             val corner = previewBadge.dp(20f)
             val strokeW = previewBadge.dp(1.5f).toInt()
@@ -99,6 +112,7 @@ class ColorPickerDialog : AppCompatDialogFragment() {
             this.onColorSelected = { index ->
                 currentSelection = index
                 updateBadge(index)
+                list?.setItemChecked(index, true)
             }
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -108,8 +122,71 @@ class ColorPickerDialog : AppCompatDialogFragment() {
             }
         }
 
+        val paletteList = object : ListView(context) {
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                val maximum = dp(280f).toInt()
+                val available = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) {
+                    maximum
+                } else {
+                    MeasureSpec.getSize(heightMeasureSpec).coerceAtMost(maximum)
+                }
+                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(available, MeasureSpec.AT_MOST))
+            }
+        }.apply {
+            id = R.id.colorPickerList
+            choiceMode = ListView.CHOICE_MODE_SINGLE
+            adapter = object : BaseAdapter() {
+                override fun getCount() = colors.size
+                override fun getItem(position: Int) = names[position]
+                override fun getItemId(position: Int) = position.toLong()
+                override fun hasStableIds() = true
+
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                    val row = convertView as? CheckedTextView ?: (
+                        LayoutInflater.from(context)
+                            .inflate(android.R.layout.simple_list_item_single_choice, parent, false) as CheckedTextView
+                        ).apply {
+                        minHeight = ceil(dp(48f)).toInt()
+                        isSingleLine = false
+                        layoutParams = AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        compoundDrawablePadding = dp(12f).toInt()
+                    }
+                    row.text = names[position]
+                    row.isChecked = position == currentSelection
+                    val swatch = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(colors[position])
+                        setStroke(row.dp(1f).toInt(), contrastingTextColor(colors[position]))
+                        setBounds(0, 0, row.dp(24f).toInt(), row.dp(24f).toInt())
+                    }
+                    row.setCompoundDrawablesRelative(swatch, null, null, null)
+                    return row
+                }
+            }
+            setItemChecked(currentSelection, true)
+            setSelection(savedInstanceState?.getInt(LIST_POSITION, currentSelection) ?: currentSelection)
+            setOnItemClickListener { _, _, position, _ -> colorWheel.select(position) }
+        }
+        list = paletteList
+        val modeToggle = LayoutInflater.from(context)
+            .inflate(R.layout.color_picker_mode_button, container, false) as MaterialButton
+        fun updateMode() {
+            previewBadge.visibility = if (showingList) View.GONE else View.VISIBLE
+            colorWheel.visibility = if (showingList) View.GONE else View.VISIBLE
+            paletteList.visibility = if (showingList) View.VISIBLE else View.GONE
+            modeToggle.setText(if (showingList) R.string.color_picker_show_wheel else R.string.color_picker_show_list)
+        }
+        modeToggle.setOnClickListener {
+            showingList = !showingList
+            updateMode()
+            if (showingList) paletteList.setSelection(currentSelection)
+        }
+        updateMode()
+
         container.addView(previewBadge)
+        container.addView(modeToggle)
         container.addView(colorWheel)
+        container.addView(paletteList, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         return builder.setTitle(R.string.color_picker_default_title)
             .setView(container)
@@ -126,11 +203,20 @@ class ColorPickerDialog : AppCompatDialogFragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putInt(SELECTED, currentSelection)
+        outState.putBoolean(SHOWING_LIST, showingList)
+        outState.putInt(LIST_POSITION, list?.firstVisiblePosition ?: currentSelection)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroyView() {
+        list = null
+        super.onDestroyView()
     }
 
     companion object {
         const val REQUEST_KEY = "colorPickerResult"
         const val SELECTED = "selected"
+        private const val SHOWING_LIST = "showingList"
+        private const val LIST_POSITION = "listPosition"
     }
 }

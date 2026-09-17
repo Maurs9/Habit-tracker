@@ -48,7 +48,8 @@ Device regressions cover the additional Android behavior:
 
 - `DialogHardeningTest`, `EditorPickerRecreationTest` and
   `SnoozeAccessibilityTest`: entry-action names and button roles, hardware-keyboard
-  frequency input, inline errors, pending picker drafts/results across recreation,
+  frequency input, inline errors, authoritative frequency selection despite stale
+  restored input focus, pending picker drafts/results across recreation,
   and 12/24-hour accessibility adjustments.
 - `ListHabitsRootViewTest` and `HeaderViewTest`: accessible Move up/down actions,
   Ctrl+Up/Down, selection-menu movement, section/filter/sort restrictions, and
@@ -69,6 +70,66 @@ New user-facing strings remain in translatable resources with English fallback;
 translation coverage should be reviewed separately. Android lint currently
 reports translation gaps and other existing findings; its successful task exit
 does not imply a clean report because `lint.abortOnError` is disabled.
+
+### Startup readiness
+
+`StartupCoordinatorTest` verifies that initialization is queued off the caller,
+models are not published as ready before completion, repeated starts do not
+duplicate work, observers can be detached, failures retain their cause, retry
+works, and background readers wait with a bounded timeout.
+
+```bash
+./gradlew :uhabits-core:jvmTest --tests '*StartupCoordinatorTest'
+```
+
+`StartupActivityTest` covers loading before content creation, completion after
+resume, recreation while loading, fresh editor defaults versus existing drafts,
+cancellation, and retry. Compile it with
+`:uhabits-android:compileDebugAndroidTestKotlin`; execute it on a disposable
+emulator to verify the actual lifecycle. Also exercise cold launches into the
+list, editor, detail, widget configuration and snooze flows, plus a widget or
+reminder broadcast arriving during initialization.
+
+History recomputation runs before data-dependent activity hooks and receiver
+actions. The loading/error screen must remain responsive; no main-thread caller
+may wait for initialization. Keep pending activity/permission results and editor
+drafts across recreation. Loading activities recreate once after readiness so
+restored fragments and result handlers initialize in their normal lifecycle,
+not halfway through an already-resumed screen. `HabitsApplication` logs
+initialization duration locally; use device startup traces for first-frame and time-to-interactive
+measurements. The JVM recomputation profile below measures computation, not
+Android launch latency.
+
+### Adaptivity, contrast and check-in refinements
+
+Additional focused JVM checks:
+
+```bash
+./gradlew :uhabits-core:jvmTest --tests '*HabitListEmptyStateTest' \
+  --tests '*ChartFontScaleTest' \
+  :uhabits-android:testDebugUnitTest --tests '*HabitEditorDraftTest' \
+  --tests '*ContrastingTextColorTest'
+```
+
+Keep `ListHabitsBehaviorTest`, `ListHabitsMenuBehaviorTest`,
+`HabitCardListCacheTest`, and the existing habit/detail/numerical-state tests in
+the regression pass. Completion and scoring rules have not changed.
+
+Device tests `StatisticsAdaptivityTest`, `ColorPickerRefinementsTest`,
+`EditorDiscardChangesTest`, `ButtonPanelReuseTest`, `EntryDialogDraftTest` and
+`OnboardingContrastTest` cover the Android-specific behavior. In particular,
+verify 48dp targets, 200% fonts, named-color-list selection, dirty-only exits,
+same-count button identity and refreshed callbacks, and stable habit/date draft
+submission. `OnboardingContrastTest` uses Android color APIs and belongs to the
+instrumentation source set, not the host-JVM runner.
+
+The JVM history/bar rendering suites currently have legacy image-baseline
+failures. Comparison against the committed pre-refinement code reproduced the
+same 11 failures and identical generated PNGs; default-scale rendering was
+unchanged. Do not regenerate golden files merely to remove these failures.
+Statistics headers, calendar Edit, color controls and contextual entry dialogs
+also have intentional Android visual changes that require device capture and
+review before updating their screenshot baselines.
 
 ### Palette and core chart checks
 

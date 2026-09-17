@@ -98,6 +98,8 @@ class HistoryCardPresenter(
     private fun showCheckmarkPopup(timestamp: Timestamp) {
         val entry = habit.computedEntries.get(timestamp)
         screen.showCheckmarkPopup(
+            habit,
+            timestamp,
             entry.value,
             entry.notes,
             habit.color
@@ -136,6 +138,8 @@ class HistoryCardPresenter(
         val entry = habit.computedEntries.get(timestamp)
         val oldValue = entry.value
         screen.showNumberPopup(
+            habit = habit,
+            timestamp = timestamp,
             value = oldValue / 1000.0,
             notes = entry.notes
         ) { newValue: Double, newNotes: String ->
@@ -212,11 +216,15 @@ class HistoryCardPresenter(
         fun showHistoryEditorDialog(listener: OnDateClickedListener)
         fun showFeedback()
         fun showNumberPopup(
+            habit: Habit,
+            timestamp: Timestamp,
             value: Double,
             notes: String,
             callback: ListHabitsBehavior.NumberPickerCallback
         )
         fun showCheckmarkPopup(
+            habit: Habit,
+            timestamp: Timestamp,
             selectedValue: Int,
             notes: String,
             color: PaletteColor,

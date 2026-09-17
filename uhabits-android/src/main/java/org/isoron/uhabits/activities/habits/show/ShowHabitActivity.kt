@@ -24,7 +24,6 @@ import android.view.HapticFeedbackConstants
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -34,9 +33,11 @@ import org.isoron.uhabits.AndroidDirFinder
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.activities.HabitsDirFinder
 import org.isoron.uhabits.activities.common.dialogs.CheckmarkDialog
 import org.isoron.uhabits.activities.common.dialogs.ConfirmDeleteDialog
+import org.isoron.uhabits.activities.common.dialogs.EntryDialogFragment
 import org.isoron.uhabits.activities.common.dialogs.HistoryEditorDialog
 import org.isoron.uhabits.activities.common.dialogs.NumberDialog
 import org.isoron.uhabits.activities.habits.list.HabitOrganizationDialogs
@@ -44,6 +45,7 @@ import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.callbacks.OnConfirmedCallback
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
@@ -60,7 +62,7 @@ import org.isoron.uhabits.utils.showMessage
 import org.isoron.uhabits.utils.showSendFileScreen
 import org.isoron.uhabits.widgets.WidgetUpdater
 
-class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
+class ShowHabitActivity : HabitsActivity(), CommandRunner.Listener {
 
     private lateinit var commandRunner: CommandRunner
     private lateinit var menu: ShowHabitMenu
@@ -75,9 +77,7 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
     private lateinit var presenter: ShowHabitPresenter
     private val screen = Screen()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    override fun onCreateReady(savedInstanceState: Bundle?) {
         val appComponent = (applicationContext as HabitsApplication).component
         val habitList = appComponent.habitList
         habit = habitList.getById(ContentUris.parseId(intent.data!!))!!
@@ -129,16 +129,15 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         setContentView(view)
     }
 
-    override fun onCreateOptionsMenu(m: Menu): Boolean {
-        return menu.onCreateOptionsMenu(m)
+    override fun onCreateOptionsMenuReady(m: Menu): Boolean {
+        return menu.onCreateOptionsMenu(m) || super.onCreateOptionsMenuReady(m)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return menu.onOptionsItemSelected(item)
+    override fun onOptionsItemSelectedReady(item: MenuItem): Boolean {
+        return menu.onOptionsItemSelected(item) || super.onOptionsItemSelectedReady(item)
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onResumeReady() {
         commandRunner.addListener(this)
         supportFragmentManager.findFragmentByTag("historyEditor")?.let {
             (it as HistoryEditorDialog).setOnDateClickedListener(presenter.historyCardPresenter)
@@ -146,15 +145,13 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         screen.refresh()
     }
 
-    override fun onPause() {
-        dismissCurrentDialog()
+    override fun onPauseReady() {
+        dismissCurrentDialog(preserveEntryDrafts = true)
         commandRunner.removeListener(this)
-        super.onPause()
     }
 
-    override fun onDestroy() {
+    override fun onDestroyReady() {
         scope.cancel()
-        super.onDestroy()
     }
 
     override fun onCommandFinished(command: Command) {
@@ -193,12 +190,14 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         }
 
         override fun showNumberPopup(
+            habit: Habit,
+            timestamp: Timestamp,
             value: Double,
             notes: String,
             callback: ListHabitsBehavior.NumberPickerCallback
         ) {
             val dialog = NumberDialog()
-            dialog.arguments = Bundle().apply {
+            dialog.arguments = EntryDialogFragment.arguments(habit, timestamp, view.currentTheme().color(habit.color).toInt()).apply {
                 putDouble("value", value)
                 putString("notes", notes)
             }
@@ -207,6 +206,8 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         }
 
         override fun showCheckmarkPopup(
+            habit: Habit,
+            timestamp: Timestamp,
             selectedValue: Int,
             notes: String,
             color: PaletteColor,
@@ -214,8 +215,7 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         ) {
             val theme = view.currentTheme()
             val dialog = CheckmarkDialog()
-            dialog.arguments = Bundle().apply {
-                putInt("color", theme.color(color).toInt())
+            dialog.arguments = EntryDialogFragment.arguments(habit, timestamp, theme.color(color).toInt()).apply {
                 putInt("value", selectedValue)
                 putString("notes", notes)
             }

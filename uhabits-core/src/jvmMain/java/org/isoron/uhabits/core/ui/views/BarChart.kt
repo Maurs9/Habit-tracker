@@ -49,20 +49,38 @@ class BarChart(
     var barMargin = 3.0
     var barWidth = 12.0
     var nGridlines = 6
+    private var columnWidth = barWidth + barMargin * 2
 
     override val dataColumnWidth: Double
-        get() = barWidth + barMargin * 2
+        get() = columnWidth
 
     override fun draw(canvas: Canvas) {
         val width = canvas.getWidth()
         val height = canvas.getHeight()
 
         val nSeries = series.size
-        val barGroupWidth = 2 * barGroupMargin + nSeries * (barWidth + 2 * barMargin)
         val safeWidth = width - paddingLeft - paddingRight
+        val textSize = canvas.getScaledFontSize(theme.smallTextSize)
+        val textScale = textSize / theme.smallTextSize
+        val footerHeight = this.footerHeight * textScale
+        val paddingTop = this.paddingTop * textScale
+        canvas.setFontSize(theme.smallTextSize)
+        columnWidth = barWidth + 2 * barMargin
+        if (textScale > 1.01) {
+            val visibleCount = max(1, (safeWidth / (2 * barGroupMargin + nSeries * columnWidth)).toInt())
+            val valueWidth = series.maxOfOrNull { values ->
+                values.asSequence().drop(dataOffset).take(visibleCount)
+                    .maxOfOrNull { canvas.measureText(it.toShortString()) } ?: 0.0
+            } ?: 0.0
+            val dateWidth = axis.asSequence().drop(dataOffset).take(visibleCount).maxOfOrNull {
+                max(canvas.measureText(it.year.toString()), canvas.measureText(dateFormatter.shortMonthName(it)))
+            } ?: 0.0
+            columnWidth = max(columnWidth * textScale, max(valueWidth, dateWidth) + 2 * barMargin)
+        }
+        val barGroupWidth = 2 * barGroupMargin + nSeries * columnWidth
         val nColumns = floor((safeWidth) / barGroupWidth).toInt()
         val marginLeft = (safeWidth - nColumns * barGroupWidth) / 2
-        val maxBarHeight = height - footerHeight - paddingTop
+        val maxBarHeight = max(0.0, height - footerHeight - paddingTop)
         var maxValue = series.map { it.maxOrNull()!! }.maxOrNull()!!
         maxValue = max(maxValue, 1.0)
 
@@ -74,8 +92,8 @@ class BarChart(
 
         fun barOffset(c: Int, s: Int) = barGroupOffset(c) +
             barGroupMargin +
-            s * (barWidth + 2 * barMargin) +
-            barMargin
+            s * columnWidth +
+            (columnWidth - barWidth) / 2
 
         fun drawColumn(s: Int, c: Int) {
             val dataColumn = nColumns - c - 1 + dataOffset
@@ -104,7 +122,7 @@ class BarChart(
             canvas.drawText(
                 value.toShortString(),
                 x + barWidth / 2,
-                y - theme.smallTextSize * 0.80
+                y - textSize * 0.80
             )
         }
 
@@ -150,27 +168,27 @@ class BarChart(
                     canvas.drawText(
                         date.year.toString(),
                         x + barGroupWidth / 2,
-                        y + theme.smallTextSize * 1.0
+                        y + textSize * 1.0
                     )
                 } else {
                     if (date.month != prevMonth) {
                         canvas.drawText(
                             dateFormatter.shortMonthName(date),
                             x + barGroupWidth / 2,
-                            y + theme.smallTextSize * 1.0
+                            y + textSize * 1.0
                         )
                     } else {
                         canvas.drawText(
                             date.day.toString(),
                             x + barGroupWidth / 2,
-                            y + theme.smallTextSize * 1.0
+                            y + textSize * 1.0
                         )
                     }
                     if (date.year != prevYear) {
                         canvas.drawText(
                             date.year.toString(),
                             x + barGroupWidth / 2,
-                            y + theme.smallTextSize * 2.3
+                            y + textSize * 2.3
                         )
                     }
                 }

@@ -22,7 +22,6 @@ package org.isoron.uhabits.activities.habits.list
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import dagger.Lazy
@@ -34,6 +33,7 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.dialogs.CheckmarkDialog
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory
 import org.isoron.uhabits.activities.common.dialogs.ConfirmDeleteDialog
+import org.isoron.uhabits.activities.common.dialogs.EntryDialogFragment
 import org.isoron.uhabits.activities.common.dialogs.NumberDialog
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.activities.settings.BackupDialog
@@ -49,6 +49,7 @@ import org.isoron.uhabits.core.commands.UnarchiveHabitsCommand
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.ThemeSwitcher
@@ -272,13 +273,15 @@ class ListHabitsScreen
     }
 
     override fun showNumberPopup(
+        habit: Habit,
+        timestamp: Timestamp,
         value: Double,
         notes: String,
         callback: ListHabitsBehavior.NumberPickerCallback
     ) {
         val fm = (context as AppCompatActivity).supportFragmentManager
         val dialog = NumberDialog()
-        dialog.arguments = Bundle().apply {
+        dialog.arguments = EntryDialogFragment.arguments(habit, timestamp, rootView.get().currentTheme().color(habit.color).toInt()).apply {
             putDouble("value", value)
             putString("notes", notes)
         }
@@ -287,6 +290,8 @@ class ListHabitsScreen
     }
 
     override fun showCheckmarkPopup(
+        habit: Habit,
+        timestamp: Timestamp,
         selectedValue: Int,
         notes: String,
         color: PaletteColor,
@@ -295,8 +300,7 @@ class ListHabitsScreen
         val theme = rootView.get().currentTheme()
         val fm = (context as AppCompatActivity).supportFragmentManager
         val dialog = CheckmarkDialog()
-        dialog.arguments = Bundle().apply {
-            putInt("color", theme.color(color).toInt())
+        dialog.arguments = EntryDialogFragment.arguments(habit, timestamp, theme.color(color).toInt()).apply {
             putInt("value", selectedValue)
             putString("notes", notes)
         }

@@ -36,6 +36,11 @@ abstract class ButtonPanelView<T : View>(
 
     var buttonCount = 0
         set(value) {
+            require(value >= 0)
+            if (field == value && reversed == preferences.isCheckmarkSequenceReversed) {
+                setupButtons()
+                return
+            }
             field = value
             inflateButtons()
         }
@@ -55,6 +60,7 @@ abstract class ButtonPanelView<T : View>(
         }
 
     var buttons = mutableListOf<T>()
+    private var reversed = false
 
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -67,16 +73,16 @@ abstract class ButtonPanelView<T : View>(
     @Synchronized
     protected fun inflateButtons() {
         val reverse = preferences.isCheckmarkSequenceReversed
-
-        buttons.clear()
-        repeat(buttonCount) { buttons.add(createButton()) }
-
-        removeAllViews()
-        if (reverse) {
-            buttons.reversed().forEach { addView(it, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)) }
-        } else {
-            buttons.forEach { addView(it, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)) }
+        while (buttons.size > buttonCount) removeView(buttons.removeAt(buttons.lastIndex))
+        while (buttons.size < buttonCount) {
+            val button = createButton()
+            buttons.add(button)
+            addView(button, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
         }
+        for (index in buttons.indices) {
+            bringChildToFront(buttons[if (reverse) buttons.lastIndex - index else index])
+        }
+        reversed = reverse
         setupButtons()
         requestLayout()
     }

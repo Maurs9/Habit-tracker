@@ -28,11 +28,10 @@ object ColorUtils {
     private const val BLUE_CHANNEL = 0
 
     fun contrastingTextColor(bg: Int): Int =
-        if (androidx.core.graphics.ColorUtils.calculateLuminance(bg) > 0.179) {
-            Color.rgb(33, 33, 33)
-        } else {
-            Color.WHITE
-        }
+        contrastingTextColorForLuminance(androidx.core.graphics.ColorUtils.calculateLuminance(bg))
+
+    internal fun contrastingTextColorForLuminance(luminance: Double): Int =
+        if ((luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05)) Color.BLACK else Color.WHITE
 
     @JvmStatic
     fun mixColors(color1: Int, color2: Int, amount: Float): Int {

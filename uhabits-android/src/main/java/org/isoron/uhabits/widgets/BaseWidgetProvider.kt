@@ -21,6 +21,7 @@ package org.isoron.uhabits.widgets
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Looper
 import android.widget.RemoteViews
@@ -31,10 +32,15 @@ import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitNotFoundException
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.preferences.WidgetPreferences
+import org.isoron.uhabits.receivers.whenHabitsReady
 import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
 import java.util.ArrayList
 
 abstract class BaseWidgetProvider : AppWidgetProvider() {
+    override fun onReceive(context: Context, intent: Intent) {
+        whenHabitsReady(context, intent) { super.onReceive(context, intent) }
+    }
+
     private lateinit var habits: HabitList
     lateinit var preferences: Preferences
         private set

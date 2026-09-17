@@ -2,7 +2,6 @@ package org.isoron.uhabits.activities.common.dialogs
 
 import android.content.Intent
 import android.graphics.Rect
-import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -125,8 +124,7 @@ class HabitControlDialogsTest : BaseAndroidTest() {
     }
 
     private fun numberDialog() = NumberDialog().apply {
-        arguments = Bundle().apply {
-            putInt("color", android.graphics.Color.BLUE)
+        arguments = EntryDialogFragment.arguments(habitList.getByPosition(0), day(0), android.graphics.Color.BLUE).apply {
             putDouble("value", 0.001)
             putString("notes", "Original notes")
         }

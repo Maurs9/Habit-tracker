@@ -147,7 +147,13 @@ class NumberButtonView(
                 context.getString(
                     R.string.habit_entry_value_state,
                     measurement,
-                    context.getString(if (targetMet) R.string.habit_entry_target_met else R.string.habit_entry_target_not_met)
+                    context.getString(
+                        if (targetType == AT_MOST) {
+                            if (targetMet) R.string.entry_within_limit else R.string.entry_above_limit
+                        } else {
+                            if (targetMet) R.string.habit_entry_target_met else R.string.habit_entry_target_not_met
+                        }
+                    )
                 )
             }
         }

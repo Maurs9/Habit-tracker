@@ -1,6 +1,7 @@
 package org.isoron.uhabits.activities.common.dialogs
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.provider.Settings
 import android.text.method.DigitsKeyListener
@@ -9,9 +10,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import androidx.appcompat.app.AppCompatDialogFragment
-import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.dialogs.EntryDialogFragment.Companion.DRAFT_NOTES
+import org.isoron.uhabits.activities.common.dialogs.EntryDialogFragment.Companion.DRAFT_VALUE
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.utils.formatEditableNumber
 import org.isoron.uhabits.core.utils.parseFiniteNumber
@@ -19,10 +20,11 @@ import org.isoron.uhabits.databinding.CheckmarkPopupBinding
 import org.isoron.uhabits.utils.InterfaceUtils
 import org.isoron.uhabits.utils.requestFocusWithKeyboard
 import org.isoron.uhabits.utils.sres
+import kotlin.math.roundToInt
 
-class NumberDialog : AppCompatDialogFragment() {
+class NumberDialog : EntryDialogFragment() {
 
-    var onToggle: (Double, String) -> Unit = { _, _ -> }
+    var onToggle: ((Double, String) -> Unit)? = null
     var onDismiss: () -> Unit = {}
 
     private var originalNotes: String = ""
@@ -30,9 +32,9 @@ class NumberDialog : AppCompatDialogFragment() {
     private lateinit var view: CheckmarkPopupBinding
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val appComponent = (requireActivity().application as HabitsApplication).component
         val prefs = appComponent.preferences
         view = CheckmarkPopupBinding.inflate(LayoutInflater.from(context))
+        bindContext(view, numerical = true)
         arrayOf(view.yesBtn).forEach {
             it.setTextColor(requireArguments().getInt("color"))
         }
@@ -49,11 +51,11 @@ class NumberDialog : AppCompatDialogFragment() {
         if (!prefs.areQuestionMarksEnabled) view.unknownBtnNumber.visibility = View.GONE
         view.numberButtons.visibility = View.VISIBLE
         fixDecimalSeparator(view)
-        originalNotes = requireArguments().getString("notes")!!
+        originalNotes = requireArguments().getString("notes").orEmpty()
         originalValue = requireArguments().getDouble("value")
-        view.notes.setText(originalNotes)
+        view.notes.setText(savedInstanceState?.getString(DRAFT_NOTES) ?: originalNotes)
         view.value.setText(
-            when {
+            savedInstanceState?.getString(DRAFT_VALUE) ?: when {
                 originalValue < 0 -> "0"
                 else -> formatEditableNumber(originalValue, resources.configuration.locales[0])
             }
@@ -86,8 +88,26 @@ class NumberDialog : AppCompatDialogFragment() {
         dialog.window?.apply {
             setBackgroundDrawableResource(android.R.color.transparent)
         }
-        dialog.setOnDismissListener { onDismiss() }
         return dialog
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::view.isInitialized) {
+            outState.putString(DRAFT_NOTES, view.notes.text.toString())
+            outState.putString(DRAFT_VALUE, view.value.text.toString())
+        }
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        if (activity?.isChangingConfigurations != true) onDismiss()
+        super.onDismiss(dialog)
+    }
+
+    override fun onDestroyView() {
+        onToggle = null
+        onDismiss = {}
+        super.onDestroyView()
     }
 
     private fun fixDecimalSeparator(view: CheckmarkPopupBinding) {
@@ -129,7 +149,12 @@ class NumberDialog : AppCompatDialogFragment() {
 
     private fun submit(value: Double) {
         val notes = view.notes.text.toString()
-        onToggle(value, notes)
-        requireDialog().dismiss()
+        val callback = onToggle?.let { { it(value, notes) } }
+        if (submitEntry((value * 1000).roundToInt(), notes, callback)) {
+            dismiss()
+        } else {
+            view.value.error = getString(R.string.entry_habit_unavailable)
+            view.value.requestFocus()
+        }
     }
 }

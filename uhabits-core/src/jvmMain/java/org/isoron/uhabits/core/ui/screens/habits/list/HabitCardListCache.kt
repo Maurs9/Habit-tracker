@@ -79,6 +79,7 @@ class HabitCardListCache @Inject constructor(
     private var listener: Listener
     private val data: CacheData
     private var filteredHabits: HabitList
+    private var matcher = HabitMatcher()
     private val taskRunner: TaskRunner
 
     @Synchronized
@@ -100,6 +101,9 @@ class HabitCardListCache @Inject constructor(
     fun hasNoHabit(): Boolean {
         return allHabits.isEmpty
     }
+
+    @Synchronized
+    fun emptyState(): HabitListEmptyState = data.emptyState
 
     @Synchronized
     fun completedTodayCount(): Int = data.items.filterIsInstance<ListItem.Row>().count {
@@ -299,6 +303,7 @@ class HabitCardListCache @Inject constructor(
 
     @Synchronized
     fun setFilter(matcher: HabitMatcher) {
+        this.matcher = matcher
         filteredHabits = allHabits.getFiltered(matcher)
     }
 
@@ -320,6 +325,7 @@ class HabitCardListCache @Inject constructor(
     }
 
     private inner class CacheData {
+        var emptyState = HabitListEmptyState.NO_HABITS
         val items = mutableListOf<ListItem>()
         val checkmarks = hashMapOf<Long?, IntArray>()
         val scores = hashMapOf<Long?, Double>()
@@ -329,6 +335,11 @@ class HabitCardListCache @Inject constructor(
             checkmarks[habit.id]?.firstOrNull()?.let { habit.isCompleted(it) } == true
 
         fun fetchItems(habits: List<Habit>) {
+            emptyState = if (habits.isNotEmpty()) {
+                HabitListEmptyState.NONE
+            } else {
+                HabitListEmptyState.classify(allHabits.toList(), matcher)
+            }
             val sections = sectionList.getAll()
             val knownIds = sections.map { it.id }.toSet()
             if (!groupBySection || habits.none { it.sectionId in knownIds }) {
@@ -357,6 +368,7 @@ class HabitCardListCache @Inject constructor(
 
     @Synchronized
     private fun applyData(next: CacheData) {
+        data.emptyState = next.emptyState
         val ids = next.items.map { it.itemId }.toSet()
         var position = 0
         while (position < data.items.size) {

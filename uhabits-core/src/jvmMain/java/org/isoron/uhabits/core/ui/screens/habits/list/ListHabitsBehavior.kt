@@ -57,7 +57,7 @@ open class ListHabitsBehavior @Inject constructor(
         val entry = habit.computedEntries.get(timestamp!!)
         if (habit.type == HabitType.NUMERICAL) {
             val oldValue = entry.value.toDouble() / 1000
-            screen.showNumberPopup(oldValue, entry.notes) { newValue: Double, newNotes: String ->
+            screen.showNumberPopup(habit, timestamp, oldValue, entry.notes) { newValue: Double, newNotes: String ->
                 val value = (newValue * 1000).roundToInt()
                 if (newValue != oldValue) {
                     if (
@@ -71,6 +71,8 @@ open class ListHabitsBehavior @Inject constructor(
             }
         } else {
             screen.showCheckmarkPopup(
+                habit,
+                timestamp,
                 entry.value,
                 entry.notes,
                 habit.color
@@ -180,11 +182,15 @@ open class ListHabitsBehavior @Inject constructor(
         fun showIntroScreen()
         fun showMessage(m: Message)
         fun showNumberPopup(
+            habit: Habit,
+            timestamp: Timestamp,
             value: Double,
             notes: String,
             callback: NumberPickerCallback
         )
         fun showCheckmarkPopup(
+            habit: Habit,
+            timestamp: Timestamp,
             selectedValue: Int,
             notes: String,
             color: PaletteColor,

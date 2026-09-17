@@ -19,6 +19,7 @@
 
 package org.isoron.uhabits.activities.habits.list.views
 
+import android.view.ViewGroup
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import org.isoron.uhabits.BaseViewTest
@@ -99,5 +100,36 @@ class HabitCardViewTest : BaseViewTest() {
         habit1.observable.notifyListeners()
         Thread.sleep(500)
         assertRenders(view, "$PATH/render_changed.png")
+    }
+
+    @Test
+    fun testRebindPreservesBothPanelsAndRefreshesHabitDateNotesAndCallbacks() {
+        val frame = view.checkmarkPanel.parent as ViewGroup
+        val numberPanel = (0 until frame.childCount).map { frame.getChildAt(it) }.filterIsInstance<NumberPanelView>().single()
+        val checkmarks = view.checkmarkPanel.buttons.toList()
+        val numbers = numberPanel.buttons.toList()
+        repeat(20) {
+            view.habit = if (it % 2 == 0) habit1 else habit2
+            view.buttonCount = 5
+        }
+        checkmarks.forEachIndexed { index, button -> assertSame(button, view.checkmarkPanel.buttons[index]) }
+        numbers.forEachIndexed { index, button -> assertSame(button, numberPanel.buttons[index]) }
+        view.habit = habit2
+        view.dataOffset = 2
+        view.notes = Array(10) { "Updated $it" }
+        var edited: Timestamp? = null
+        numberPanel.onEdit = { edited = it }
+        view.buttonCount = 5
+        numberPanel.buttons[0].performClick()
+        assertEquals(today.minus(2), edited)
+        assertEquals(habit2.name, numbers[0].habitName)
+        assertEquals("Updated 2", numbers[0].notes)
+        assertEquals(habit2.unit, numbers[0].units)
+        view.habit = habit1
+        var toggled: Pair<Timestamp, String>? = null
+        view.checkmarkPanel.onToggle = { timestamp, _, notes -> toggled = timestamp to notes }
+        view.buttonCount = 5
+        checkmarks[0].performToggle()
+        assertEquals(today.minus(2) to "Updated 2", toggled)
     }
 }

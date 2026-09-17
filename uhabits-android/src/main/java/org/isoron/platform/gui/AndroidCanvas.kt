@@ -25,6 +25,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.text.TextPaint
+import android.util.TypedValue
 import org.isoron.uhabits.utils.InterfaceUtils.getFontAwesome
 
 class AndroidCanvas : Canvas {
@@ -130,8 +131,13 @@ class AndroidCanvas : Canvas {
     }
 
     override fun setFontSize(size: Double) {
-        textPaint.textSize = size.toDp()
+        textPaint.textSize = getScaledFontSize(size).toDp()
         updateMHeight()
+    }
+
+    override fun getScaledFontSize(size: Double): Double {
+        val metrics = context.resources.displayMetrics
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size.toFloat(), metrics) / metrics.density.toDouble()
     }
 
     private fun updateMHeight() {
