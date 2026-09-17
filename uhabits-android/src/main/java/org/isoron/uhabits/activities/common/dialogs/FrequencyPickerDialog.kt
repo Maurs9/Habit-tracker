@@ -30,6 +30,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDialogFragment
 import org.isoron.uhabits.R
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.databinding.FrequencyPickerDialogBinding
 
 class FrequencyPickerDialog(
@@ -258,9 +259,11 @@ class FrequencyPickerDialog(
         val text = input.text.toString()
         val value = parsePositiveFrequencyInteger(text)
         if (value == null) {
-            input.error = getString(
-                if (text.isBlank()) R.string.validation_cannot_be_blank else R.string.frequency_positive_integer
-            )
+            input.error = if (text.isBlank()) {
+                getString(R.string.validation_cannot_be_blank)
+            } else {
+                getString(R.string.frequency_valid_interval, Frequency.MAX_DENOMINATOR)
+            }
             return null
         }
         return value

@@ -7,6 +7,7 @@ import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.graphics.ColorUtils
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -21,6 +22,7 @@ import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.ThemeSwitcher
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache.ListItem.Header
+import org.isoron.uhabits.core.utils.ColorContrast
 import org.isoron.uhabits.inject.ActivityContextModule
 import org.isoron.uhabits.utils.StyledResources
 import org.junit.Test
@@ -29,6 +31,34 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @MediumTest
 class HabitListAppearanceTest : BaseViewTest() {
+    @Test
+    fun testHabitNamesMeetContrastForEveryPaletteColorAndSelectionState() {
+        val habit = fixtures.createLongHabit()
+        for (style in listOf(R.style.AppBaseTheme, R.style.AppBaseThemeDark, R.style.AppBaseThemeDark_PureBlack)) {
+            withThemedActivity(style) { activity, factory ->
+                val card = factory.create()
+                val inner = card.getChildAt(0) as ViewGroup
+                val label = (0 until inner.childCount).map { inner.getChildAt(it) }.filterIsInstance<TextView>().single()
+                val styled = StyledResources(activity)
+                for (index in 0 until PaletteColor.COUNT) {
+                    habit.color = PaletteColor(index)
+                    card.habit = habit
+                    for (selected in listOf(false, true, false)) {
+                        card.isSelected = selected
+                        val background = styled.getColor(
+                            if (selected) R.attr.highlightedBackgroundColor else R.attr.cardBgColor
+                        )
+                        assertTrue(
+                            "Palette $index, style $style, selected=$selected",
+                            ColorContrast.ratio(label.currentTextColor, background) >= 4.5
+                        )
+                        assertEquals(PaletteColor(index), habit.color)
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun testRenderLight() = render(R.style.AppBaseTheme, "light.png")
 

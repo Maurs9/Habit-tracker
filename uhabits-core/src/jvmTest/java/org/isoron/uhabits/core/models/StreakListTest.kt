@@ -75,6 +75,6 @@ class StreakListTest : BaseUnitTest() {
         numericalHabit.recompute()
         val best = numericalHabit.streaks.getBest(1)
         assertThat(best.size, equalTo(1))
-        assertThat(best[0].length, equalTo(5))
+        assertThat(best[0].length, equalTo(6))
     }
 }

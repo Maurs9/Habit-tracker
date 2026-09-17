@@ -28,6 +28,7 @@ data class CreateHabitCommand(
     val model: Habit
 ) : Command {
     override fun run() {
+        model.validate()
         val habit = modelFactory.buildHabit()
         habit.copyFrom(model)
         habitList.add(habit)

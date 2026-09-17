@@ -192,7 +192,7 @@ class BackupPreviewTest : BaseAndroidTest() {
     }
 
     @Test
-    fun version28RecognizesSectionsAndAllowsOrphansWithoutChangingInput() {
+    fun currentVersionRecognizesSectionsAndAllowsOrphansWithoutChangingInput() {
         val section = appComponent.sectionList.add("Morning")
         val habit = fixtures.createEmptyHabit()
         habit.sectionId = section.id
@@ -200,13 +200,13 @@ class BackupPreviewTest : BaseAndroidTest() {
         val file = backup()
         val bytes = file.readBytes()
         assertTrue(BackupValidator.isLoopDatabase(file))
-        assertEquals(28, BackupValidator.inspect(file).version)
+        assertEquals(DATABASE_VERSION, BackupValidator.inspect(file).version)
         assertTrue(bytes.contentEquals(file.readBytes()))
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use {
             it.execSQL("UPDATE Habits SET section_id = 999999")
         }
         val orphanBytes = file.readBytes()
-        assertEquals(28, BackupValidator.inspect(file).version)
+        assertEquals(DATABASE_VERSION, BackupValidator.inspect(file).version)
         assertTrue(orphanBytes.contentEquals(file.readBytes()))
     }
 

@@ -18,6 +18,7 @@
  */
 package org.isoron.uhabits.core.io
 
+import com.opencsv.CSVReader
 import org.isoron.uhabits.core.BaseUnitTest
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Frequency
@@ -88,6 +89,33 @@ class HabitsCSVExporterTest : BaseUnitTest() {
                 val csv = archive.getInputStream(archive.getEntry("Habits.csv")).bufferedReader().use { it.readText() }
                 assertTrue(csv.contains("Tags,Section,ReminderTimes"))
                 assertTrue(csv.contains("\"Morning, \"\"quiet\"\"\ntime\""))
+            }
+        } finally {
+            File(filename).delete()
+        }
+    }
+
+    @Test
+    fun aggregateHeadersEscapeHabitNamesWithoutShiftingMeasurements() {
+        habitList.removeAll()
+        val habit = modelFactory.buildHabit().apply {
+            name = "Read, \"write\"\nand learn"
+            originalEntries.add(Entry(DateUtils.getTodayWithOffset(), Entry.YES_MANUAL))
+            recompute()
+        }
+        habitList.add(habit)
+        val filename = HabitsCSVExporter(habitList, sectionList, listOf(habit), baseDir).writeArchive()
+        try {
+            ZipFile(filename).use { archive ->
+                for (path in listOf("Checkmarks.csv", "Scores.csv")) {
+                    CSVReader(archive.getInputStream(archive.getEntry(path)).reader()).use { reader ->
+                        val header = reader.readNext()
+                        val row = reader.readNext()
+                        assertEquals(listOf("Date", habit.name, ""), header.toList())
+                        assertEquals(header.size, row.size)
+                        assertTrue(row[1].isNotEmpty())
+                    }
+                }
             }
         } finally {
             File(filename).delete()

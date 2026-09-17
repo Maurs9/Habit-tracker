@@ -28,6 +28,7 @@ import org.isoron.uhabits.core.database.DatabaseOpener
 import org.isoron.uhabits.core.database.MigrationHelper
 import org.isoron.uhabits.core.database.Repository
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
 import org.isoron.uhabits.core.models.SectionList
@@ -96,19 +97,37 @@ class LoopDBImporter
     private fun importDatabase(db: Database) {
         val helper = MigrationHelper(db)
         helper.migrateTo(DATABASE_VERSION)
+        db.execute("PRAGMA user_version = $DATABASE_VERSION")
 
         val habitsRepository = Repository(HabitRecord::class.java, db)
         val entryRepository = Repository(EntryRecord::class.java, db)
+        validateHabitMetadata(db)
         validateSectionMetadata(db)
+        val habitRecords = habitsRepository.findAll("order by position")
+        habitRecords.forEach { record ->
+            modelFactory.buildHabit().also {
+                record.copyTo(it)
+                it.validate()
+            }
+        }
+        require(habitRecords.map { it.uuid }.distinct().size == habitRecords.size) { "Duplicate habit UUIDs" }
+        val habitIds = habitRecords.map { it.id }.toSet()
+        val entryRecordsByHabit = entryRepository.findAll("").onEach { record ->
+            require(record.habitId in habitIds) { "Entry references a missing habit" }
+            val entry = record.toEntry()
+            require(entry.value >= 0 || entry.value == Entry.SKIP || entry.value == Entry.UNKNOWN) {
+                "Invalid recorded entry value"
+            }
+        }.groupBy { it.habitId }
         val foreignSections = Repository(SectionRecord::class.java, db)
             .findAll("ORDER BY position, id").map { it.toSection() }
         val sectionIds = foreignSections.associate { section ->
             section.id to (sectionList.getByName(section.name) ?: sectionList.add(section.name)).id
         }
 
-        for (habitRecord in habitsRepository.findAll("order by position")) {
+        for (habitRecord in habitRecords) {
             var habit = habitList.getByUUID(habitRecord.uuid)
-            val entryRecords = entryRepository.findAll("where habit = ?", habitRecord.id.toString())
+            val entryRecords = entryRecordsByHabit[habitRecord.id].orEmpty()
             habitRecord.sectionId = sectionIds[habitRecord.sectionId]
 
             if (habit == null) {
@@ -119,6 +138,7 @@ class LoopDBImporter
             } else {
                 val modified = modelFactory.buildHabit()
                 habitRecord.id = habit.id
+                habitRecord.position = habit.position
                 habitRecord.copyTo(modified)
                 EditHabitCommand(habitList, habit.id!!, modified).run()
             }
@@ -137,8 +157,16 @@ class LoopDBImporter
             }
             habit.recompute()
         }
+        habitList.repair()
         habitList.resort()
         sectionList.repair()
+    }
+
+    private fun validateHabitMetadata(db: Database) {
+        db.query(
+            "SELECT 1 FROM habits WHERE typeof(freq_num) != 'integer' OR typeof(freq_den) != 'integer' " +
+                "OR freq_num < 1 OR freq_num > freq_den OR freq_den > ${Frequency.MAX_DENOMINATOR} LIMIT 1"
+        ).use { require(!it.moveToNext()) { "Invalid habit frequency" } }
     }
 
     private fun validateSectionMetadata(db: Database) {

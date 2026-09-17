@@ -5,5 +5,6 @@
     <string name="entry_action_skip">Skip day</string>
     <string name="entry_action_clear">Clear entry</string>
     <string name="frequency_positive_integer">Enter a whole number greater than zero.</string>
+    <string name="frequency_valid_interval">Enter a whole number between 1 and %d.</string>
     <string name="frequency_not_more_than_days">The number of times cannot exceed the number of days.</string>
 </resources>

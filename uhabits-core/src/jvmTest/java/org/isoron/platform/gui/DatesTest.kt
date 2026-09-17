@@ -31,4 +31,15 @@ class DatesTest {
         assertEquals(date.month, 12)
         assertEquals(date.year, 1999)
     }
+
+    @Test
+    fun weekdaysBeforeAndAfter2000MatchTheGregorianCalendar() {
+        for (start in listOf(java.time.LocalDate.of(1970, 1, 1), java.time.LocalDate.of(1999, 12, 25))) {
+            for (offset in 0L..13L) {
+                val expected = start.plusDays(offset)
+                val actual = LocalDate(expected.year, expected.monthValue, expected.dayOfMonth)
+                assertEquals(expected.dayOfWeek.value % 7, actual.dayOfWeek.daysSinceSunday)
+            }
+        }
+    }
 }

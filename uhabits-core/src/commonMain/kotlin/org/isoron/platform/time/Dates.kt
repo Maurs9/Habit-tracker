@@ -43,7 +43,7 @@ data class LocalDate(val daysSince2000: Int) {
 
     val dayOfWeek: DayOfWeek
         get() {
-            return when (daysSince2000 % 7) {
+            return when ((daysSince2000 % 7 + 7) % 7) {
                 0 -> DayOfWeek.SATURDAY
                 1 -> DayOfWeek.SUNDAY
                 2 -> DayOfWeek.MONDAY

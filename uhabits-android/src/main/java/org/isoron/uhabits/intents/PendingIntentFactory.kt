@@ -184,12 +184,19 @@ class PendingIntentFactory
             FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT
         )
 
-    fun showNumberPicker(habit: Habit, timestamp: Timestamp): PendingIntent? {
+    fun showNumberPicker(habit: Habit, timestamp: Timestamp): PendingIntent =
+        numberPicker(habit, timestamp, "notification/${timestamp.unixTime}")
+
+    fun showNumberPickerFromWidget(habit: Habit, timestamp: Timestamp): PendingIntent =
+        numberPicker(habit, timestamp, "widget")
+
+    private fun numberPicker(habit: Habit, timestamp: Timestamp, identity: String): PendingIntent {
         return getActivity(
             context,
             (habit.id!! % Integer.MAX_VALUE).toInt() + 1,
             Intent(context, ListHabitsActivity::class.java).apply {
                 action = ListHabitsActivity.ACTION_EDIT
+                data = Uri.parse("${habit.uriString}/$identity")
                 putExtra("habit", habit.id)
                 putExtra("timestamp", timestamp.unixTime)
             },

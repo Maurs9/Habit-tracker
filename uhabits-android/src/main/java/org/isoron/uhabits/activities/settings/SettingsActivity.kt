@@ -25,7 +25,6 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
 import org.isoron.uhabits.activities.HabitsActivity
 import org.isoron.uhabits.databinding.SettingsActivityBinding
-import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.setupToolbar
 
@@ -41,8 +40,7 @@ class SettingsActivity : HabitsActivity() {
             title = resources.getString(R.string.settings),
             theme = themeSwitcher.currentTheme
         )
-        binding.root.applyRootViewInsets()
-        binding.root.applyBottomInset()
+        binding.root.applyRootViewInsets(includeBottom = true)
         setContentView(binding.root)
     }
 }

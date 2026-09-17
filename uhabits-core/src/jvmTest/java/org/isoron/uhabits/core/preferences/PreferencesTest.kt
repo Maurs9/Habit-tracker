@@ -192,6 +192,17 @@ class PreferencesTest : BaseUnitTest() {
     }
 
     @Test
+    fun testLegacyLargeDensityMigratesBeforeReadingOrChanging() {
+        storage.putString("pref_list_density", "LARGE")
+        assertThat(prefs.listDensity, equalTo(ListDensity.SPACIOUS))
+        assertThat(storage.getString("pref_list_density", ""), equalTo("SPACIOUS"))
+        assertThat(Preferences(storage).listDensity, equalTo(ListDensity.SPACIOUS))
+        prefs.listDensity = ListDensity.COMPACT
+        assertThat(prefs.listDensity, equalTo(ListDensity.COMPACT))
+        assertThat(ListDensity.fromPersistedName("LARGE"), equalTo(ListDensity.SPACIOUS))
+    }
+
+    @Test
     fun testInvalidListDensityIsReported() {
         storage.putString("pref_list_density", "INVALID")
         assertFailsWith<IllegalArgumentException> { prefs.listDensity }

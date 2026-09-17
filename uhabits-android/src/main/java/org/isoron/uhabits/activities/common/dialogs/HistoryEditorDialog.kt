@@ -119,9 +119,14 @@ class HistoryEditorDialog : AppCompatDialogFragment(), CommandRunner.Listener {
         chart?.series = model.series
         chart?.defaultSquare = model.defaultSquare
         chart?.notesIndicators = model.notesIndicators
+        chart?.today = model.today
+        chart?.firstWeekday = model.firstWeekday
         val today = Timestamp.fromLocalDate(model.today)
         val dayCount = Timestamp.ZERO.daysUntil(today) + 1
-        dataView.maxDataOffset = (dayCount - 1) / 7
+        dataView.maxDataOffset = checkNotNull(chart).maximumDataOffset
+        if (dataView.dataOffset > dataView.maxDataOffset) {
+            dataView.scrollByColumns(dataView.maxDataOffset - dataView.dataOffset)
+        }
         dataView.setChartData(
             ChartData(
                 title = getString(R.string.calendar),

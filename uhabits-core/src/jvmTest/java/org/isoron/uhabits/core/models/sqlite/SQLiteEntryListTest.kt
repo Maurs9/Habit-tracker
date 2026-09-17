@@ -26,10 +26,13 @@ import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.models.sqlite.records.EntryRecord
 import org.isoron.uhabits.core.utils.DateUtils
+import org.junit.After
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class SQLiteEntryListTest {
 
@@ -46,6 +49,43 @@ class SQLiteEntryListTest {
         val habit = factory.buildHabit()
         habitList.add(habit)
         entries.habitId = habit.id
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
+
+    @Test
+    fun failedReplacementPreservesStoredAndCachedEntry() {
+        val original = Entry(today, Entry.YES_MANUAL, "Original note")
+        entries.add(original)
+        database.execute(
+            "CREATE TRIGGER reject_entry AFTER INSERT ON repetitions " +
+                "BEGIN SELECT RAISE(ABORT, 'injected failure'); END"
+        )
+        assertThrows(RuntimeException::class.java) {
+            entries.add(Entry(today, Entry.NO, "Replacement note"))
+        }
+        assertEquals(original, entries.get(today))
+        assertEquals(original, getByTimestamp(entries.habitId!!.toInt(), today)!!.toEntry())
+        entries.reload()
+        assertEquals(original, entries.get(today))
+    }
+
+    @Test
+    fun replacementDoesNotCommitEnclosingTransaction() {
+        val original = Entry(today, Entry.YES_MANUAL, "Original note")
+        entries.add(original)
+        database.beginTransaction()
+        try {
+            entries.add(Entry(today, Entry.SKIP, "Uncommitted note"))
+            assertTrue(database.inTransaction)
+        } finally {
+            database.endTransaction()
+        }
+        entries.reload()
+        assertEquals(original, entries.get(today))
     }
 
     @Test

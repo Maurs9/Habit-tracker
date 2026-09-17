@@ -47,6 +47,7 @@ import org.isoron.uhabits.core.models.ModelObservable
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
+import org.isoron.uhabits.core.utils.ColorContrast
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.utils.currentTheme
@@ -363,7 +364,7 @@ class HabitCardView(
         val c = getActiveColor(h)
         label.apply {
             text = h.name
-            setTextColor(c)
+            setTextColor(readableLabelColor(c))
         }
         scoreRing.apply {
             setColor(c)
@@ -405,7 +406,17 @@ class HabitCardView(
             false -> R.drawable.ripple
         }
         innerFrame.setBackgroundResource(background)
+        habit?.let {
+            val color = if (it.isArchived) sres.getColor(R.attr.contrast60) else currentTheme().color(it.color).toInt()
+            label.setTextColor(readableLabelColor(color))
+        }
     }
+
+    private fun readableLabelColor(color: Int): Int = ColorContrast.ensureContrast(
+        color,
+        sres.getColor(if (isSelected) R.attr.highlightedBackgroundColor else R.attr.cardBgColor),
+        4.5
+    )
 
     companion object {
         fun (() -> Unit).delay(delayInMillis: Long) {

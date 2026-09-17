@@ -37,7 +37,7 @@ import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
-import org.isoron.uhabits.core.ui.ThemeSwitcher.Companion.THEME_DARK
+import org.isoron.uhabits.core.ui.ThemeSwitcher
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitListEmptyState
 import org.isoron.uhabits.core.utils.MidnightTimer
 import org.isoron.uhabits.database.AutoBackup
@@ -47,11 +47,10 @@ import org.isoron.uhabits.inject.HabitsActivityComponent
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.dismissCurrentDialog
-import org.isoron.uhabits.utils.restartWithFade
 
 class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
 
-    var pureBlack: Boolean = false
+    private lateinit var appliedTheme: ThemeSwitcher.Variant
     lateinit var appComponent: HabitsApplicationComponent
     lateinit var component: HabitsActivityComponent
     lateinit var taskRunner: TaskRunner
@@ -89,7 +88,7 @@ class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
 
         prefs = appComponent.preferences
         prefs.addListener(this)
-        pureBlack = prefs.isPureBlackEnabled
+        appliedTheme = component.themeSwitcher.themeVariant
         midnightTimer = appComponent.midnightTimer
         rootView = component.listHabitsRootView
         screen = component.listHabitsScreen
@@ -127,6 +126,10 @@ class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
     }
 
     override fun onResumeReady() {
+        if (component.themeSwitcher.themeVariant != appliedTheme) {
+            recreate()
+            return
+        }
         adapter.refresh()
         screen.onAttached()
         rootView.postInvalidate()
@@ -158,9 +161,6 @@ class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
             } catch (e: Exception) {
                 Log.e("ListHabitActivity", "TaskRunner failed", e)
             }
-        }
-        if (prefs.theme == THEME_DARK && prefs.isPureBlackEnabled != pureBlack) {
-            restartWithFade(ListHabitsActivity::class.java)
         }
         parseIntents()
     }

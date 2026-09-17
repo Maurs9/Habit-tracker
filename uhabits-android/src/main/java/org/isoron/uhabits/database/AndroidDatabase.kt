@@ -56,7 +56,7 @@ class AndroidDatabase(
 
     override fun insert(tableName: String, values: Map<String, Any?>): Long {
         val contValues = mapToContentValues(values)
-        return db.insert(tableName, null, contValues)
+        return db.insertOrThrow(tableName, null, contValues)
     }
 
     override fun delete(

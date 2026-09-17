@@ -200,8 +200,7 @@ fun View.setupToolbar(
 fun View.currentTheme(): Theme {
     val component = (context.applicationContext as HabitsApplication).component
     val themeSwitcher = AndroidThemeSwitcher(context, component.preferences)
-    themeSwitcher.apply()
-    return themeSwitcher.currentTheme
+    return themeSwitcher.resolveTheme()
 }
 
 fun Int.toMeasureSpec(mode: Int) =
@@ -255,13 +254,13 @@ fun View.getCenter(): PointF {
     return PointF(viewLocation[0].toFloat(), viewLocation[1].toFloat())
 }
 
-fun View.applyRootViewInsets() {
+fun View.applyRootViewInsets(includeBottom: Boolean = false) {
     ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
         val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
         val displayCutoutInsets = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
         val left = maxOf(systemBarsInsets.left, displayCutoutInsets.left)
         val right = maxOf(systemBarsInsets.right, displayCutoutInsets.right)
-        view.setPadding(left, 0, right, 0)
+        view.setPadding(left, 0, right, if (includeBottom) systemBarsInsets.bottom else 0)
         if (view.background == null) {
             view.background = view.sres.getDrawable(R.attr.windowBackgroundColor)
         }

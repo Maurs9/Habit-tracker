@@ -210,9 +210,9 @@ class HabitListTest : BaseUnitTest() {
         val expectedCSV =
             """
             Position,Name,Type,Question,Description,FrequencyNumerator,FrequencyDenominator,Color,Unit,Target Type,Target Value,Archived?,Tags,Section,ReminderTimes,ReminderDays
-            001,Meditate,YES_NO,Did you meditate this morning?,this is a test description,1,1,#C43E12,,,,false,,Morning,,
-            002,Run,NUMERICAL,How many miles did you run today?,,1,1,#A65050,miles,AT_LEAST,2.0,false,,,,
-            003,Wake up early,YES_NO,Did you wake up before 6am?,,2,3,#8F2809,,,,false,,,,
+            001,Meditate,YES_NO,Did you meditate this morning?,this is a test description,1,1,${h1.color.toCsvColor()},,,,false,,Morning,,
+            002,Run,NUMERICAL,How many miles did you run today?,,1,1,${h3.color.toCsvColor()},miles,AT_LEAST,2.0,false,,,,
+            003,Wake up early,YES_NO,Did you wake up before 6am?,,2,3,${h2.color.toCsvColor()},,,,false,,,,
             
             """.trimIndent()
         val writer = StringWriter()

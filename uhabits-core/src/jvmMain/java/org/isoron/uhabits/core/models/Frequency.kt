@@ -23,10 +23,16 @@ data class Frequency(
     var denominator: Int
 ) {
     init {
+        validate()
         if (numerator == denominator) {
             denominator = 1
             numerator = 1
         }
+    }
+
+    fun validate() {
+        require(denominator in 1..MAX_DENOMINATOR) { "Frequency interval must be between 1 and $MAX_DENOMINATOR days" }
+        require(numerator in 1..denominator) { "Frequency repetitions must be between 1 and the interval length" }
     }
 
     fun toDouble(): Double {
@@ -34,6 +40,8 @@ data class Frequency(
     }
 
     companion object {
+        const val MAX_DENOMINATOR = Int.MAX_VALUE
+
         @JvmField
         val DAILY = Frequency(1, 1)
 

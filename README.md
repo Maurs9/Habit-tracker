@@ -30,7 +30,7 @@
   * **Compact**: Minimalist 1dp row spacing and streamlined headers to view maximum habits at a glance without scrolling.
   * **Standard**: Balanced default layout with 3dp row gaps and classic 48dp action buttons.
   * **Spacious**: Generous touch targets with 64dp action buttons and enhanced row breathing room.
-* **📁 Habit Sections & Collapsible Headers**: Organize daily routines into custom sections (e.g., *Morning Routine*, *Health & Fitness*, *Evening & Learning*). View live *done / total* counts in section headers and collapse sections to stay focused.
+* **📁 Habit Sections**: Organize daily routines into custom sections (e.g., *Morning Routine*, *Health & Fitness*, *Evening & Learning*). View live *done / total* counts in informational section headers.
 * **↕️ Seamless Long-Press Habit Reordering**: Reorder habits cleanly inside their sections via smooth drag-and-drop when sorted Manually. Clean card design with no intrusive drag handle icons, haptic feedback on elevation, atomic database persistence upon release, and instant in-place long-press for multi-selection mode (CAB).
 * **🎯 Flexible Frequencies for Measurable Habits**: Measurable/numerical habits now enjoy full frequency support (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days automatically receive outline checkmarks (`YES_AUTO`), cleanly distinguished from measured values across cards, widgets, and CSV exports.
 * **🎨 4-Ring Donut Color Wheel Picker**: Intuitive harmonic color wheel with 52 vibrant, non-overlapping colors across 4 concentric rings (Deep, Vibrant, Soft, Pastel) and 12 radial hue sectors, plus 4 neutral swatches in the center hub. High contrast calibrated for both Light and Dark themes.

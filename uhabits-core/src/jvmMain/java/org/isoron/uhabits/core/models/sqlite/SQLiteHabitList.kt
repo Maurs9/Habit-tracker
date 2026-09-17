@@ -65,7 +65,9 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
 
     @Synchronized
     override fun add(habit: Habit) {
+        habit.validate()
         loadRecords()
+        require(habit.id == null || list.getById(habit.id!!) == null) { "habit already added" }
         habit.position = size()
         val record = HabitRecord()
         record.copyFrom(habit)
@@ -131,7 +133,7 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
     @Synchronized
     private fun rebuildOrder() {
         val records = repository.findAll("order by position")
-        repository.executeAsTransaction {
+        repository.executeAsTransaction(allowNesting = true) {
             for ((pos, r) in records.withIndex()) {
                 if (r.position != pos) {
                     r.position = pos
@@ -139,6 +141,10 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
                 }
             }
         }
+        records.forEachIndexed { position, record ->
+            list.getById(record.id!!)?.position = position
+        }
+        list.resort()
     }
 
     @Synchronized
@@ -210,6 +216,7 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
 
     @Synchronized
     override fun update(habits: List<Habit>) {
+        habits.forEach { it.validate() }
         loadRecords()
         list.update(habits)
         for (h in habits) {

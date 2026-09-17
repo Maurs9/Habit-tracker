@@ -56,6 +56,7 @@ class ScoreList {
         var current = toTimestamp
         while (!current.isOlderThan(fromTimestamp)) {
             result.add(get(current))
+            if (current == fromTimestamp) break
             current = current.minus(1)
         }
         return result
@@ -74,10 +75,11 @@ class ScoreList {
         from: Timestamp,
         to: Timestamp
     ) {
+        frequency.validate()
         map.clear()
         var rollingSum = 0.0
-        var numerator = frequency.numerator
-        var denominator = frequency.denominator
+        var numerator = frequency.numerator.toLong()
+        var denominator = frequency.denominator.toLong()
         val freq = frequency.toDouble()
         val values = computedEntries.getByInterval(from, to).map { it.value }.toIntArray()
         val isAtMost = numericalHabitType == NumericalHabitType.AT_MOST
@@ -93,7 +95,8 @@ class ScoreList {
         for (i in values.indices) {
             val v = values[i]
             dayScores[i] = when {
-                v == Entry.SKIP || v == Entry.UNKNOWN || (isNumerical && v == Entry.NUMERICAL_AUTO) -> 0.0
+                v == Entry.SKIP || (isNumerical && v == Entry.NUMERICAL_AUTO) -> 0.0
+                v == Entry.UNKNOWN -> if (isNumerical && isAtMost) 1.0 else 0.0
                 !isNumerical -> if (v == Entry.YES_MANUAL) 1.0 else 0.0
                 !isAtMost -> if (targetValue > 0) min(1.0, max(0.0, v / 1000.0) / targetValue) else 1.0
                 else -> {
@@ -111,8 +114,9 @@ class ScoreList {
         for (i in values.indices) {
             val offset = values.size - i - 1
             rollingSum += dayScores[offset]
-            if (offset + denominator < values.size) {
-                rollingSum -= dayScores[offset + denominator]
+            val expiredOffset = offset.toLong() + denominator
+            if (expiredOffset < values.size) {
+                rollingSum -= dayScores[expiredOffset.toInt()]
             }
 
             if (values[offset] != Entry.SKIP) {

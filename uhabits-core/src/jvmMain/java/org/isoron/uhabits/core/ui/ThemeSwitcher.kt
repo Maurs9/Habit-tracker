@@ -19,14 +19,32 @@
 package org.isoron.uhabits.core.ui
 
 import org.isoron.uhabits.core.preferences.Preferences
+import org.isoron.uhabits.core.ui.views.DarkTheme
+import org.isoron.uhabits.core.ui.views.LightTheme
+import org.isoron.uhabits.core.ui.views.PureBlackTheme
 import org.isoron.uhabits.core.ui.views.Theme
 
 abstract class ThemeSwitcher(private val preferences: Preferences) {
+    enum class Variant { LIGHT, DARK, PURE_BLACK }
+
+    val themeVariant: Variant
+        get() = when {
+            !isNightMode -> Variant.LIGHT
+            preferences.isPureBlackEnabled -> Variant.PURE_BLACK
+            else -> Variant.DARK
+        }
+
+    fun resolveTheme(): Theme = when (themeVariant) {
+        Variant.LIGHT -> LightTheme()
+        Variant.DARK -> DarkTheme()
+        Variant.PURE_BLACK -> PureBlackTheme()
+    }
+
     fun apply() {
-        if (isNightMode) {
-            if (preferences.isPureBlackEnabled) applyPureBlackTheme() else applyDarkTheme()
-        } else {
-            applyLightTheme()
+        when (themeVariant) {
+            Variant.LIGHT -> applyLightTheme()
+            Variant.DARK -> applyDarkTheme()
+            Variant.PURE_BLACK -> applyPureBlackTheme()
         }
     }
 

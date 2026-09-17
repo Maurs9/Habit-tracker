@@ -35,12 +35,14 @@ import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitMatcher
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.NumericalHabitType
+import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.models.memory.MemoryModelFactory
 import org.isoron.uhabits.core.tasks.SingleThreadTaskRunner
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitListEmptyState
 import org.isoron.uhabits.core.ui.screens.habits.list.HintListFactory
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
+import org.isoron.uhabits.core.utils.DateUtils
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
@@ -114,8 +116,8 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         val header = adapter.onCreateViewHolder(root.listView, 1)
         adapter.onBindViewHolder(header, 0)
         assertEquals(0, root.listView.TouchHelperCallback().getMovementFlags(root.listView, header))
-        assertFalse(header.itemView.performClick())
-        assertFalse(header.itemView.performLongClick())
+        assertFalse(header.itemView.isClickable)
+        assertFalse(header.itemView.isLongClickable)
         val cardHolder = adapter.onCreateViewHolder(root.listView, 0)
         adapter.onBindViewHolder(cardHolder, 1)
         val selectionMenu: ListHabitsSelectionMenu = mock()
@@ -379,6 +381,28 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
     }
 
     @Test
+    fun testMidnightRebindsDatesOnUnchangedRowsBeforeEntryActions() = withRoot {
+        val habit = memoryFactory.buildHabit().also { testHabits.add(it) }
+        adapter.refresh()
+        root.listView.itemAnimator = null
+        layoutList()
+        val originalDate = DateUtils.getTodayWithOffset()
+        val card = holderAt(0).itemView as HabitCardView
+        assertEquals(habit, card.habit)
+        assertEquals(originalDate, card.checkmarkPanel.buttons[0].timestamp)
+
+        DateUtils.setFixedLocalTime(originalDate.unixTime + Timestamp.DAY_LENGTH)
+        adapter.atMidnight()
+        layoutList()
+
+        val refreshed = holderAt(0).itemView as HabitCardView
+        refreshed.checkmarkPanel.buttons.forEachIndexed { index, button ->
+            assertEquals(originalDate.plus(1).minus(index), button.timestamp)
+        }
+        refreshed.checkmarkPanel.buttons.last().performClick()
+    }
+
+    @Test
     fun testAccessibleDateNavigationRebindsVisibleHabitDates() = withRoot {
         prepareReorder()
         assertTrue(root.header.buttonCount > 0)
@@ -393,7 +417,8 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
 
     @Test
     fun testArchivedOnlyAndFilteredEmptyStatesOfferRelevantRecovery() = withRoot {
-        addHabit(Entry.NO).isArchived = true
+        val habit = addHabit(Entry.NO).apply { isArchived = true }
+        testHabits.update(habit)
         adapter.refresh()
         var recovery: HabitListEmptyState? = null
         root.onEmptyAction = { recovery = it }
@@ -496,6 +521,7 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
                 testHabits = memoryFactory.buildHabitList()
                 val cache = HabitCardListCache(testHabits, memoryFactory.buildSectionList(), commands, runner, mock())
                 adapter = HabitCardListAdapter(cache, prefs, mock())
+                adapter.setFilter(HabitMatcher())
                 val behavior = ListHabitsBehavior(
                     testHabits,
                     memoryFactory.buildSectionList(),

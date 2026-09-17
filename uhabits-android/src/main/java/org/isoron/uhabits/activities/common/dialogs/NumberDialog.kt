@@ -71,11 +71,11 @@ class NumberDialog : EntryDialogFragment() {
             save()
         }
         view.skipBtnNumber.setOnClickListener {
-            submit(Entry.SKIP.toDouble() / 1000)
+            submit(Entry.SKIP)
         }
 
         view.unknownBtnNumber.setOnClickListener {
-            submit(Entry.UNKNOWN.toDouble() / 1000)
+            submit(Entry.UNKNOWN)
         }
 
         view.notes.setOnEditorActionListener { v, actionId, event ->
@@ -126,7 +126,7 @@ class NumberDialog : EntryDialogFragment() {
     fun save() {
         val text = view.value.text.toString()
         if (text.isEmpty()) {
-            submit(Entry.UNKNOWN.toDouble() / 1000)
+            submit(Entry.UNKNOWN)
             return
         }
         val locale = resources.configuration.locales[0]
@@ -144,13 +144,13 @@ class NumberDialog : EntryDialogFragment() {
             view.value.requestFocus()
             return
         }
-        submit(value!!)
+        submit((value!! * 1000).roundToInt())
     }
 
-    private fun submit(value: Double) {
+    private fun submit(value: Int) {
         val notes = view.notes.text.toString()
-        val callback = onToggle?.let { { it(value, notes) } }
-        if (submitEntry((value * 1000).roundToInt(), notes, callback)) {
+        val callback = onToggle?.let { { it(value / 1000.0, notes) } }
+        if (submitEntry(value, notes, callback)) {
             dismiss()
         } else {
             view.value.error = getString(R.string.entry_habit_unavailable)

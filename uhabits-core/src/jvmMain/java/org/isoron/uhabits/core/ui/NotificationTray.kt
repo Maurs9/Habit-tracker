@@ -19,6 +19,7 @@
 package org.isoron.uhabits.core.ui
 
 import org.isoron.uhabits.core.AppScope
+import org.isoron.uhabits.core.commands.ArchiveHabitsCommand
 import org.isoron.uhabits.core.commands.BulkSkipCommand
 import org.isoron.uhabits.core.commands.ChangeHabitTagsCommand
 import org.isoron.uhabits.core.commands.ChangeReminderTimesCommand
@@ -26,7 +27,9 @@ import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
+import org.isoron.uhabits.core.commands.EditHabitCommand
 import org.isoron.uhabits.core.commands.SectionCommand
+import org.isoron.uhabits.core.commands.UpdateRepetitionCommand
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
@@ -46,9 +49,17 @@ class NotificationTray @Inject constructor(
 ) : CommandRunner.Listener, Preferences.Listener {
     private val active: HashMap<Long, Pair<Habit, NotificationData>> = HashMap()
     fun cancel(habit: Habit) {
-        val notificationId = getNotificationId(habit)
-        systemTray.removeNotification(notificationId)
-        active.remove(habit.id)
+        val id = habit.id
+        if (id == null) {
+            systemTray.log("Cannot cancel reminder for unsaved habit")
+            return
+        }
+        cancel(id)
+    }
+
+    private fun cancel(habitId: Long) {
+        systemTray.removeNotification((habitId % Int.MAX_VALUE).toInt())
+        active.remove(habitId)
     }
 
     override fun onCommandFinished(command: Command) {
@@ -56,6 +67,15 @@ class NotificationTray @Inject constructor(
         if (command is CreateRepetitionCommand) {
             val (_, habit) = command
             cancel(habit)
+        }
+        if (command is UpdateRepetitionCommand) cancel(command.habit)
+        if (command is ArchiveHabitsCommand) {
+            for (habit in command.selected) cancel(habit)
+        }
+        if (command is ChangeReminderTimesCommand) cancel(command.habitId)
+        if (command is EditHabitCommand) {
+            val habit = command.habitList.getById(command.habitId)
+            if (habit == null || shouldCancel(habit)) cancel(command.habitId)
         }
         if (command is BulkSkipCommand) {
             for (habit in command.selected) {
@@ -67,14 +87,12 @@ class NotificationTray @Inject constructor(
             for (habit in deleted) cancel(habit)
         }
         for ((habit, _) in active.values.toList()) {
-            if (!habit.hasReminder() || habit.isArchived ||
-                habit.isReminderSuppressedToday() ||
-                (command is ChangeReminderTimesCommand && command.habitId == habit.id)
-            ) {
-                cancel(habit)
-            }
+            if (shouldCancel(habit)) cancel(habit)
         }
     }
+
+    private fun shouldCancel(habit: Habit): Boolean =
+        !habit.hasReminder() || habit.isArchived || habit.isReminderSuppressedToday()
 
     override fun onNotificationsChanged() {
         reshowAll()

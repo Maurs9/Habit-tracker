@@ -98,7 +98,7 @@ class NumericalAutoEntryTest : BaseUnitTest() {
             DateUtils.TruncateField.YEAR,
             isNumerical = true
         )
-        assertEquals(5001, totals.sumOf { it.value })
+        assertEquals(5001L, totals.sumOf { it.value })
     }
 
     @Test

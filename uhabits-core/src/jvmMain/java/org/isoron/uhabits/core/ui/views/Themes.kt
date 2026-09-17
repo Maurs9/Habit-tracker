@@ -182,7 +182,7 @@ open class DarkTheme : Theme() {
             34 -> Color(0x90CAF9)
             35 -> Color(0xBBDEFB)
             // Sector 9: Indigo
-            36 -> Color(0x7C4DFF)
+            36 -> Color(0x8052FF)
             37 -> Color(0x9575CD)
             38 -> Color(0xB39DDB)
             39 -> Color(0xD1C4E9)

@@ -21,7 +21,6 @@ package org.isoron.uhabits.core.io
 import com.opencsv.CSVReader
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Frequency
-import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.ModelFactory
@@ -30,15 +29,10 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.text.DateFormat
-import java.text.ParseException
+import java.text.ParsePosition
 import java.text.SimpleDateFormat
-import java.util.Calendar.DAY_OF_MONTH
-import java.util.Calendar.MONTH
-import java.util.Calendar.YEAR
-import java.util.Date
-import java.util.GregorianCalendar
-import java.util.HashMap
 import java.util.Locale
+import java.util.TimeZone
 import javax.inject.Inject
 
 /**
@@ -54,78 +48,67 @@ class HabitBullCSVImporter
     private val logger = logging.getLogger("HabitBullCSVImporter")
 
     override fun canHandle(file: File): Boolean {
-        val reader = BufferedReader(FileReader(file))
-        val line = reader.readLine()
-        return line.startsWith("HabitName,HabitDescription,HabitCategory")
+        return BufferedReader(FileReader(file)).use {
+            it.readLine()?.startsWith("HabitName,HabitDescription,HabitCategory") == true
+        }
     }
 
     override fun importHabitsFromFile(file: File) {
-        val reader = CSVReader(FileReader(file))
-        val map = HashMap<String, Habit>()
-        for (cols in reader) {
-            val name = cols[0]
-            if (name == "HabitName") continue
-            val description = cols[1]
-            val timestamp = parseTimestamp(cols[3])
-            var h = map[name]
-            if (h == null) {
-                h = modelFactory.buildHabit()
-                h.name = name
-                h.description = description ?: ""
-                h.frequency = Frequency.DAILY
-                habitList.add(h)
-                map[name] = h
-                logger.info("Creating habit: $name")
+        val rows = CSVReader(FileReader(file)).use { reader ->
+            require(reader.readNext()?.take(3) == listOf("HabitName", "HabitDescription", "HabitCategory")) {
+                "Unrecognized HabitBull header"
             }
-            val notes = cols[5] ?: ""
-            when (val value = parseInt(cols[4])) {
-                0 -> h.originalEntries.add(Entry(timestamp, Entry.NO, notes))
-                1 -> h.originalEntries.add(Entry(timestamp, Entry.YES_MANUAL, notes))
-                else -> {
-                    if (value > 1 && h.type != HabitType.NUMERICAL) {
-                        logger.info("Found a value of $value, considering this habit as numerical.")
-                        h.type = HabitType.NUMERICAL
-                    }
-                    h.originalEntries.add(Entry(timestamp, value * 1000, notes))
+            reader.map { cols ->
+                require(cols.size >= 6) { "Incomplete HabitBull row" }
+                val value = cols[4].toIntOrNull()
+                require(value != null && value in 0..Int.MAX_VALUE / 1000) {
+                    "Invalid HabitBull measurement: ${cols[4]}"
                 }
+                ImportRow(cols[0], cols[1], parseTimestamp(cols[3]), value, cols[5])
             }
         }
-
-        map.forEach { (_, habit) -> habit.recompute() }
+        for ((name, entries) in rows.groupBy { it.name }) {
+            val numerical = entries.any { it.value > 1 }
+            val habit = modelFactory.buildHabit().apply {
+                this.name = name
+                description = entries.first().description
+                frequency = Frequency.DAILY
+                type = if (numerical) HabitType.NUMERICAL else HabitType.YES_NO
+            }
+            habitList.add(habit)
+            logger.info("Creating habit: $name")
+            for (row in entries) {
+                val value = if (numerical) row.value * 1000 else if (row.value == 1) Entry.YES_MANUAL else Entry.NO
+                habit.originalEntries.add(Entry(row.timestamp, value, row.notes))
+            }
+            habit.recompute()
+        }
+        habitList.resort()
     }
 
     private fun parseTimestamp(rawValue: String): Timestamp {
         val formats = listOf(
-            DateFormat.getDateInstance(DateFormat.SHORT),
             SimpleDateFormat("yyyy-MM-dd", Locale.US),
+            DateFormat.getDateInstance(DateFormat.SHORT),
             SimpleDateFormat("MM/dd/yyyy", Locale.US)
         )
-        var parsedDate: Date? = null
         for (fmt in formats) {
-            try {
-                parsedDate = fmt.parse(rawValue)
-            } catch (e: ParseException) {
-                // ignored
+            fmt.isLenient = false
+            fmt.timeZone = TimeZone.getTimeZone("UTC")
+            val position = ParsePosition(0)
+            val date = fmt.parse(rawValue, position)
+            if (date != null && position.index == rawValue.length && position.errorIndex < 0) {
+                return Timestamp(date.time)
             }
         }
-        if (parsedDate == null) {
-            throw Exception("Unrecognized date format: $rawValue")
-        }
-        val parsedCalendar = GregorianCalendar()
-        parsedCalendar.time = parsedDate
-        return Timestamp.from(
-            parsedCalendar[YEAR],
-            parsedCalendar[MONTH],
-            parsedCalendar[DAY_OF_MONTH]
-        )
+        throw IllegalArgumentException("Unrecognized date format: $rawValue")
     }
 
-    private fun parseInt(rawValue: String): Int {
-        return try {
-            rawValue.toInt()
-        } catch (e: NumberFormatException) {
-            logger.error("Could not parse int: $rawValue. Replacing by zero.")
-            0
-        }
-    }
+    private data class ImportRow(
+        val name: String,
+        val description: String,
+        val timestamp: Timestamp,
+        val value: Int,
+        val notes: String
+    )
 }

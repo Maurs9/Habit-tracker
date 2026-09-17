@@ -28,6 +28,7 @@ import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitList.Order
 import org.isoron.uhabits.core.models.HabitMatcher
 import org.isoron.uhabits.core.models.SectionList
+import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.tasks.Task
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getTodayWithOffset
@@ -208,6 +209,7 @@ class HabitCardListCache @Inject constructor(
         val remaining = data.items.filterIsInstance<ListItem.Row>().map { it.habit }.filter { it.id != id }
         if (remaining.size == habitCount) return
         val next = CacheData()
+        next.referenceDate = data.referenceDate
         next.checkmarks.putAll(data.checkmarks)
         next.notes.putAll(data.notes)
         next.scores.putAll(data.scores)
@@ -325,6 +327,7 @@ class HabitCardListCache @Inject constructor(
     }
 
     private inner class CacheData {
+        var referenceDate: Timestamp? = null
         var emptyState = HabitListEmptyState.NO_HABITS
         val items = mutableListOf<ListItem>()
         val checkmarks = hashMapOf<Long?, IntArray>()
@@ -368,6 +371,8 @@ class HabitCardListCache @Inject constructor(
 
     @Synchronized
     private fun applyData(next: CacheData) {
+        val dateChanged = data.referenceDate != next.referenceDate
+        data.referenceDate = next.referenceDate
         data.emptyState = next.emptyState
         val ids = next.items.map { it.itemId }.toSet()
         var position = 0
@@ -392,7 +397,7 @@ class HabitCardListCache @Inject constructor(
                 is ListItem.Header -> item != oldItem
                 is ListItem.Row -> {
                     val id = item.itemId
-                    data.scores[id] != next.scores[id] ||
+                    dateChanged || data.scores[id] != next.scores[id] ||
                         !data.checkmarks[id].contentEquals(next.checkmarks[id]) ||
                         !data.notes[id].contentEquals(next.notes[id])
                 }
@@ -426,17 +431,19 @@ class HabitCardListCache @Inject constructor(
         override fun isCanceled() = isCancelled
 
         override fun doInBackground() {
+            val today = getTodayWithOffset()
             val habits = filteredHabits.filter { it.id != null }
-            synchronized(this@HabitCardListCache) {
+            val canReuseEntries = synchronized(this@HabitCardListCache) {
+                newData.referenceDate = today
                 newData.scores.putAll(data.scores)
                 newData.checkmarks.putAll(data.checkmarks)
                 newData.notes.putAll(data.notes)
+                data.referenceDate == today
             }
-            val today = getTodayWithOffset()
             val dateFrom = today.minus(checkmarkCount - 1)
             for (habit in habits) {
                 if (isCancelled) return
-                if (targetId != null && targetId != habit.id && newData.checkmarks.containsKey(habit.id)) continue
+                if (canReuseEntries && targetId != null && targetId != habit.id && newData.checkmarks.containsKey(habit.id)) continue
                 newData.scores[habit.id] = habit.scores[today].value
                 val entries = habit.computedEntries.getByInterval(dateFrom, today)
                 newData.checkmarks[habit.id] = entries.map { it.value }.toIntArray()

@@ -20,8 +20,9 @@ package org.isoron.uhabits.core.ui.widgets
 
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
+import org.isoron.uhabits.core.commands.UpdateRepetitionCommand
+import org.isoron.uhabits.core.io.Logging
 import org.isoron.uhabits.core.models.Entry
-import org.isoron.uhabits.core.models.Entry.Companion.nextToggleValue
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.Timestamp
@@ -33,48 +34,44 @@ class WidgetBehavior @Inject constructor(
     private val habitList: HabitList,
     private val commandRunner: CommandRunner,
     private val notificationTray: NotificationTray,
-    private val preferences: Preferences
+    private val preferences: Preferences,
+    private val logging: Logging
 ) {
     fun onAddRepetition(habit: Habit, timestamp: Timestamp?) {
+        commandRunner.run(UpdateRepetitionCommand.SetValue(habitList, habit, timestamp!!, Entry.YES_MANUAL, logging))
         notificationTray.cancel(habit)
-        val entry = habit.originalEntries.get(timestamp!!)
-        setValue(habit, timestamp, Entry.YES_MANUAL, entry.notes)
     }
 
     fun onRemoveRepetition(habit: Habit, timestamp: Timestamp?) {
+        commandRunner.run(UpdateRepetitionCommand.SetValue(habitList, habit, timestamp!!, Entry.NO, logging))
         notificationTray.cancel(habit)
-        val entry = habit.originalEntries.get(timestamp!!)
-        setValue(habit, timestamp, Entry.NO, entry.notes)
     }
 
     fun onToggleRepetition(habit: Habit, timestamp: Timestamp) {
-        val entry = habit.originalEntries.get(timestamp)
-        val currentValue = entry.value
-        val newValue = nextToggleValue(
-            value = currentValue,
-            isSkipEnabled = preferences.isSkipEnabled,
-            areQuestionMarksEnabled = preferences.areQuestionMarksEnabled
+        commandRunner.run(
+            UpdateRepetitionCommand.Toggle(
+                habitList,
+                habit,
+                timestamp,
+                isSkipEnabled = preferences.isSkipEnabled,
+                areQuestionMarksEnabled = preferences.areQuestionMarksEnabled,
+                logging = logging
+            )
         )
-        setValue(habit, timestamp, newValue, entry.notes)
         notificationTray.cancel(habit)
     }
 
     fun onIncrement(habit: Habit, timestamp: Timestamp, amount: Int) {
-        val entry = habit.computedEntries.get(timestamp)
-        val currentValue = valueForAdjustment(entry)
-        setValue(habit, timestamp, currentValue + amount, entry.notes)
+        require(amount >= 0) { "Increment amount must not be negative" }
+        commandRunner.run(UpdateRepetitionCommand.Adjust(habitList, habit, timestamp, amount, logging))
         notificationTray.cancel(habit)
     }
 
     fun onDecrement(habit: Habit, timestamp: Timestamp, amount: Int) {
-        val entry = habit.computedEntries.get(timestamp)
-        val currentValue = valueForAdjustment(entry)
-        setValue(habit, timestamp, currentValue - amount, entry.notes)
+        require(amount >= 0) { "Decrement amount must not be negative" }
+        commandRunner.run(UpdateRepetitionCommand.Adjust(habitList, habit, timestamp, -amount, logging))
         notificationTray.cancel(habit)
     }
-
-    private fun valueForAdjustment(entry: Entry): Int =
-        if (entry.value == Entry.NUMERICAL_AUTO) 0 else entry.value
 
     fun setValue(habit: Habit, timestamp: Timestamp?, newValue: Int, notes: String) {
         commandRunner.run(

@@ -16,6 +16,7 @@ import java.io.File
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
@@ -66,6 +67,10 @@ class SectionImportTest(private val sqlite: Boolean) : BaseUnitTest() {
         assertEquals(2, habitList.size())
         assertEquals(existing.id, restored.sectionId)
         assertEquals(listOf(0, 1, 2), sectionList.getAll().map { it.position })
+        assertSame(unrelated, habitList.getById(unrelated.id!!))
+        assertSame(restored, habitList.getByUUID("foreign-habit"))
+        assertEquals(listOf(unrelated.id, restored.id), habitList.map { it.id })
+        if (sqlite) assertEquals(listOf(0, 1), habitList.map { it.position })
         assertPersisted()
     }
 
@@ -100,6 +105,30 @@ class SectionImportTest(private val sqlite: Boolean) : BaseUnitTest() {
             "UPDATE habits SET section_id = 1.5"
         )
         for (mutation in mutations) {
+            createBackup()
+            val source = databaseOpener.open(file)
+            try {
+                source.execute(mutation)
+            } finally {
+                source.close()
+            }
+            assertThrows(IllegalArgumentException::class.java) { importer().importHabitsFromFile(file) }
+            assertEquals(listOf(local), sectionList.getAll())
+            assertEquals(0, habitList.size())
+            assertTrue(file.delete())
+        }
+    }
+
+    @Test
+    fun invalidHabitMetadataFailsBeforeAddingSectionsOrHabits() {
+        val local = sectionList.add("Local")
+        for (mutation in listOf(
+            "UPDATE habits SET freq_den = 4294967297",
+            "UPDATE habits SET freq_num = 4294967297",
+            "UPDATE habits SET freq_num = 0",
+            "UPDATE habits SET type = 1, target_value = -1",
+            "UPDATE habits SET uuid = ''"
+        )) {
             createBackup()
             val source = databaseOpener.open(file)
             try {

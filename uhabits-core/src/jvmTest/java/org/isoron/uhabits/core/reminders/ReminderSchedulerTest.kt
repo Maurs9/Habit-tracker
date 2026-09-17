@@ -35,6 +35,7 @@ import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.Calendar
@@ -110,9 +111,7 @@ class ReminderSchedulerTest : BaseUnitTest() {
         verify(sys).scheduleSnoozedReminder(snoozeTimeInFuture, habit, todayCheckmarkTime)
         whenever(widgetPreferences.getSnoozeTime(habitId)).thenReturn(snoozeTimeInPast)
         reminderScheduler.schedule(habit)
-        verify(sys).scheduleSnoozedReminder(snoozeTimeInPast, habit, todayCheckmarkTime)
-        whenever(widgetPreferences.getSnoozeTime(habitId)).thenReturn(0L)
-        reminderScheduler.schedule(habit)
+        verify(widgetPreferences, never()).removeSnoozeTime(habitId)
         verify(sys)
             .scheduleShowReminder(regularReminderTime, habit, tomorrowCheckmarkTime)
     }

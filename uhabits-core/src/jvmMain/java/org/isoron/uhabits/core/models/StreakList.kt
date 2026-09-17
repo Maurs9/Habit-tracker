@@ -43,11 +43,13 @@ class StreakList {
         targetType: NumericalHabitType
     ) {
         list.clear()
-        val timestamps = computedEntries
+        val entries = computedEntries
             .getByInterval(from, to)
             .filter {
                 val value = it.value
-                if (isNumerical) {
+                if (value == Entry.SKIP) {
+                    true
+                } else if (isNumerical) {
                     value == Entry.NUMERICAL_AUTO ||
                         (
                             value >= 0 && value != Entry.SKIP && when (targetType) {
@@ -59,23 +61,25 @@ class StreakList {
                     value > 0
                 }
             }
-            .map { it.timestamp }
             .toTypedArray()
 
-        if (timestamps.isEmpty()) return
+        if (entries.isEmpty()) return
 
-        var begin = timestamps[0]
-        var end = timestamps[0]
-        for (i in 1 until timestamps.size) {
-            val current = timestamps[i]
+        var begin = entries[0].timestamp
+        var end = begin
+        var hasCompletion = !isNumerical || entries[0].value != Entry.SKIP
+        for (i in 1 until entries.size) {
+            val current = entries[i].timestamp
             if (current == begin.minus(1)) {
                 begin = current
+                hasCompletion = hasCompletion || entries[i].value != Entry.SKIP
             } else {
-                list.add(Streak(begin, end))
+                if (hasCompletion) list.add(Streak(begin, end))
                 begin = current
                 end = current
+                hasCompletion = !isNumerical || entries[i].value != Entry.SKIP
             }
         }
-        list.add(Streak(begin, end))
+        if (hasCompletion) list.add(Streak(begin, end))
     }
 }

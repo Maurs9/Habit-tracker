@@ -26,6 +26,7 @@ import android.content.Intent
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
+import org.isoron.uhabits.core.commands.UpdateRepetitionCommand
 import org.isoron.uhabits.core.preferences.WidgetPreferences
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.utils.DateUtils
@@ -47,10 +48,10 @@ class WidgetUpdater
 ) : CommandRunner.Listener {
 
     override fun onCommandFinished(command: Command) {
-        if (command is CreateRepetitionCommand) {
-            updateWidgets(command.habit.id)
-        } else {
-            updateWidgets()
+        when (command) {
+            is CreateRepetitionCommand -> updateWidgets(command.habit.id)
+            is UpdateRepetitionCommand -> updateWidgets(command.habit.id)
+            else -> updateWidgets()
         }
     }
 

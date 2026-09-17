@@ -394,7 +394,7 @@ class NumericalAtLeastScoreListTest : NumericalScoreListTest() {
             addEntry(7 * w + 4, 5000)
         }
         habit.recompute()
-        assertThat(habit.scores[today].value, OrderingComparison.greaterThan(0.90))
+        assertThat(habit.scores[today].value, IsCloseTo.closeTo(0.8861103153588966, E))
     }
 }
 

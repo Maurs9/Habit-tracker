@@ -138,6 +138,14 @@ data class Habit(
         )
     }
 
+    fun validate() {
+        frequency.validate()
+        require(!uuid.isNullOrBlank()) { "Habit UUID must not be blank" }
+        if (isNumerical) {
+            require(targetValue.isFinite() && targetValue >= 0.0) { "Numerical target must be finite and nonnegative" }
+        }
+    }
+
     fun copyFrom(other: Habit) {
         this.color = other.color
         this.description = other.description

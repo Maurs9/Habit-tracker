@@ -1,6 +1,5 @@
 package org.isoron.uhabits.core.models
 
-import org.isoron.uhabits.core.DATABASE_VERSION
 import org.isoron.uhabits.core.database.JdbcDatabase
 import org.isoron.uhabits.core.database.MigrationHelper
 import org.junit.Test
@@ -27,7 +26,6 @@ class SectionMigrationTest {
                 "600;1200"
             )
             MigrationHelper(db).migrateTo(28)
-            assertEquals(28, DATABASE_VERSION)
             db.query("SELECT name, description, tags, reminder_times, section_id FROM habits").use {
                 assertTrue(it.moveToNext())
                 assertEquals("Read", it.getString(0))

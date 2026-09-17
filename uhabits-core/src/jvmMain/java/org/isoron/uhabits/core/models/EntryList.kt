@@ -30,7 +30,6 @@ import java.util.Calendar
 import javax.annotation.concurrent.ThreadSafe
 import kotlin.collections.set
 import kotlin.math.max
-import kotlin.math.min
 
 @ThreadSafe
 open class EntryList {
@@ -58,6 +57,7 @@ open class EntryList {
         var current = to
         while (current >= from) {
             result.add(get(current))
+            if (current == from) break
             current = current.minus(1)
         }
         return result
@@ -96,6 +96,7 @@ open class EntryList {
         targetValue: Double = 0.0,
         targetType: NumericalHabitType = NumericalHabitType.AT_LEAST
     ) {
+        frequency.validate()
         clear()
         val original = originalEntries.getKnown()
         if (isNumerical && frequency.numerator == frequency.denominator) {
@@ -152,7 +153,7 @@ open class EntryList {
             }
 
             if (isNumerical) {
-                list[weekday] += value
+                if (value >= 0) list[weekday] += value
             } else if (value == YES_MANUAL) {
                 list[weekday] += 1
             }
@@ -178,43 +179,10 @@ open class EntryList {
             original: List<Entry>,
             intervals: List<Interval>
         ): List<Entry> {
-            val result = arrayListOf<Entry>()
-            if (original.isEmpty()) return result
-
-            var from = original[0].timestamp
-            var to = original[0].timestamp
-
-            for (e in original) {
-                if (e.timestamp < from) from = e.timestamp
-                if (e.timestamp > to) to = e.timestamp
-            }
-            for (interval in intervals) {
-                if (interval.begin < from) from = interval.begin
-                if (interval.end > to) to = interval.end
-            }
-
-            // Create unknown entries
-            var current = to
-            while (current >= from) {
-                result.add(Entry(current, UNKNOWN))
-                current = current.minus(1)
-            }
-
-            // Create YES_AUTO entries
-            intervals.forEach { interval ->
-                current = interval.end
-                while (current >= interval.begin) {
-                    val offset = current.daysUntil(to)
-                    result[offset] = Entry(current, YES_AUTO)
-                    current = current.minus(1)
-                }
-            }
-
-            // Copy original entries
+            val result = buildAutomaticEntries(original, intervals, YES_AUTO)
             original.forEach { entry ->
-                val offset = entry.timestamp.daysUntil(to)
                 val value = if (
-                    result[offset].value == UNKNOWN ||
+                    result[entry.timestamp]?.value != YES_AUTO ||
                     entry.value == SKIP ||
                     entry.value == YES_MANUAL
                 ) {
@@ -222,10 +190,9 @@ open class EntryList {
                 } else {
                     YES_AUTO
                 }
-                result[offset] = Entry(entry.timestamp, value, entry.notes)
+                result[entry.timestamp] = Entry(entry.timestamp, value, entry.notes)
             }
-
-            return result
+            return result.values.sortedByDescending { it.timestamp }
         }
 
         /**
@@ -240,10 +207,14 @@ open class EntryList {
             for (i in 1 until intervals.size) {
                 val curr = intervals[i]
                 val next = intervals[i - 1]
-                val gapNextToCurrent = next.begin.daysUntil(curr.end)
+                val gapNextToCurrent = (curr.end.unixTime - next.begin.unixTime) / Timestamp.DAY_LENGTH
                 val gapCenterToEnd = curr.center.daysUntil(curr.end)
                 if (gapNextToCurrent >= 0) {
-                    val shift = min(gapCenterToEnd, gapNextToCurrent + 1)
+                    val shift = minOf(
+                        gapCenterToEnd.toLong(),
+                        gapNextToCurrent + 1,
+                        curr.begin.unixTime / Timestamp.DAY_LENGTH
+                    ).toInt()
                     intervals[i] = Interval(
                         curr.begin.minus(shift),
                         curr.center,
@@ -320,44 +291,48 @@ open class EntryList {
             original: List<Entry>,
             intervals: ArrayList<Interval>
         ): ArrayList<Entry> {
-            val result = ArrayList<Entry>()
+            val result = buildAutomaticEntries(original, intervals, NUMERICAL_AUTO)
+            original.forEach { result[it.timestamp] = it }
+            return ArrayList(result.values.sortedByDescending { it.timestamp })
+        }
+
+        private fun buildAutomaticEntries(
+            original: List<Entry>,
+            intervals: List<Interval>,
+            automaticValue: Int
+        ): HashMap<Timestamp, Entry> {
+            val result = hashMapOf<Timestamp, Entry>()
             if (original.isEmpty()) return result
 
-            var from = original[0].timestamp
-            var to = original[0].timestamp
-
-            for (e in original) {
-                if (e.timestamp < from) from = e.timestamp
-                if (e.timestamp > to) to = e.timestamp
-            }
-            for (interval in intervals) {
-                if (interval.begin < from) from = interval.begin
-                if (interval.end > to) to = interval.end
-            }
-
-            // Create unknown entries
+            // Match the score/streak horizon without allocating billions of future rest days.
+            // Recorded future entries are copied separately and never truncated.
+            val horizon = DateUtils.getTodayWithOffset().plus(30)
+            val ranges = intervals.mapNotNull {
+                val begin = maxOf(it.begin, Timestamp.ZERO)
+                val end = minOf(it.end, horizon)
+                if (begin <= end) begin to end else null
+            }.sortedBy { it.first }
+            val oldest = original.minOf { it.timestamp }
+            val newest = original.maxOf { it.timestamp }
+            val from = minOf(oldest, ranges.firstOrNull()?.first ?: oldest)
+            val to = minOf(horizon, maxOf(newest, ranges.maxOfOrNull { it.second } ?: newest))
             var current = to
             while (current >= from) {
-                result.add(Entry(current, UNKNOWN))
+                result[current] = Entry(current, UNKNOWN)
+                if (current == from) break
                 current = current.minus(1)
             }
 
-            // Create automatic entries without colliding with recorded thousandths.
-            intervals.forEach { interval ->
-                current = interval.end
-                while (current >= interval.begin) {
-                    val offset = current.daysUntil(to)
-                    result[offset] = Entry(current, NUMERICAL_AUTO)
-                    current = current.minus(1)
+            var coveredThrough: Timestamp? = null
+            for ((begin, end) in ranges) {
+                current = maxOf(begin, coveredThrough?.plus(1) ?: begin)
+                while (current <= end) {
+                    result[current] = Entry(current, automaticValue)
+                    if (current == end) break
+                    current = current.plus(1)
                 }
+                coveredThrough = maxOf(coveredThrough ?: end, end)
             }
-
-            // Copy original entries: user's logged numeric values always take precedence
-            original.forEach { entry ->
-                val offset = entry.timestamp.daysUntil(to)
-                result[offset] = Entry(entry.timestamp, entry.value, entry.notes)
-            }
-
             return result
         }
     }
@@ -372,7 +347,7 @@ open class EntryList {
  * For numerical habits, non-positive entry values are converted to zero. For boolean habits, each
  * YES_MANUAL value is converted to 1000 and all other values are converted to zero.
  *
- * SKIP values are converted to zero (if they weren't, each SKIP day would count as 0.003).
+ * Skips, unknown values, and automatic rest days contribute zero.
  *
  * The returned list is sorted by timestamp, with the newest entry coming first and the oldest entry
  * coming last. If the original list has gaps in it (for example, weeks or months without any
@@ -384,16 +359,12 @@ fun List<Entry>.groupedSum(
     truncateField: DateUtils.TruncateField,
     firstWeekday: Int = Calendar.SATURDAY,
     isNumerical: Boolean
-): List<Entry> {
+): List<EntryAggregate> {
     return this.map { (timestamp, value) ->
         if (isNumerical) {
-            if (value == SKIP) {
-                Entry(timestamp, 0)
-            } else {
-                Entry(timestamp, max(0, value))
-            }
+            EntryAggregate(timestamp, max(0, value).toLong())
         } else {
-            Entry(timestamp, if (value == YES_MANUAL) 1000 else 0)
+            EntryAggregate(timestamp, if (value == YES_MANUAL) 1000L else 0L)
         }
     }.groupBy { entry ->
         entry.timestamp.truncate(
@@ -401,7 +372,7 @@ fun List<Entry>.groupedSum(
             firstWeekday
         )
     }.entries.map { (timestamp, entries) ->
-        Entry(timestamp, entries.sumOf { it.value })
+        EntryAggregate(timestamp, entries.sumOf { it.value })
     }.sortedBy { (timestamp, _) ->
         -timestamp.unixTime
     }

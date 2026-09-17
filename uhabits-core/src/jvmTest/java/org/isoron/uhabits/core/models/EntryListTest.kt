@@ -202,26 +202,26 @@ class EntryListTest {
             isNumerical = true
         )
         assertThat(byMonth.size, equalTo(17))
-        assertThat(byMonth[0], equalTo(Entry(Timestamp.from(2014, Calendar.JUNE, 1), 230)))
-        assertThat(byMonth[6], equalTo(Entry(Timestamp.from(2013, Calendar.DECEMBER, 1), 1988)))
-        assertThat(byMonth[12], equalTo(Entry(Timestamp.from(2013, Calendar.MAY, 1), 1271)))
+        assertThat(byMonth[0], equalTo(EntryAggregate(Timestamp.from(2014, Calendar.JUNE, 1), 230)))
+        assertThat(byMonth[6], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.DECEMBER, 1), 1988)))
+        assertThat(byMonth[12], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.MAY, 1), 1271)))
 
         val byQuarter = entries.getKnown().groupedSum(
             truncateField = DateUtils.TruncateField.QUARTER,
             isNumerical = true
         )
         assertThat(byQuarter.size, equalTo(6))
-        assertThat(byQuarter[0], equalTo(Entry(Timestamp.from(2014, Calendar.APRIL, 1), 3263)))
-        assertThat(byQuarter[3], equalTo(Entry(Timestamp.from(2013, Calendar.JULY, 1), 3838)))
-        assertThat(byQuarter[5], equalTo(Entry(Timestamp.from(2013, Calendar.JANUARY, 1), 4975)))
+        assertThat(byQuarter[0], equalTo(EntryAggregate(Timestamp.from(2014, Calendar.APRIL, 1), 3263)))
+        assertThat(byQuarter[3], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.JULY, 1), 3838)))
+        assertThat(byQuarter[5], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.JANUARY, 1), 4975)))
 
         val byYear = entries.getKnown().groupedSum(
             truncateField = DateUtils.TruncateField.YEAR,
             isNumerical = true
         )
         assertThat(byYear.size, equalTo(2))
-        assertThat(byYear[0], equalTo(Entry(Timestamp.from(2014, Calendar.JANUARY, 1), 8227)))
-        assertThat(byYear[1], equalTo(Entry(Timestamp.from(2013, Calendar.JANUARY, 1), 16172)))
+        assertThat(byYear[0], equalTo(EntryAggregate(Timestamp.from(2014, Calendar.JANUARY, 1), 8227)))
+        assertThat(byYear[1], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.JANUARY, 1), 16172)))
     }
 
     @Test
@@ -246,26 +246,26 @@ class EntryListTest {
             isNumerical = false
         )
         assertThat(byMonth.size, equalTo(17))
-        assertThat(byMonth[0], equalTo(Entry(Timestamp.from(2014, Calendar.JUNE, 1), 1_000)))
-        assertThat(byMonth[6], equalTo(Entry(Timestamp.from(2013, Calendar.DECEMBER, 1), 7_000)))
-        assertThat(byMonth[12], equalTo(Entry(Timestamp.from(2013, Calendar.MAY, 1), 6_000)))
+        assertThat(byMonth[0], equalTo(EntryAggregate(Timestamp.from(2014, Calendar.JUNE, 1), 1_000)))
+        assertThat(byMonth[6], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.DECEMBER, 1), 7_000)))
+        assertThat(byMonth[12], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.MAY, 1), 6_000)))
 
         val byQuarter = entries.getKnown().groupedSum(
             truncateField = DateUtils.TruncateField.QUARTER,
             isNumerical = false
         )
         assertThat(byQuarter.size, equalTo(6))
-        assertThat(byQuarter[0], equalTo(Entry(Timestamp.from(2014, Calendar.APRIL, 1), 15_000)))
-        assertThat(byQuarter[3], equalTo(Entry(Timestamp.from(2013, Calendar.JULY, 1), 17_000)))
-        assertThat(byQuarter[5], equalTo(Entry(Timestamp.from(2013, Calendar.JANUARY, 1), 20_000)))
+        assertThat(byQuarter[0], equalTo(EntryAggregate(Timestamp.from(2014, Calendar.APRIL, 1), 15_000)))
+        assertThat(byQuarter[3], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.JULY, 1), 17_000)))
+        assertThat(byQuarter[5], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.JANUARY, 1), 20_000)))
 
         val byYear = entries.getKnown().groupedSum(
             truncateField = DateUtils.TruncateField.YEAR,
             isNumerical = false
         )
         assertThat(byYear.size, equalTo(2))
-        assertThat(byYear[0], equalTo(Entry(Timestamp.from(2014, Calendar.JANUARY, 1), 34_000)))
-        assertThat(byYear[1], equalTo(Entry(Timestamp.from(2013, Calendar.JANUARY, 1), 66_000)))
+        assertThat(byYear[0], equalTo(EntryAggregate(Timestamp.from(2014, Calendar.JANUARY, 1), 34_000)))
+        assertThat(byYear[1], equalTo(EntryAggregate(Timestamp.from(2013, Calendar.JANUARY, 1), 66_000)))
     }
 
     @Test

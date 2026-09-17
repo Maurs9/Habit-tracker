@@ -478,6 +478,36 @@ class EditHabitActivityTest : BaseAndroidTest() {
         }
     }
 
+    @Test
+    fun testInvalidFrequencyDraftsCannotReachSaveCommand() {
+        saveHabit(null) { activity ->
+            activity.findViewById<EditText>(R.id.nameInput).setText("Valid frequency")
+            val picker = activity.findViewById<TextView>(R.id.boolean_frequency_picker)
+            for ((numerator, denominator) in listOf(
+                0 to 1,
+                1 to 0,
+                -1 to 7,
+                1 to -1,
+                8 to 7,
+                Int.MAX_VALUE to 1
+            )) {
+                activity.freqNum = numerator
+                activity.freqDen = denominator
+                activity.findViewById<View>(R.id.buttonSave).performClick()
+                assertFalse(activity.isFinishing)
+                assertNotNull(picker.error)
+                assertTrue(picker.hasFocus())
+                assertFalse(habitList.any { it.name == "Valid frequency" })
+            }
+            activity.freqNum = 1
+            activity.freqDen = Int.MAX_VALUE
+        }
+        assertEquals(
+            Frequency(1, Int.MAX_VALUE),
+            habitList.first { it.name == "Valid frequency" }.frequency
+        )
+    }
+
     private fun openTags(activity: EditHabitActivity): AlertDialog {
         activity.findViewById<View>(R.id.tagsPicker).performClick()
         activity.supportFragmentManager.executePendingTransactions()

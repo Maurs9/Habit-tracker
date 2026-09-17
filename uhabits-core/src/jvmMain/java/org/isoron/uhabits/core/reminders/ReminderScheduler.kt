@@ -76,13 +76,17 @@ class ReminderScheduler @Inject constructor(
             (widgetPreferences.scheduledReminderHabitIds.toSet() + id).toLongArray()
         val completedToday = habit.isReminderSuppressedToday()
         val snoozeTime = widgetPreferences.getSnoozeTime(id)
-        // Startup may run before an already-due snooze broadcast is delivered.
-        if (snoozeTime > 0L && !completedToday) {
+        if (snoozeTime > getUtcTime() && !completedToday) {
             scheduleAtTime(habit, snoozeTime, snoozed = true)
             return
         }
-        if (snoozeTime != 0L) widgetPreferences.removeSnoozeTime(id)
+        if (snoozeTime != 0L && completedToday) {
+            sys.log("ReminderScheduler", "Clearing suppressed snooze for habit=$id")
+            widgetPreferences.removeSnoozeTime(id)
+        }
 
+        // An overdue snooze may already be waiting for startup. Keep its delivery token,
+        // but schedule regular alarms instead of trying to register an alarm in the past.
         // A rolling alarm avoids an OS alarm limit even when a habit has many daily times.
         val zone = getZoneId()
         val firstDate = Instant.ofEpochMilli(afterTime).atZone(zone).toLocalDate()
@@ -148,11 +152,14 @@ class ReminderScheduler @Inject constructor(
         val isCurrent = enabled && if (snoozed) {
             snoozeTime != 0L && snoozeTime == reminderTime
         } else {
-            selectedDay && snoozeTime <= getUtcTime() && habit.reminderTimes.any {
-                localTime.toLocalDate().atTime(it / 60, it % 60).atZone(zone).toInstant().toEpochMilli() == reminderTime
-            }
+            selectedDay && snoozeTime <= getUtcTime() &&
+                (snoozeTime == 0L || reminderTime > snoozeTime) &&
+                habit.reminderTimes.any {
+                    localTime.toLocalDate().atTime(it / 60, it % 60).atZone(zone).toInstant().toEpochMilli() == reminderTime
+                }
         }
-        if (snoozed && isCurrent) widgetPreferences.removeSnoozeTime(habit.id!!)
+        // A later regular reminder makes an undelivered overdue snooze obsolete.
+        if (isCurrent && snoozeTime != 0L) widgetPreferences.removeSnoozeTime(habit.id!!)
         schedule(habit, maxOf(getUtcTime(), reminderTime))
         if (!isCurrent) sys.log("ReminderScheduler", "Ignoring obsolete reminder for habit=${habit.id}")
         return isCurrent

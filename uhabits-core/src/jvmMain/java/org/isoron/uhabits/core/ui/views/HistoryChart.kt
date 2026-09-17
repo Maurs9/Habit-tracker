@@ -72,9 +72,19 @@ class HistoryChart(
     private var lastPrintedMonth = ""
     private var lastPrintedYear = ""
     private var headerOverflow = 0.0
+    private val firstSupportedDate = LocalDate(1970, 1, 1)
 
     override val dataColumnWidth: Double
         get() = squareSpacing + columnWidth
+
+    val maximumDataOffset: Int
+        get() {
+            val firstWeekdayOffset = (
+                firstSupportedDate.dayOfWeek.daysSinceSunday -
+                    firstWeekday.daysSinceSunday + 7
+                ) % 7
+            return ((firstSupportedDate.distanceTo(today).toLong() + firstWeekdayOffset) / 7).toInt()
+        }
 
     override fun onClick(x: Double, y: Double) {
         onDateClicked(x, y, false)
@@ -89,9 +99,9 @@ class HistoryChart(
         val col = ((x - padding) / columnWidth).toInt()
         val row = ((y - padding) / squareSize).toInt()
         val offset = col * 7 + (row - 1)
-        if (x - padding < 0 || row == 0 || row > 7 || col >= nColumns) return
+        if (x < padding || y < padding || row !in 1..7 || col !in 0 until nColumns) return
         val clickedDate = topLeftDate.plus(offset)
-        if (clickedDate.isNewerThan(today)) return
+        if (clickedDate.isOlderThan(firstSupportedDate) || clickedDate.isNewerThan(today)) return
         if (isLongClick) {
             onDateClickedListener.onDateLongPress(clickedDate)
         } else {
@@ -158,11 +168,13 @@ class HistoryChart(
         topDate: LocalDate,
         topOffset: Int
     ) {
-        drawHeader(canvas, column, topDate)
+        if (topDate.plus(6).isOlderThan(firstSupportedDate)) return
+        drawHeader(canvas, column, if (topDate.isOlderThan(firstSupportedDate)) firstSupportedDate else topDate)
         repeat(7) { row ->
             val offset = topOffset - row
             val date = topDate.plus(row)
             if (offset < 0) return
+            if (date.isOlderThan(firstSupportedDate)) return@repeat
             drawSquare(
                 canvas,
                 padding + column * columnWidth,

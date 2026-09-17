@@ -28,6 +28,7 @@ data class EditHabitCommand(
     val modified: Habit
 ) : Command {
     override fun run() {
+        modified.validate()
         val habit = habitList.getById(habitId) ?: throw HabitNotFoundException()
         habit.copyFrom(modified)
         habitList.update(habit)

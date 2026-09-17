@@ -53,6 +53,7 @@ class GenericImporter
         for (importer in importers) {
             if (importer.canHandle(file)) {
                 importer.importHabitsFromFile(file)
+                return
             }
         }
     }

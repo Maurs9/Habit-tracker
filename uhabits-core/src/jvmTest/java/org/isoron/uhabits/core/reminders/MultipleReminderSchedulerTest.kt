@@ -190,7 +190,7 @@ class MultipleReminderSchedulerTest : BaseUnitTest() {
     }
 
     @Test
-    fun testStartupAfterSnoozeDeadlinePreservesDeliveryExactlyOnce() {
+    fun testStartupAfterSnoozeDeadlineResumesRegularReminders() {
         val file = temporaryFolder.newFile()
         val originalPrefs = WidgetPreferences(PropertiesStorage(file))
         val previous = ReminderScheduler(commandRunner, habitList, system, originalPrefs)
@@ -204,11 +204,57 @@ class MultipleReminderSchedulerTest : BaseUnitTest() {
         restored.scheduleAll()
 
         assertEquals(deadline, restoredPrefs.getSnoozeTime(habit.id!!))
-        assertEquals(mapOf((habit.id!! to true) to deadline), system.alarms)
-        assertTrue(restored.onReminderFired(habit, deadline, snoozed = true))
-        assertEquals(0L, restoredPrefs.getSnoozeTime(habit.id!!))
         assertRegular("2026-09-14T12:00:00Z")
+        assertEquals(0, system.rejectedCount)
+
+        setNow("2026-09-15T07:00:00Z")
+        ReminderScheduler(commandRunner, habitList, system, WidgetPreferences(PropertiesStorage(file))).scheduleAll()
+        assertRegular("2026-09-15T08:00:00Z")
+        assertEquals(0, system.rejectedCount)
+
+        setNow("2026-09-15T08:00:00Z")
+        assertTrue(restored.onReminderFired(habit, DateUtils.getUtcTime(), snoozed = false))
+        assertEquals(0L, restoredPrefs.getSnoozeTime(habit.id!!))
         assertFalse(restored.onReminderFired(habit, deadline, snoozed = true))
+        assertRegular("2026-09-15T12:00:00Z")
+    }
+
+    @Test
+    fun testDueSnoozedBroadcastSurvivesStartupSchedulingAndIsAcceptedOnce() {
+        val deadline = instant("2026-09-14T09:00:00Z")
+        scheduler.snoozeAtTime(habit, deadline)
+        setNow("2026-09-14T09:00:00.001Z")
+        val restored = ReminderScheduler(commandRunner, habitList, system, prefs)
+        restored.scheduleAll()
+        assertRegular("2026-09-14T12:00:00Z")
+        assertEquals(deadline, prefs.getSnoozeTime(habit.id!!))
+
+        assertTrue(restored.onReminderFired(habit, deadline, snoozed = true))
+        assertEquals(0L, prefs.getSnoozeTime(habit.id!!))
+        assertFalse(restored.onReminderFired(habit, deadline, snoozed = true))
+        assertRegular("2026-09-14T12:00:00Z")
+        assertEquals(0, system.rejectedCount)
+    }
+
+    @Test
+    fun testEarlierRegularBroadcastCannotConsumeOverdueSnoozeToken() {
+        val deadline = instant("2026-09-14T09:00:00Z")
+        scheduler.snoozeAtTime(habit, deadline)
+        setNow("2026-09-14T09:02:00Z")
+        scheduler.scheduleAll()
+        assertFalse(scheduler.onReminderFired(habit, instant("2026-09-14T08:00:00Z"), snoozed = false))
+        assertEquals(deadline, prefs.getSnoozeTime(habit.id!!))
+        assertTrue(scheduler.onReminderFired(habit, deadline, snoozed = true))
+        assertRegular("2026-09-14T12:00:00Z")
+    }
+
+    @Test
+    fun testSnoozeAtCurrentTimeResumesNextRegularReminder() {
+        setNow("2026-09-14T08:00:00Z")
+        scheduler.snoozeAtTime(habit, DateUtils.getUtcTime())
+        assertEquals(DateUtils.getUtcTime(), prefs.getSnoozeTime(habit.id!!))
+        assertRegular("2026-09-14T12:00:00Z")
+        assertEquals(0, system.rejectedCount)
     }
 
     @Test
@@ -292,12 +338,19 @@ class MultipleReminderSchedulerTest : BaseUnitTest() {
     private class RecordingScheduler : ReminderScheduler.SystemScheduler {
         val alarms = mutableMapOf<Pair<Long, Boolean>, Long>()
         var cancelCount = 0
+        var rejectedCount = 0
         override fun scheduleShowReminder(reminderTime: Long, habit: Habit, timestamp: Long): ReminderScheduler.SchedulerResult {
-            alarms[habit.id!! to false] = reminderTime
-            return ReminderScheduler.SchedulerResult.OK
+            return schedule(reminderTime, habit, snoozed = false)
         }
         override fun scheduleSnoozedReminder(reminderTime: Long, habit: Habit, timestamp: Long): ReminderScheduler.SchedulerResult {
-            alarms[habit.id!! to true] = reminderTime
+            return schedule(reminderTime, habit, snoozed = true)
+        }
+        private fun schedule(reminderTime: Long, habit: Habit, snoozed: Boolean): ReminderScheduler.SchedulerResult {
+            if (reminderTime < DateUtils.getUtcTime()) {
+                rejectedCount++
+                return ReminderScheduler.SchedulerResult.IGNORED
+            }
+            alarms[habit.id!! to snoozed] = reminderTime
             return ReminderScheduler.SchedulerResult.OK
         }
         override fun cancelReminders(habitId: Long) {

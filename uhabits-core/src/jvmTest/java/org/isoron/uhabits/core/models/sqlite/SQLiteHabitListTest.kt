@@ -177,6 +177,20 @@ class SQLiteHabitListTest : BaseUnitTest() {
     }
 
     @Test
+    fun deletingThenAddingKeepsLiveAndPersistedPositionsIdentical() {
+        habitList.remove(habitsArray[0])
+        assertThat(habitList.map { it.id to it.position }, equalTo(storedOrder()))
+        val remaining = habitList.map { it.id }
+        val added = modelFactory.buildHabit().apply { name = "AAA" }
+        habitList.add(added)
+        assertThat(habitList.map { it.id }, equalTo(remaining + added.id))
+        assertThat(habitList.map { it.id to it.position }, equalTo(storedOrder()))
+        val before = habitList.map { it.id to it.position }
+        (habitList as SQLiteHabitList).reload()
+        assertThat(habitList.map { it.id to it.position }, equalTo(before))
+    }
+
+    @Test
     fun testReorder() {
         val habit3 = habitList.getById(3)!!
         val habit4 = habitList.getById(4)!!

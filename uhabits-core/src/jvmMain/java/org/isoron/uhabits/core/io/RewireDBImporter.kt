@@ -59,11 +59,12 @@ class RewireDBImporter
 
     override fun importHabitsFromFile(file: File) {
         val db = opener.open(file)
-        db.beginTransaction()
-        createHabits(db)
-        db.setTransactionSuccessful()
-        db.endTransaction()
-        db.close()
+        try {
+            createHabits(db)
+            habitList.resort()
+        } finally {
+            db.close()
+        }
     }
 
     private fun createHabits(db: Database) {
@@ -110,6 +111,7 @@ class RewireDBImporter
                 habitList.add(habit)
                 createReminder(db, habit, id)
                 createCheckmarks(db, habit, id)
+                habit.recompute()
             } while (c.moveToNext())
         } finally {
             c?.close()

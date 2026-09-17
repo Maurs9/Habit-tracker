@@ -28,6 +28,7 @@ import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getStartOfTodayCalendar
 import org.isoron.uhabits.core.utils.DateUtils.Companion.setFixedLocalTime
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -60,18 +61,9 @@ class ImportTest : BaseUnitTest() {
 
     @Test
     @Throws(IOException::class)
-    fun testHabitBullCSV2() {
-        importFromFile("habitbull2.csv")
-        assertThat(habitList.size(), equalTo(6))
-        val habit = habitList.getByPosition(2)
-        assertThat(habit.name, equalTo("H3"))
-        assertThat(habit.description, equalTo("Habit 3"))
-        assertThat(habit.frequency, equalTo(Frequency.DAILY))
-        assertTrue(isChecked(habit, 2019, 4, 11))
-        assertTrue(isChecked(habit, 2019, 5, 7))
-        assertFalse(isChecked(habit, 2019, 6, 14))
-        assertTrue(isNotesEqual(habit, 2019, 4, 11, "text"))
-        assertTrue(isNotesEqual(habit, 2019, 6, 14, "Habit 3 notes"))
+    fun testHabitBullCSV2RejectsInvalidMeasurementWithoutCreatingHabits() {
+        assertThrows(IllegalArgumentException::class.java) { importFromFile("habitbull2.csv") }
+        assertTrue(habitList.isEmpty)
     }
 
     @Test
@@ -130,6 +122,7 @@ class ImportTest : BaseUnitTest() {
     @Throws(IOException::class)
     fun testRewireDB() {
         importFromFile("rewire.db")
+        assertDerivedEntriesPresent()
         assertThat(habitList.size(), equalTo(3))
         var habit = habitList.getByPosition(1)
         assertThat(habit.name, equalTo("Wake up early"))
@@ -154,6 +147,7 @@ class ImportTest : BaseUnitTest() {
     @Throws(IOException::class)
     fun testTickmateDB() {
         importFromFile("tickmate.db")
+        assertDerivedEntriesPresent()
         assertThat(habitList.size(), equalTo(3))
         val h = habitList.getByPosition(2)
         assertThat(h.name, equalTo("Vegan"))
@@ -165,6 +159,16 @@ class ImportTest : BaseUnitTest() {
 
     private fun isChecked(h: Habit, year: Int, month: Int, day: Int): Boolean {
         return getValue(h, year, month, day) == Entry.YES_MANUAL
+    }
+
+    private fun assertDerivedEntriesPresent() {
+        for (habit in habitList) {
+            val original = habit.originalEntries.getKnown()
+            if (original.isEmpty()) continue
+            assertTrue(habit.computedEntries.getKnown().isNotEmpty())
+            assertTrue(habit.streaks.getBest(1).isNotEmpty())
+            assertTrue(habit.scores[original.first().timestamp].value > 0)
+        }
     }
 
     private fun getValue(h: Habit, year: Int, month: Int, day: Int): Int {
@@ -200,8 +204,11 @@ class ImportTest : BaseUnitTest() {
             TickmateDBImporter(habitList, modelFactory, databaseOpener),
             HabitBullCSVImporter(habitList, modelFactory, StandardLogging())
         )
-        assertTrue(importer.canHandle(file))
-        importer.importHabitsFromFile(file)
-        file.delete()
+        try {
+            assertTrue(importer.canHandle(file))
+            importer.importHabitsFromFile(file)
+        } finally {
+            file.delete()
+        }
     }
 }

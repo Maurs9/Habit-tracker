@@ -111,6 +111,7 @@ class EditHabitActivity : HabitsActivity() {
         binding.toolbar.applyToolbarInsets()
         setContentView(binding.root)
         binding.targetInput.keyListener = DigitsKeyListener.getInstance(resources.configuration.locales[0], false, true)
+        binding.booleanFrequencyPicker.isFocusableInTouchMode = true
 
         if (intent.hasExtra("habitId")) {
             binding.toolbar.title = getString(R.string.edit_habit)
@@ -362,6 +363,7 @@ class EditHabitActivity : HabitsActivity() {
         var isValid = true
         binding.nameInput.error = null
         binding.targetInput.error = null
+        binding.booleanFrequencyPicker.error = null
         if (binding.nameInput.text.isBlank()) {
             binding.nameInput.error = getFormattedValidationError(R.string.validation_cannot_be_blank)
             isValid = false
@@ -382,8 +384,22 @@ class EditHabitActivity : HabitsActivity() {
                 validatedTarget = target!!
             }
         }
+        val frequencyError = when {
+            freqNum !in 1..Frequency.MAX_DENOMINATOR || freqDen !in 1..Frequency.MAX_DENOMINATOR ->
+                getString(R.string.frequency_valid_interval, Frequency.MAX_DENOMINATOR)
+            freqNum > freqDen -> getString(R.string.frequency_not_more_than_days)
+            else -> null
+        }
+        if (frequencyError != null) {
+            binding.booleanFrequencyPicker.error = frequencyError
+            isValid = false
+        }
         if (!isValid) {
-            if (binding.nameInput.error != null) binding.nameInput.requestFocus() else binding.targetInput.requestFocus()
+            when {
+                binding.nameInput.error != null -> binding.nameInput.requestFocus()
+                binding.targetInput.error != null -> binding.targetInput.requestFocus()
+                else -> binding.booleanFrequencyPicker.requestFocus()
+            }
         }
         return isValid
     }
@@ -470,6 +486,7 @@ class EditHabitActivity : HabitsActivity() {
 
     @SuppressLint("StringFormatMatches")
     private fun populateFrequency() {
+        binding.booleanFrequencyPicker.error = null
         binding.booleanFrequencyPicker.text = formatFrequency(freqNum, freqDen, resources)
     }
 

@@ -27,6 +27,8 @@ import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.HabitMatcher
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.NumericalHabitType
+import org.isoron.uhabits.core.models.Timestamp
+import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.core.utils.DateUtils.Companion.getToday
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -173,6 +175,46 @@ class HabitCardListCacheTest : BaseUnitTest() {
         verify(listener).onItemRemoved(3)
         verify(listener).onRefreshFinished()
         assertThat(cache.habitCount, equalTo(8))
+    }
+
+    @Test
+    fun testNewDayRebindsRowsEvenWhenEntriesAndScoresAreUnchanged() {
+        habitList.removeAll()
+        habitList.add(modelFactory.buildHabit())
+        cache.refreshAllHabits()
+        reset(listener)
+
+        DateUtils.setFixedLocalTime(today.unixTime + Timestamp.DAY_LENGTH)
+        cache.refreshAllHabits()
+
+        verify(listener).onItemChanged(0)
+        verify(listener).onRefreshFinished()
+        verifyNoMoreInteractions(listener)
+    }
+
+    @Test
+    fun testPartialRefreshOnNewDayAlsoRefreshesOtherHabits() {
+        habitList.removeAll()
+        val first = modelFactory.buildHabit().also { habitList.add(it) }
+        val second = modelFactory.buildHabit().also {
+            habitList.add(it)
+            it.originalEntries.add(Entry(today, Entry.NO, "Yesterday"))
+            it.recompute()
+        }
+        cache.refreshAllHabits()
+        reset(listener)
+
+        DateUtils.setFixedLocalTime(today.unixTime + Timestamp.DAY_LENGTH)
+        cache.refreshHabit(first.id!!)
+
+        assertThat(cache.getCheckmarks(second.id!!)[0], equalTo(Entry.UNKNOWN))
+        assertThat(cache.getCheckmarks(second.id!!)[1], equalTo(Entry.NO))
+        assertThat(cache.getNotes(second.id!!)[0], equalTo(""))
+        assertThat(cache.getNotes(second.id!!)[1], equalTo("Yesterday"))
+        verify(listener).onItemChanged(0)
+        verify(listener).onItemChanged(1)
+        verify(listener).onRefreshFinished()
+        verifyNoMoreInteractions(listener)
     }
 
     @Test

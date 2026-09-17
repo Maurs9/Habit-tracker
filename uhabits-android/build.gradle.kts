@@ -88,6 +88,13 @@ android {
     lint.abortOnError = false
 }
 
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        // The instrumentation-only JVMTI agent must be loadable from disk.
+        variant.androidTest?.packaging?.jniLibs?.useLegacyPackaging?.set(true)
+    }
+}
+
 dependencies {
     compileOnly(libs.jsr250.api)
     coreLibraryDesugaring(libs.desugar.jdk.libs)

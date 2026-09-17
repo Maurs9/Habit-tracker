@@ -20,6 +20,24 @@ import org.junit.runner.RunWith
 class RootInsetsTest : BaseAndroidTest() {
     @Test
     @UiThreadTest
+    fun bottomInsetDoesNotReplaceSideInsetHandling() {
+        val view = View(ContextThemeWrapper(targetContext, R.style.AppBaseTheme))
+        view.applyRootViewInsets(includeBottom = true)
+        for (insets in listOf(Insets.of(12, 24, 16, 32), Insets.of(40, 24, 0, 0))) {
+            ViewCompat.dispatchApplyWindowInsets(
+                view,
+                WindowInsetsCompat.Builder()
+                    .setInsets(WindowInsetsCompat.Type.systemBars(), insets)
+                    .build()
+            )
+            assertEquals(insets.left, view.paddingLeft)
+            assertEquals(insets.right, view.paddingRight)
+            assertEquals(insets.bottom, view.paddingBottom)
+        }
+    }
+
+    @Test
+    @UiThreadTest
     fun preservesExplicitBackgroundAndAppliesInsets() {
         val view = View(ContextThemeWrapper(targetContext, R.style.AppBaseTheme))
         val background = ColorDrawable(Color.WHITE)

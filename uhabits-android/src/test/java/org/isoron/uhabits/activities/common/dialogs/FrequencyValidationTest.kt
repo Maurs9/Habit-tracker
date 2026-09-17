@@ -10,6 +10,7 @@ class FrequencyValidationTest {
         assertEquals(1, parsePositiveFrequencyInteger("1"))
         assertEquals(30, parsePositiveFrequencyInteger(" 30 "))
         assertEquals(12, parsePositiveFrequencyInteger("١٢"))
+        assertEquals(10000, parsePositiveFrequencyInteger("10000"))
         assertEquals(Int.MAX_VALUE, parsePositiveFrequencyInteger(Int.MAX_VALUE.toString()))
     }
 

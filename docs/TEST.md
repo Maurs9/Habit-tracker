@@ -25,6 +25,50 @@ No emulator is needed. Android Studio also supports running an individual test c
 
 Run `./gradlew ktlintCheck` for Kotlin style checks. `./build.sh build` additionally runs Android lint, the core build/tests, and assembles the app and instrumentation APKs. That script does **not** run Android JVM unit tests; run `:uhabits-android:testDebugUnitTest` separately. Test reports are in each module's `build/reports/tests` directory.
 
+### Data safety, theme changes, and date boundaries
+
+The version 29 regressions cover atomic entry replacement and failed writes,
+legacy skip migration, `0.003` measurements, wide numerical totals, frequency
+validation before persistence, HabitBull parsing and type persistence, CSV
+escaping, import recomputation, and retained habit order. Relevant core suites
+include `Version29Test`, `NumericalDataRegressionTest`, `HabitValidationTest`,
+`HabitBullImportRegressionTest`, `SQLiteEntryListTest`, `SQLiteHabitListTest`,
+`SectionImportTest`, `TargetCardStateTest`, and `ChartBoundaryTest`.
+
+`ThemeSwitcherTest`, `PreferencesTest`, and `HabitCardListCacheTest` cover
+automatic-night pure-black resolution, legacy `LARGE` preferences, and full or
+partial cache refresh across midnight. Reminder and automation suites exercise
+expired snoozes, reconstructed notification trays, and read-modify-write
+commands queued before execution.
+
+Run Android regressions on a disposable device: the fixtures replace the test
+app's database and preferences. Disconnect physical devices before running
+`connectedDebugAndroidTest`. `ThemeSwitchingTest` changes pure black through
+Settings in automatic and explicit dark modes, then examines both existing and
+recycled rows. `ListHabitsRootViewTest`, `HistoryEditorDateBoundaryTest`,
+`NumberDialogTest`, `NumberPickerPendingIntentTest`, `AndroidDatabaseTest`,
+`HabitsBackupAgentTest`, and `RootInsetsTest` cover the remaining Android paths.
+For example:
+
+```bash
+./gradlew :uhabits-android:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=org.isoron.uhabits.activities.habits.list.ThemeSwitchingTest,org.isoron.uhabits.intents.NumberPickerPendingIntentTest
+```
+
+Instrumentation uses Dexmaker's inline mock maker for Kotlin final classes.
+Its JVMTI library is extracted in the debug instrumentation APK so Android can
+load it; this does not add a native dependency to the released app. Tests that
+exercise the main-list fixes use instrumentation/lifecycle observation rather than
+`ActivityScenario` intent matching because that activity consumes its intent.
+Confirm that the selected methods appear in instrumentation output; successful
+compilation alone is not runtime coverage.
+
+After changing shared storage constants or database migrations, clean both
+modules and rebuild the app and instrumentation APKs together before installing
+them. Kotlin consumers can retain an old inlined constant in reused build
+artifacts; do not diagnose an app/test value mismatch using a freshly built test
+APK against an older app APK.
+
 ### Accessibility and input hardening
 
 Run the focused JVM checks and compile the device regressions with:

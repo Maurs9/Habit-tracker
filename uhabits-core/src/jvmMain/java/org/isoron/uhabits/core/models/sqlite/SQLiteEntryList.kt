@@ -44,36 +44,33 @@ class SQLiteEntryList(database: Database) : EntryList() {
         isLoaded = true
     }
 
+    @Synchronized
     override fun get(timestamp: Timestamp): Entry {
         loadRecords()
         return super.get(timestamp)
     }
 
+    @Synchronized
     override fun getByInterval(from: Timestamp, to: Timestamp): List<Entry> {
         loadRecords()
         return super.getByInterval(from, to)
     }
 
+    @Synchronized
     override fun add(entry: Entry) {
         loadRecords()
         val habitId = habitId ?: throw IllegalStateException("habitId must be set")
-
-        // Remove existing rows
         repository.execSQL(
-            "delete from repetitions where habit = ? and timestamp = ?",
-            habitId.toString(),
-            entry.timestamp.unixTime.toString()
+            "INSERT OR REPLACE INTO repetitions (habit, timestamp, value, notes) VALUES (?, ?, ?, ?)",
+            habitId,
+            entry.timestamp.unixTime,
+            entry.value,
+            entry.notes
         )
-
-        // Add new row
-        val record = EntryRecord().apply { copyFrom(entry) }
-        record.habitId = habitId
-        repository.save(record)
-
-        // Add to memory list
         super.add(entry)
     }
 
+    @Synchronized
     override fun getKnown(): List<Entry> {
         loadRecords()
         return super.getKnown()
@@ -95,11 +92,12 @@ class SQLiteEntryList(database: Database) : EntryList() {
         throw UnsupportedOperationException()
     }
 
+    @Synchronized
     override fun clear() {
-        super.clear()
         repository.execSQL(
             "delete from repetitions where habit = ?",
             habitId.toString()
         )
+        super.clear()
     }
 }

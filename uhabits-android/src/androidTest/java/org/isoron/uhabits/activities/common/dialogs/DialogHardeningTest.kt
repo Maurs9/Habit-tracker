@@ -15,6 +15,7 @@ import org.isoron.uhabits.BaseAndroidTest
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.edit.EditHabitActivity
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Frequency
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -25,14 +26,14 @@ class DialogHardeningTest : BaseAndroidTest() {
         prefs.isSkipEnabled = true
         prefs.areQuestionMarksEnabled = true
         launchEditor().use { scenario ->
-            scenario.onActivity { activity ->
-                for ((id, label, expected) in listOf(
-                    Triple(R.id.yesBtn, R.string.entry_action_complete, Entry.YES_MANUAL),
-                    Triple(R.id.noBtn, R.string.entry_action_not_complete, Entry.NO),
-                    Triple(R.id.skipBtn, R.string.entry_action_skip, Entry.SKIP),
-                    Triple(R.id.unknownBtn, R.string.entry_action_clear, Entry.UNKNOWN)
-                )) {
-                    var result: Pair<Int, String>? = null
+            for ((id, label, expected) in listOf(
+                Triple(R.id.yesBtn, R.string.entry_action_complete, Entry.YES_MANUAL),
+                Triple(R.id.noBtn, R.string.entry_action_not_complete, Entry.NO),
+                Triple(R.id.skipBtn, R.string.entry_action_skip, Entry.SKIP),
+                Triple(R.id.unknownBtn, R.string.entry_action_clear, Entry.UNKNOWN)
+            )) {
+                var result: Pair<Int, String>? = null
+                scenario.onActivity { activity ->
                     val fragment = CheckmarkDialog().apply {
                         arguments = EntryDialogFragment.arguments(habitList.getByPosition(0), day(0), android.graphics.Color.BLUE).apply {
                             putInt("value", Entry.NO)
@@ -41,6 +42,10 @@ class DialogHardeningTest : BaseAndroidTest() {
                         onToggle = { value, notes -> result = value to notes }
                     }
                     fragment.showNow(activity.supportFragmentManager, "checkmark")
+                }
+                InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+                scenario.onActivity { activity ->
+                    val fragment = activity.supportFragmentManager.findFragmentByTag("checkmark") as CheckmarkDialog
                     assertButtonAction(fragment.requireDialog().findViewById(id), label)
                     assertEquals(expected to "Keep my note", result)
                     activity.supportFragmentManager.executePendingTransactions()
@@ -54,13 +59,13 @@ class DialogHardeningTest : BaseAndroidTest() {
         prefs.isSkipEnabled = true
         prefs.areQuestionMarksEnabled = true
         launchEditor().use { scenario ->
-            scenario.onActivity { activity ->
-                for ((id, label, expected) in listOf(
-                    Triple(R.id.saveBtn, R.string.save, 2.5),
-                    Triple(R.id.skipBtnNumber, R.string.entry_action_skip, Entry.SKIP / 1000.0),
-                    Triple(R.id.unknownBtnNumber, R.string.entry_action_clear, Entry.UNKNOWN / 1000.0)
-                )) {
-                    var result: Pair<Double, String>? = null
+            for ((id, label, expected) in listOf(
+                Triple(R.id.saveBtn, R.string.save, 2.5),
+                Triple(R.id.skipBtnNumber, R.string.entry_action_skip, Entry.SKIP / 1000.0),
+                Triple(R.id.unknownBtnNumber, R.string.entry_action_clear, Entry.UNKNOWN / 1000.0)
+            )) {
+                var result: Pair<Double, String>? = null
+                scenario.onActivity { activity ->
                     val fragment = NumberDialog().apply {
                         arguments = EntryDialogFragment.arguments(habitList.getByPosition(0), day(0), android.graphics.Color.BLUE).apply {
                             putDouble("value", 2.5)
@@ -69,6 +74,10 @@ class DialogHardeningTest : BaseAndroidTest() {
                         onToggle = { value, notes -> result = value to notes }
                     }
                     fragment.showNow(activity.supportFragmentManager, "number")
+                }
+                InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+                scenario.onActivity { activity ->
+                    val fragment = activity.supportFragmentManager.findFragmentByTag("number") as NumberDialog
                     assertButtonAction(fragment.requireDialog().findViewById(id), label)
                     assertEquals(expected to "Keep my note", result)
                     activity.supportFragmentManager.executePendingTransactions()
@@ -216,9 +225,37 @@ class DialogHardeningTest : BaseAndroidTest() {
         }
     }
 
+    @Test
+    fun testFrequencyPreservesOutOfRangeInputAndAcceptsTheModelLimit() {
+        launchEditor().use { scenario ->
+            scenario.onActivity { activity ->
+                var result: Pair<Int, Int>? = null
+                val fragment = FrequencyPickerDialog(1, 1).apply {
+                    onFrequencyPicked = { num, den -> result = num to den }
+                }
+                fragment.showNow(activity.supportFragmentManager, "frequency")
+                val dialog = fragment.requireDialog() as AlertDialog
+                dialog.findViewById<View>(R.id.everyXDaysRadioButton)!!.performClick()
+                val input = dialog.findViewById<EditText>(R.id.everyXDaysTextView)!!
+                val limit = Frequency.MAX_DENOMINATOR
+                val invalid = (limit.toLong() + 1).toString()
+                input.setText(invalid)
+                assertEquals(invalid, input.text.toString())
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                assertNull(result)
+                assertTrue(dialog.isShowing)
+                assertEquals(activity.getString(R.string.frequency_valid_interval, limit), input.error.toString())
+                input.setText(limit.toString())
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                assertEquals(1 to limit, result)
+            }
+        }
+    }
+
     private fun assertButtonAction(button: View, label: Int) {
+        assertTrue(button.isAttachedToWindow)
         val node = button.createAccessibilityNodeInfo()
-        assertEquals(button.context.getString(label), node.contentDescription.toString())
+        assertEquals(button.context.getString(label), node.contentDescription?.toString())
         assertEquals(Button::class.java.name, node.className.toString())
         assertTrue(node.isClickable)
         assertTrue(button.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null))

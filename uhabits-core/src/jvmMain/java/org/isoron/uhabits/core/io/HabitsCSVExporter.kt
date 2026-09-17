@@ -204,12 +204,11 @@ class HabitsCSVExporter(
      */
     @Throws(IOException::class)
     private fun writeMultipleHabitsHeader(out: Writer) {
-        out.write("Date$delimiter")
-        for (habit in selectedHabits) {
-            out.write(habit.name)
-            out.write(delimiter)
+        val columns = listOf("Date") + selectedHabits.map { it.name } + ""
+        CSVWriter(out).apply {
+            writeNext(columns.toTypedArray(), false)
+            flush()
         }
-        out.write("\n")
     }
 
     /**

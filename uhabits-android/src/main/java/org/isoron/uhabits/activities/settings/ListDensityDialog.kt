@@ -41,7 +41,7 @@ class ListDensityDialog : DialogFragment() {
     private var selectedDensity = ListDensity.STANDARD
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        selectedDensity = savedInstanceState?.getString("density")?.let { ListDensity.valueOf(it) }
+        selectedDensity = savedInstanceState?.getString("density")?.let { ListDensity.fromPersistedName(it) }
             ?: preferences.listDensity
         val builder = MaterialAlertDialogBuilder(requireContext(), R.style.HabitControlsDialogTheme)
         val content = LinearLayout(builder.context).apply {

@@ -56,11 +56,12 @@ class TickmateDBImporter @Inject constructor(
 
     override fun importHabitsFromFile(file: File) {
         val db = opener.open(file)
-        db.beginTransaction()
-        createHabits(db)
-        db.setTransactionSuccessful()
-        db.endTransaction()
-        db.close()
+        try {
+            createHabits(db)
+            habitList.resort()
+        } finally {
+            db.close()
+        }
     }
 
     private fun createCheckmarks(
@@ -103,6 +104,7 @@ class TickmateDBImporter @Inject constructor(
                 habit.frequency = Frequency.DAILY
                 habitList.add(habit)
                 createCheckmarks(db, habit, id)
+                habit.recompute()
             } while (c.moveToNext())
         } finally {
             c?.close()

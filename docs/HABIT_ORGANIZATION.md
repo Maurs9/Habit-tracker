@@ -8,6 +8,11 @@ only before the habit is created. Switching types keeps the draft fields.
 Both types support frequencies such as three times per week or every two days.
 For measurable habits, meeting the full target on a recorded day qualifies that
 day toward the selected frequency; eligible rest days receive automatic checkmarks.
+Frequency intervals accept positive whole numbers through 2,147,483,647 days,
+with at least one repetition and no more repetitions than days. Invalid or
+overflowing input is rejected before saving. Very long existing schedules remain
+compatible; derived rest days are generated only through the current logical day
+plus 30, while recorded future entries are preserved.
 
 **Section** and **Tags** stay visible. **More options** reveals Question and
 Notes; **Fewer options** hides them without clearing their text. Editing a habit
@@ -29,6 +34,9 @@ text and inactive marks readable; the saved color and other cells are unchanged.
 Dark and pure-black themes use thin separators in the existing gaps between
 habit rows. Pure-black card backgrounds stay black, and light mode retains its
 existing card spacing and shadows.
+Changing pure black refreshes the settings screen and the main list, including
+when dark mode follows the system. Habit-name text is adjusted locally for
+readability on normal and selected rows; saved color indexes are unchanged.
 
 **Settings -> Interface -> List density** offers **Compact**, **Standard**
 (the default), and **Spacious**, with a preview before saving. Cancel leaves
@@ -68,7 +76,19 @@ Automatic numerical checkmarks are derived from the schedule, not recorded
 quantities. A value such as `0.001` stays a measurement and is compared with the
 target normally. CSV checkmark exports keep raw thousandths for numerical
 measurements (`0.001` exports as `1`) and label automatic rest days `YES_AUTO`.
-Existing database backups and recorded values require no migration.
+Database version 29 separates skip markers from nonnegative measurements.
+The automatic upgrade and import of older backups preserve records previously
+interpreted as skips, including their dates and notes. An old `0.003` entry that
+was already interpreted as a skip cannot be distinguished from an intentional
+skip; re-enter it if it was meant to be a measurement. New `0.003` entries remain
+measurements, even when skipping is disabled.
+
+Numerical skips preserve streak continuity without creating a successful
+skip-only streak. Missing at-most measurements retain the existing zero-amount
+scoring behavior. Target progress includes all repetitions in the selected
+frequency and uses the actual quarter and year lengths. Weekly/custom-frequency
+targets are prorated by period length; monthly frequencies retain calendar-month
+quotas. Skipped days reduce the corresponding daily share of the target.
 
 ## Colors
 
@@ -156,7 +176,8 @@ Open **Settings → Sections** to add sections, rename them, move them up or dow
 or delete them. Deletion asks for confirmation; habits and history are kept and
 become unsectioned. Empty sections remain available in this manager.
 
-Version 28 database backups retain sections and habit assignments. Older
+Version 29 database backups retain sections, habit assignments, and unambiguous
+skip markers. Older
 backups remain importable. Import matches section names ignoring surrounding
 whitespace and capitalization, keeps local section names and order, and appends
 unknown sections in backup order. Re-importing does not create duplicate
@@ -223,9 +244,29 @@ are preserved. Turning reminders off in that editor clears all of the habit's
 reminder times. Removing every time in the reminder-times dialog also turns them
 off. Snooze pauses that habit's regular reminders until the selected snooze time,
 then normal scheduling resumes.
-A pending snooze survives app restarts until it is delivered, including when its
-deadline passed while the app was not running.
+A pending snooze survives app restarts while its deadline is still in the
+future. An expired snooze no longer blocks regular scheduling or repeatedly
+registers an alarm in the past. A snoozed broadcast already waiting for app
+startup can still be accepted once.
 
 Database backups retain all reminder times. `Habits.csv` includes
 `ReminderTimes` and `ReminderDays` columns for inspection in a spreadsheet.
 As with other CSV exports, these are not a restorable database backup.
+
+## Automation and data safety
+
+Numerical increments and decrements treat missing, skipped, and automatic entries
+as zero, then apply the adjustment in the serialized command queue. Consecutive
+actions accumulate rather than overwriting each other, and retain the entry's
+current notes. Quantities stay between zero and 2,147,483.647.
+
+Entry replacement is atomic: a failed replacement does not delete the previously
+saved value or note. CSV exports quote habit names containing commas, quotes,
+or line breaks. HabitBull imports infer a habit's type before encoding its
+measurements and use strict date parsing. Rewire and Tickmate imports rebuild
+computed history before reporting success.
+
+Database backups do not include application preferences. Android's settings
+backup uses the default preferences file, including saved filters and interface
+choices. Keep a backup from the previous app version before upgrading; version
+29 databases cannot be opened by older releases that only support version 28.

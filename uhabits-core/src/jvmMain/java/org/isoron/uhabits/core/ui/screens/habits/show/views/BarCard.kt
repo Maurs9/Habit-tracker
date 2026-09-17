@@ -19,7 +19,7 @@
 
 package org.isoron.uhabits.core.ui.screens.habits.show.views
 
-import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.EntryAggregate
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.models.groupedSum
@@ -32,7 +32,7 @@ data class BarCardState(
     val boolSpinnerPosition: Int,
     val bucketSize: Int,
     val color: PaletteColor,
-    val entries: List<Entry>,
+    val entries: List<EntryAggregate>,
     val isNumerical: Boolean,
     val numericalSpinnerPosition: Int,
     val unit: String = ""

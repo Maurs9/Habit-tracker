@@ -123,7 +123,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val sr = StyledResources(context!!)
+        val sr = StyledResources(requireContext())
         view.setBackgroundColor(sr.getColor(R.attr.contrast0))
         super.onViewCreated(view, savedInstanceState)
         backupModel.state.observe(viewLifecycleOwner) { state ->
@@ -358,6 +358,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         BackupManager.dataChanged("org.isoron.uhabits")
         updateWeekdayPreference()
         updateListDensityPreference()
+        if (key == "pref_pure_black") requireActivity().recreate()
     }
 
     private fun setResultOnPreferenceClick(key: String, result: Int) {
