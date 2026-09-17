@@ -25,6 +25,51 @@ No emulator is needed. Android Studio also supports running an individual test c
 
 Run `./gradlew ktlintCheck` for Kotlin style checks. `./build.sh build` additionally runs Android lint, the core build/tests, and assembles the app and instrumentation APKs. That script does **not** run Android JVM unit tests; run `:uhabits-android:testDebugUnitTest` separately. Test reports are in each module's `build/reports/tests` directory.
 
+### Accessibility and input hardening
+
+Run the focused JVM checks and compile the device regressions with:
+
+```bash
+./gradlew :uhabits-core:jvmTest --tests '*HabitCardListReorderTest' \
+  --tests '*ChartDataStateTest' --tests '*ShowHabitStateTest' \
+  --tests '*NumericalAutoEntryTest' \
+  :uhabits-android:testDebugUnitTest --tests '*FrequencyValidationTest' \
+  :uhabits-android:compileDebugAndroidTestKotlin
+```
+
+`FrequencyValidationTest` checks blank, zero, out-of-range and valid frequency
+inputs, including daily normalization. `HabitCardListReorderTest` covers the
+existing persistence path reused by accessible habit movement.
+`ChartDataStateTest` and `ShowHabitStateTest` cover chart/detail data, while
+`NumericalAutoEntryTest` preserves numerical skip, automatic-entry and small-value
+semantics used by the accessible descriptions.
+
+Device regressions cover the additional Android behavior:
+
+- `DialogHardeningTest`, `EditorPickerRecreationTest` and
+  `SnoozeAccessibilityTest`: entry-action names and button roles, hardware-keyboard
+  frequency input, inline errors, pending picker drafts/results across recreation,
+  and 12/24-hour accessibility adjustments.
+- `ListHabitsRootViewTest` and `HeaderViewTest`: accessible Move up/down actions,
+  Ctrl+Up/Down, selection-menu movement, section/filter/sort restrictions, and
+  accessible/keyboard date navigation.
+- `EditSettingRootViewTest`: empty automation setup, disabled Save, recovery when
+  a habit disappears, stable selected identity after reordering, and restoration
+  of boolean/numerical actions.
+- `ChartAccessibilityTest` and `WidgetAccessibilityTest`: accessible chart data,
+  period navigation and history editing, plus widget names, actions and states.
+
+Run these on a disposable emulator using the instrumented-test instructions
+below. Compiling them is not a substitute for executing them or checking TalkBack
+and keyboard interaction. In particular, verify focus after movement, pending
+dialog choices after rotation, and the actual spoken name/state of each widget
+and stack item.
+
+New user-facing strings remain in translatable resources with English fallback;
+translation coverage should be reviewed separately. Android lint currently
+reports translation gaps and other existing findings; its successful task exit
+does not imply a clean report because `lint.abortOnError` is disabled.
+
 ### Palette and core chart checks
 
 `PaletteContrastTest` iterates all 52 slots using WCAG relative luminance.

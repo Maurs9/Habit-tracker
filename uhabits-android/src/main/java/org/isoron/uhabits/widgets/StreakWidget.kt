@@ -26,6 +26,8 @@ import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.activities.common.views.StreakChart
+import org.isoron.uhabits.activities.common.views.chartSummary
+import org.isoron.uhabits.activities.common.views.chartWidgetDescription
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.views.WidgetTheme
 import org.isoron.uhabits.widgets.views.GraphWidgetView
@@ -50,6 +52,7 @@ class StreakWidget(
             setColor(WidgetTheme().color(habit.color).toInt())
             setStreaks(habit.streaks.getBest(maxStreakCount))
         }
+        widgetView.contentDescription = context.chartWidgetDescription(habit.name, widgetView.dataView.chartSummary())
     }
 
     override fun buildView(): View {

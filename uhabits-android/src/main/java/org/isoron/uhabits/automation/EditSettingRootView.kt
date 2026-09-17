@@ -28,13 +28,13 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
+import androidx.core.view.isVisible
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.databinding.AutomationBinding
 import org.isoron.uhabits.utils.currentTheme
 import org.isoron.uhabits.utils.setupToolbar
-import java.util.LinkedList
 
 @SuppressLint("ViewConstructor")
 class EditSettingRootView(
@@ -44,7 +44,9 @@ class EditSettingRootView(
     args: SettingUtils.Arguments?
 ) : FrameLayout(context) {
 
-    private var binding = AutomationBinding.inflate(LayoutInflater.from(context))
+    private val binding = AutomationBinding.inflate(LayoutInflater.from(context))
+    private var displayedHabits = emptyList<Habit>()
+    private var selectedHabitId: Long? = null
 
     init {
         addView(binding.root)
@@ -57,14 +59,21 @@ class EditSettingRootView(
         populateHabitSpinner()
         binding.habitSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {
+                updateSelectedHabit(AdapterView.INVALID_POSITION)
             }
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                populateActionSpinner(habitList.getByPosition(position).isNumerical)
+                updateSelectedHabit(position)
             }
         }
         binding.buttonSave.setOnClickListener {
-            val habit = habitList.getByPosition(binding.habitSpinner.selectedItemPosition)
+            val habit = displayedHabits.getOrNull(binding.habitSpinner.selectedItemPosition)
+                ?.id?.let(habitList::getById)
+            if (habit == null) {
+                populateHabitSpinner()
+                binding.selectionError.isVisible = displayedHabits.isNotEmpty()
+                return@setOnClickListener
+            }
             val action = mapSpinnerPositionToAction(
                 isNumerical = habit.isNumerical,
                 itemPosition = binding.actionSpinner.selectedItemPosition
@@ -72,9 +81,12 @@ class EditSettingRootView(
             onSave(habit, action)
         }
         args?.let {
-            binding.habitSpinner.setSelection(habitList.indexOf(it.habit))
-            populateActionSpinner(it.habit.isNumerical)
-            binding.actionSpinner.setSelection(mapActionToSpinnerPosition(it.action))
+            val position = displayedHabits.indexOfFirst { habit -> habit.id == it.habit.id }
+            if (position >= 0) {
+                binding.habitSpinner.setSelection(position)
+                updateSelectedHabit(position)
+                binding.actionSpinner.setSelection(mapActionToSpinnerPosition(it.action))
+            }
         }
     }
 
@@ -105,10 +117,28 @@ class EditSettingRootView(
     }
 
     private fun populateHabitSpinner() {
-        val names = habitList.mapTo(LinkedList()) { it.name }
+        displayedHabits = habitList.toList()
+        selectedHabitId = null
+        val names = displayedHabits.map { it.name }
         val adapter = ArrayAdapter(context, simple_spinner_item, names)
         adapter.setDropDownViewResource(simple_spinner_dropdown_item)
         binding.habitSpinner.adapter = adapter
+        val hasHabits = displayedHabits.isNotEmpty()
+        binding.emptyMessage.isVisible = !hasHabits
+        binding.habitField.isVisible = hasHabits
+        binding.actionField.isVisible = hasHabits
+        binding.selectionError.isVisible = false
+        updateSelectedHabit(binding.habitSpinner.selectedItemPosition)
+    }
+
+    private fun updateSelectedHabit(position: Int) {
+        val habit = displayedHabits.getOrNull(position)
+        binding.buttonSave.isEnabled = habit != null
+        if (habit?.id != selectedHabitId) {
+            selectedHabitId = habit?.id
+            binding.selectionError.isVisible = false
+            if (habit != null) populateActionSpinner(habit.isNumerical)
+        }
     }
 
     private fun populateActionSpinner(isNumerical: Boolean) {

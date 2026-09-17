@@ -97,6 +97,7 @@ internal class StackRemoteViewsFactory(private val context: Context, intent: Int
         val habits = habitIds.map { habitList.getById(it) ?: throw HabitNotFoundException() }
         val h = habits[position]
         val widget = constructWidget(h, prefs)
+        if (widget is CheckmarkWidget) widget.opensEntryEditor = habits.any { it.isNumerical }
         widget.setDimensions(getDimensionsFromOptions(context, options))
         val landscapeViews = widget.landscapeRemoteViews
         val portraitViews = widget.portraitRemoteViews

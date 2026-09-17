@@ -22,6 +22,7 @@ package org.isoron.uhabits.widgets
 import android.app.PendingIntent
 import android.content.Context
 import android.view.View
+import org.isoron.uhabits.R
 import org.isoron.uhabits.widgets.views.EmptyWidgetView
 
 class EmptyWidget(
@@ -33,6 +34,8 @@ class EmptyWidget(
     override val defaultWidth: Int = 200
 
     override fun getOnClickPendingIntent(context: Context): PendingIntent? = null
-    override fun refreshData(v: View) {}
+    override fun refreshData(v: View) {
+        v.contentDescription = context.getString(R.string.chart_no_data)
+    }
     override fun buildView() = EmptyWidgetView(context)
 }

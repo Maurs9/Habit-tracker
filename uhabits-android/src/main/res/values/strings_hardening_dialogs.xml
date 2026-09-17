@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="entry_action_complete">Mark completed</string>
+    <string name="entry_action_not_complete">Mark not completed</string>
+    <string name="entry_action_skip">Skip day</string>
+    <string name="entry_action_clear">Clear entry</string>
+    <string name="frequency_positive_integer">Enter a whole number greater than zero.</string>
+    <string name="frequency_not_more_than_days">The number of times cannot exceed the number of days.</string>
+</resources>

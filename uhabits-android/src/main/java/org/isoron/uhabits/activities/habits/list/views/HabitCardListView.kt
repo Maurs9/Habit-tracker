@@ -113,6 +113,11 @@ class HabitCardListView(
 
     fun createSectionHeaderView() = SectionHeaderView(context)
 
+    fun announceMove(habit: Habit, target: Habit, direction: Int) {
+        val message = if (direction < 0) R.string.habit_moved_before else R.string.habit_moved_after
+        announceForAccessibility(context.getString(message, habit.name, target.name))
+    }
+
     fun bindHeaderView(
         holder: SectionHeaderViewHolder,
         header: HabitCardListCache.ListItem.Header,
@@ -144,6 +149,14 @@ class HabitCardListView(
         cardView.unit = habit.unit
         cardView.threshold = habit.targetValue
         cardView.notes = notes
+        cardView.canMove = { direction ->
+            val position = holder.adapterPosition
+            position != NO_POSITION && adapter.canMoveHabit(position, direction)
+        }
+        cardView.onMove = { direction ->
+            val position = holder.adapterPosition
+            position != NO_POSITION && controller.get().moveHabit(position, direction)
+        }
         cardView.setOnClickListener {
             val position = holder.adapterPosition
             if (position != NO_POSITION) controller.get().onItemClick(position)

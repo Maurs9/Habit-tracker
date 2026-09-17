@@ -26,6 +26,12 @@ import android.widget.AdapterView
 import android.widget.LinearLayout
 import org.isoron.platform.gui.toInt
 import org.isoron.platform.time.JavaLocalDateFormatter
+import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.ChartData
+import org.isoron.uhabits.activities.common.views.chartDate
+import org.isoron.uhabits.activities.common.views.chartNumber
+import org.isoron.uhabits.activities.common.views.chartPeriod
+import org.isoron.uhabits.activities.common.views.setChartData
 import org.isoron.uhabits.core.ui.screens.habits.show.views.BarCardPresenter
 import org.isoron.uhabits.core.ui.screens.habits.show.views.BarCardState
 import org.isoron.uhabits.core.ui.views.BarChart
@@ -44,6 +50,24 @@ class BarCardView(context: Context, attrs: AttributeSet) : LinearLayout(context,
             axis = state.entries.map { it.timestamp.toLocalDate() }
         }
         binding.chart.resetDataOffset()
+        binding.chart.maxDataOffset = (state.entries.size - 1).coerceAtLeast(0)
+        binding.chart.setChartData(
+            ChartData(
+                title = context.getString(R.string.history),
+                size = { state.entries.size },
+                initialPosition = { binding.chart.dataOffset },
+                row = { index ->
+                    val entry = state.entries[index]
+                    val value = context.chartNumber(entry.value / 1000.0)
+                    context.getString(
+                        R.string.chart_period_value,
+                        context.chartPeriod(state.bucketSize),
+                        context.chartDate(entry.timestamp),
+                        if (state.isNumerical) context.getString(R.string.chart_value_unit, value, state.unit).trim() else value
+                    )
+                }
+            )
+        )
         binding.chart.postInvalidate()
 
         binding.title.setTextColor(androidColor)

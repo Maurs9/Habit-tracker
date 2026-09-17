@@ -100,6 +100,7 @@ class ScoreChart : ScrollableChart {
 
     fun setBucketSize(bucketSize: Int) {
         this.bucketSize = bucketSize
+        refreshChartAccessibility()
         postInvalidate()
     }
 
@@ -115,6 +116,8 @@ class ScoreChart : ScrollableChart {
 
     fun setScores(scores: List<Score>) {
         this.scores = scores
+        setMaxDataOffset((scores.size - 1).coerceAtLeast(0))
+        refreshChartAccessibility()
         postInvalidate()
     }
 
@@ -322,6 +325,22 @@ class ScoreChart : ScrollableChart {
         initColors()
         initDateFormats()
         initRects()
+        setChartData(
+            ChartData(
+                title = context.getString(R.string.score),
+                size = { scores?.size ?: 0 },
+                initialPosition = { dataOffset },
+                row = { index ->
+                    val score = scores!![index]
+                    context.getString(
+                        R.string.chart_period_value,
+                        context.chartPeriod(bucketSize),
+                        context.chartDate(score.timestamp),
+                        context.chartPercent(score.value)
+                    )
+                }
+            )
+        )
     }
 
     private fun initCache(width: Int, height: Int) {

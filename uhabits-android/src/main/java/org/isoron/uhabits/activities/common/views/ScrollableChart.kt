@@ -25,9 +25,13 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Scroller
+import org.isoron.uhabits.R
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -42,6 +46,13 @@ abstract class ScrollableChart : View, GestureDetector.OnGestureListener, Animat
     private lateinit var scrollAnimator: ValueAnimator
     private lateinit var scrollController: ScrollController
     private var maxDataOffset = 10000
+    val maximumDataOffset: Int get() = maxDataOffset
+    val scrollDirection: Int get() = direction
+    protected open val accessibilityScrollStep: Int get() = 1
+    protected open val accessibilityScrollAnnouncementsEnabled: Boolean get() = true
+
+    protected open fun accessibilityScrollLabel(delta: Int): CharSequence =
+        context.getString(if (delta > 0) R.string.chart_older else R.string.chart_newer)
 
     constructor(context: Context?) : super(context) {
         init(context)
@@ -146,6 +157,65 @@ abstract class ScrollableChart : View, GestureDetector.OnGestureListener, Animat
         return detector.onTouchEvent(event)
     }
 
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        info.isScrollable = maxDataOffset > 0
+        if (dataOffset < maxDataOffset) {
+            info.addAction(
+                AccessibilityNodeInfo.AccessibilityAction(
+                    AccessibilityNodeInfo.ACTION_SCROLL_FORWARD,
+                    accessibilityScrollLabel(min(accessibilityScrollStep.coerceAtLeast(1), maxDataOffset - dataOffset))
+                )
+            )
+        }
+        if (dataOffset > 0) {
+            info.addAction(
+                AccessibilityNodeInfo.AccessibilityAction(
+                    AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,
+                    accessibilityScrollLabel(-min(accessibilityScrollStep.coerceAtLeast(1), dataOffset))
+                )
+            )
+        }
+    }
+
+    override fun onInitializeAccessibilityEvent(event: AccessibilityEvent) {
+        super.onInitializeAccessibilityEvent(event)
+        event.isScrollable = maxDataOffset > 0
+        event.fromIndex = dataOffset
+        event.toIndex = dataOffset
+        event.itemCount = maxDataOffset + 1
+    }
+
+    override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean = when (action) {
+        AccessibilityNodeInfo.ACTION_SCROLL_FORWARD -> scrollByColumns(accessibilityScrollStep.coerceAtLeast(1))
+        AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD -> scrollByColumns(-accessibilityScrollStep.coerceAtLeast(1))
+        else -> super.performAccessibilityAction(action, arguments)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean = when (keyCode) {
+        KeyEvent.KEYCODE_DPAD_LEFT -> scrollByColumns(direction * accessibilityScrollStep.coerceAtLeast(1))
+        KeyEvent.KEYCODE_DPAD_RIGHT -> scrollByColumns(-direction * accessibilityScrollStep.coerceAtLeast(1))
+        else -> super.onKeyDown(keyCode, event)
+    }
+
+    fun scrollByColumns(delta: Int): Boolean {
+        if (!isEnabled) return false
+        val target = (dataOffset.toLong() + delta).coerceIn(0, maxDataOffset.toLong()).toInt()
+        if (target == dataOffset || scrollerBucketSize <= 0) return false
+        scrollAnimator.cancel()
+        scroller.forceFinished(true)
+        scroller.startScroll(0, 0, target * scrollerBucketSize, 0, 0)
+        scroller.computeScrollOffset()
+        updateDataOffset()
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SCROLLED)
+        if (accessibilityScrollAnnouncementsEnabled) {
+            contentDescription?.let { announceForAccessibility(it) }
+        }
+        return true
+    }
+
+    protected open fun onDataOffsetChanged() {}
+
     fun setScrollDirection(direction: Int) {
         require(!(direction != 1 && direction != -1))
         this.direction = direction
@@ -156,6 +226,8 @@ abstract class ScrollableChart : View, GestureDetector.OnGestureListener, Animat
         this.maxDataOffset = maxDataOffset
         dataOffset = min(dataOffset, maxDataOffset)
         scrollController.onDataOffsetChanged(dataOffset)
+        onDataOffsetChanged()
+        refreshChartAccessibility()
         postInvalidate()
     }
 
@@ -168,6 +240,7 @@ abstract class ScrollableChart : View, GestureDetector.OnGestureListener, Animat
     }
 
     private fun init(context: Context?) {
+        isFocusable = true
         detector = GestureDetector(context, this)
         scroller = Scroller(context, null, true)
         val newScrollAnimator = ValueAnimator.ofFloat(0f, 1f)
@@ -189,6 +262,8 @@ abstract class ScrollableChart : View, GestureDetector.OnGestureListener, Animat
         if (newDataOffset != dataOffset) {
             dataOffset = newDataOffset
             scrollController.onDataOffsetChanged(dataOffset)
+            onDataOffsetChanged()
+            refreshChartAccessibility()
             postInvalidate()
         }
     }

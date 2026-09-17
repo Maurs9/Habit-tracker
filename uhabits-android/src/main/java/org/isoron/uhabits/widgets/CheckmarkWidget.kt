@@ -23,6 +23,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.view.View
 import org.isoron.platform.gui.toInt
+import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.chartEntry
+import org.isoron.uhabits.activities.common.views.chartPercent
+import org.isoron.uhabits.activities.common.views.chartWidgetDescription
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.views.WidgetTheme
@@ -35,6 +39,7 @@ open class CheckmarkWidget(
     protected val habit: Habit,
     stacked: Boolean = false
 ) : BaseWidget(context, widgetId, stacked) {
+    var opensEntryEditor: Boolean = habit.isNumerical
 
     override val defaultHeight: Int = 125
     override val defaultWidth: Int = 125
@@ -60,8 +65,15 @@ open class CheckmarkWidget(
             } else {
                 entryState = habit.computedEntries.get(today).value
             }
-            percentage = habit.scores[today].value.toFloat()
+            val score = habit.scores[today].value
+            percentage = score.toFloat()
             refresh()
+            contentDescription = context.chartWidgetDescription(
+                habit.name,
+                context.chartEntry(habit.computedEntries.get(today), habit.isNumerical, habit.unit) + ". " +
+                    context.getString(R.string.chart_widget_score, context.chartPercent(score)),
+                if (opensEntryEditor) R.string.chart_widget_edit else R.string.chart_widget_toggle
+            )
         }
     }
 

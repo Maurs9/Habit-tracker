@@ -36,17 +36,15 @@ class WeekdayPickerDialog :
     AppCompatDialogFragment(),
     OnMultiChoiceClickListener,
     DialogInterface.OnClickListener {
-    private var selectedDays: BooleanArray? = null
+    private var selectedDays = WeekdayList.EVERY_DAY.toArray()
     private var listener: OnWeekdaysPickedListener? = null
     override fun onClick(dialog: DialogInterface, which: Int, isChecked: Boolean) {
-        selectedDays!![which] = isChecked
+        selectedDays[which] = isChecked
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState != null) {
-            selectedDays = savedInstanceState.getBooleanArray(KEY_SELECTED_DAYS)
-        }
+        selectedDays = (savedInstanceState ?: arguments)?.getBooleanArray(KEY_SELECTED_DAYS) ?: selectedDays
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -55,7 +53,12 @@ class WeekdayPickerDialog :
     }
 
     override fun onClick(dialog: DialogInterface, which: Int) {
-        if (listener != null) listener!!.onWeekdaysSet(WeekdayList(selectedDays))
+        val days = WeekdayList(selectedDays)
+        parentFragmentManager.setFragmentResult(
+            REQUEST_KEY,
+            Bundle().apply { putInt(DAYS, days.toInteger()) }
+        )
+        listener?.onWeekdaysSet(days)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -83,6 +86,7 @@ class WeekdayPickerDialog :
 
     fun setSelectedDays(days: WeekdayList) {
         selectedDays = days.toArray()
+        arguments = (arguments ?: Bundle()).apply { putBooleanArray(KEY_SELECTED_DAYS, selectedDays) }
     }
 
     fun interface OnWeekdaysPickedListener {
@@ -90,6 +94,8 @@ class WeekdayPickerDialog :
     }
 
     companion object {
+        const val REQUEST_KEY = "weekdayPickerResult"
+        const val DAYS = "days"
         private const val KEY_SELECTED_DAYS = "selectedDays"
     }
 }

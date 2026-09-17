@@ -53,7 +53,10 @@ data class HistoryCardState(
     val defaultSquare: HistoryChart.Square,
     val notesIndicators: List<Boolean>,
     val theme: Theme,
-    val today: LocalDate
+    val today: LocalDate,
+    val entries: List<Entry> = emptyList(),
+    val isNumerical: Boolean = false,
+    val unit: String = ""
 )
 
 class HistoryCardPresenter(
@@ -197,7 +200,10 @@ class HistoryCardPresenter(
                 theme = theme,
                 series = series,
                 defaultSquare = OFF,
-                notesIndicators = notesIndicators
+                notesIndicators = notesIndicators,
+                entries = entries,
+                isNumerical = habit.isNumerical,
+                unit = habit.unit
             )
         }
     }

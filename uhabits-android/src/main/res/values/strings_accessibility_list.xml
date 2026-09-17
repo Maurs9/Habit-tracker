@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="habit_move_up">Move habit up</string>
+    <string name="habit_move_down">Move habit down</string>
+    <string name="habit_moved_before">%1$s moved before %2$s</string>
+    <string name="habit_moved_after">%1$s moved after %2$s</string>
+    <string name="habit_list_dates">Habit dates</string>
+    <string name="habit_list_date_range">Habit dates, %1$s to %2$s</string>
+    <string name="habit_list_earlier_dates">Show earlier dates</string>
+    <string name="habit_list_later_dates">Show later dates</string>
+</resources>

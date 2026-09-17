@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="automation_no_habits">No habits to automate. Open Loop and create a habit, then return here to set up an action.</string>
+    <string name="automation_habit_unavailable">The selected habit is no longer available. Select another habit before saving.</string>
+</resources>

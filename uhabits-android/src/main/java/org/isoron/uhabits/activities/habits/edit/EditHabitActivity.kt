@@ -31,7 +31,6 @@ import android.text.method.DigitsKeyListener
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
@@ -39,6 +38,7 @@ import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialog
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory
 import org.isoron.uhabits.activities.common.dialogs.FrequencyPickerDialog
 import org.isoron.uhabits.activities.common.dialogs.SectionDialogs
@@ -183,24 +183,27 @@ class EditHabitActivity : AppCompatActivity() {
         supportActionBar?.elevation = 10.0f
 
         val colorPickerDialogFactory = ColorPickerDialogFactory(this)
+        supportFragmentManager.setFragmentResultListener(ColorPickerDialog.REQUEST_KEY, this) { _, result ->
+            color = PaletteColor(result.getInt(ColorPickerDialog.SELECTED))
+            updateColors()
+        }
         binding.colorButton.setOnClickListener {
-            val picker = colorPickerDialogFactory.create(color, themeSwitcher.currentTheme)
-            picker.setListener { paletteColor ->
-                this.color = paletteColor
-                updateColors()
+            if (supportFragmentManager.findFragmentByTag("colorPicker") == null) {
+                colorPickerDialogFactory.create(color, themeSwitcher.currentTheme)
+                    .show(supportFragmentManager, "colorPicker")
             }
-            picker.dismissCurrentAndShow(supportFragmentManager, "colorPicker")
         }
 
         populateFrequency()
+        supportFragmentManager.setFragmentResultListener(FrequencyPickerDialog.REQUEST_KEY, this) { _, result ->
+            freqNum = result.getInt(FrequencyPickerDialog.NUMERATOR)
+            freqDen = result.getInt(FrequencyPickerDialog.DENOMINATOR)
+            populateFrequency()
+        }
         binding.booleanFrequencyPicker.setOnClickListener {
-            val picker = FrequencyPickerDialog(freqNum, freqDen)
-            picker.onFrequencyPicked = { num, den ->
-                freqNum = num
-                freqDen = den
-                populateFrequency()
+            if (supportFragmentManager.findFragmentByTag("frequencyPicker") == null) {
+                FrequencyPickerDialog(freqNum, freqDen).show(supportFragmentManager, "frequencyPicker")
             }
-            picker.dismissCurrentAndShow(supportFragmentManager, "frequencyPicker")
         }
 
         populateTargetType()
@@ -242,6 +245,7 @@ class EditHabitActivity : AppCompatActivity() {
             }
         }
         binding.reminderTimePicker.setOnClickListener {
+            if (supportFragmentManager.findFragmentByTag("timePicker") != null) return@setOnClickListener
             val currentHour = if (reminderHour >= 0) reminderHour else 8
             val currentMin = if (reminderMin >= 0) reminderMin else 0
             val is24HourMode = DateFormat.is24HourFormat(this)
@@ -253,38 +257,46 @@ class EditHabitActivity : AppCompatActivity() {
                 .setMinute(currentMin)
                 .setNegativeButtonText(R.string.clear)
                 .build()
-            dialog.addOnPositiveButtonClickListener {
-                reminderHour = dialog.hour
-                reminderMin = dialog.minute
-                populateReminder()
-            }
-            dialog.addOnNegativeButtonClickListener {
-                reminderHour = -1
-                reminderMin = -1
-                reminderDays = WeekdayList.EVERY_DAY
-                populateReminder()
-            }
-            dialog.dismissCurrentAndShow(supportFragmentManager, "timePicker")
+            bindReminderTimePicker(dialog)
+            dialog.show(supportFragmentManager, "timePicker")
         }
 
+        supportFragmentManager.setFragmentResultListener(WeekdayPickerDialog.REQUEST_KEY, this) { _, result ->
+            reminderDays = WeekdayList(result.getInt(WeekdayPickerDialog.DAYS))
+            if (reminderDays.isEmpty) reminderDays = WeekdayList.EVERY_DAY
+            populateReminder()
+        }
         binding.reminderDatePicker.setOnClickListener {
-            val dialog = WeekdayPickerDialog()
-
-            dialog.setListener { days: WeekdayList ->
-                reminderDays = days
-                if (reminderDays.isEmpty) reminderDays = WeekdayList.EVERY_DAY
-                populateReminder()
+            if (supportFragmentManager.findFragmentByTag("dayPicker") == null) {
+                WeekdayPickerDialog().apply {
+                    setSelectedDays(reminderDays)
+                }.show(supportFragmentManager, "dayPicker")
             }
-            dialog.setSelectedDays(reminderDays)
-            dialog.dismissCurrentAndShow(supportFragmentManager, "dayPicker")
         }
 
         binding.buttonSave.setOnClickListener {
             if (validate()) save()
         }
+    }
 
-        for (fragment in supportFragmentManager.fragments) {
-            if (fragment is DialogFragment && fragment !is TagPickerDialog) fragment.dismiss()
+    override fun onStart() {
+        super.onStart()
+        (supportFragmentManager.findFragmentByTag("timePicker") as? MaterialTimePicker)?.let { bindReminderTimePicker(it) }
+    }
+
+    private fun bindReminderTimePicker(dialog: MaterialTimePicker) {
+        dialog.clearOnPositiveButtonClickListeners()
+        dialog.clearOnNegativeButtonClickListeners()
+        dialog.addOnPositiveButtonClickListener {
+            reminderHour = dialog.hour
+            reminderMin = dialog.minute
+            populateReminder()
+        }
+        dialog.addOnNegativeButtonClickListener {
+            reminderHour = -1
+            reminderMin = -1
+            reminderDays = WeekdayList.EVERY_DAY
+            populateReminder()
         }
     }
 

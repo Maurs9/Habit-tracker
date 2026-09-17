@@ -18,14 +18,18 @@
  */
 package org.isoron.uhabits.activities.habits.list.views
 
+import android.content.res.Configuration
 import android.graphics.Color
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.graphics.ColorUtils
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.R
+import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.utils.dim
 import org.isoron.uhabits.utils.dp
 import org.isoron.uhabits.utils.sres
@@ -37,6 +41,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import java.text.DateFormat
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.abs
 
 @RunWith(AndroidJUnit4::class)
@@ -110,6 +117,90 @@ class HeaderViewTest : BaseViewTest() {
                     }
                 }
             }
+        }
+    }
+
+    @Test
+    fun testAccessibleDateActionsHaveLabelsAndRespectBothBounds() {
+        view.setMaxDataOffset(2)
+        assertEquals(
+            mapOf(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD to targetContext.getString(R.string.habit_list_earlier_dates)),
+            scrollActions()
+        )
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD, null))
+        assertEquals(1, view.dataOffset)
+        assertEquals(2, scrollActions().size)
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD, null))
+        assertEquals(2, view.dataOffset)
+        assertEquals(
+            mapOf(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD to targetContext.getString(R.string.habit_list_later_dates)),
+            scrollActions()
+        )
+        assertFalse(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD, null))
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD, null))
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD, null))
+        assertFalse(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD, null))
+    }
+
+    @Test
+    fun testDateRangeIsLocalizedAndUsesHabitDatesRatherThanLocalInstants() {
+        val previousZone = TimeZone.getDefault()
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Honolulu"))
+            val configuration = Configuration(targetContext.resources.configuration).apply { setLocale(Locale.FRANCE) }
+            val context = targetContext.createConfigurationContext(configuration)
+            view = HeaderView(context, prefs, mock()).apply {
+                buttonCount = 5
+                setMaxDataOffset(10)
+            }
+            assertTrue(view.scrollByColumns(2))
+            val format = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.FRANCE).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val today = DateUtils.getTodayWithOffset()
+            val expected = context.getString(
+                R.string.habit_list_date_range,
+                format.format(today.minus(6).toJavaDate()),
+                format.format(today.minus(2).toJavaDate())
+            )
+            assertEquals(expected, view.contentDescription.toString())
+            val info = AccessibilityNodeInfo.obtain()
+            view.onInitializeAccessibilityNodeInfo(info)
+            assertEquals(expected, info.contentDescription.toString())
+            info.recycle()
+        } finally {
+            TimeZone.setDefault(previousZone)
+        }
+    }
+
+    @Test
+    fun testKeyboardDateNavigationFollowsReversalAndRtl() {
+        view.setMaxDataOffset(2)
+        for (rtl in listOf(false, true)) {
+            view.layoutDirection = if (rtl) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
+            for (reversed in listOf(false, true)) {
+                whenever(prefs.isCheckmarkSequenceReversed).thenReturn(reversed)
+                view.onCheckmarkSequenceChanged()
+                view.reset()
+                val older = if (rtl == reversed) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+                val newer = if (older == KeyEvent.KEYCODE_DPAD_LEFT) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+                assertTrue(view.onKeyDown(older, KeyEvent(KeyEvent.ACTION_DOWN, older)))
+                assertEquals(1, view.dataOffset)
+                assertTrue(view.onKeyDown(newer, KeyEvent(KeyEvent.ACTION_DOWN, newer)))
+                assertEquals(0, view.dataOffset)
+            }
+        }
+    }
+
+    private fun scrollActions(): Map<Int, String> {
+        val info = AccessibilityNodeInfo.obtain()
+        return try {
+            view.onInitializeAccessibilityNodeInfo(info)
+            info.actionList.filter {
+                it.id == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD || it.id == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+            }.associate { it.id to it.label.toString() }
+        } finally {
+            info.recycle()
         }
     }
 

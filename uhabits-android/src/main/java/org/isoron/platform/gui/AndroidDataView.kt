@@ -21,10 +21,16 @@ package org.isoron.platform.gui
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.os.Bundle
 import android.util.AttributeSet
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Scroller
+import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.refreshChartAccessibility
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -42,6 +48,72 @@ class AndroidDataView(
     private val scroller = Scroller(context, null, true)
     private val scrollAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
         addUpdateListener(this@AndroidDataView)
+    }
+
+    var maxDataOffset: Int = 10000
+    val dataOffset: Int get() = view?.dataOffset ?: 0
+
+    init {
+        isFocusable = true
+    }
+
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        info.isScrollable = maxDataOffset > 0
+        if (dataOffset < maxDataOffset) {
+            info.addAction(
+                AccessibilityNodeInfo.AccessibilityAction(
+                    AccessibilityNodeInfo.ACTION_SCROLL_FORWARD,
+                    context.getString(R.string.chart_older)
+                )
+            )
+        }
+        if (dataOffset > 0) {
+            info.addAction(
+                AccessibilityNodeInfo.AccessibilityAction(
+                    AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,
+                    context.getString(R.string.chart_newer)
+                )
+            )
+        }
+    }
+
+    override fun onInitializeAccessibilityEvent(event: AccessibilityEvent) {
+        super.onInitializeAccessibilityEvent(event)
+        event.isScrollable = maxDataOffset > 0
+        event.fromIndex = dataOffset
+        event.toIndex = dataOffset
+        event.itemCount = maxDataOffset + 1
+    }
+
+    override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean = when (action) {
+        AccessibilityNodeInfo.ACTION_SCROLL_FORWARD -> scrollByColumns(1)
+        AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD -> scrollByColumns(-1)
+        else -> super.performAccessibilityAction(action, arguments)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean = when (keyCode) {
+        KeyEvent.KEYCODE_DPAD_LEFT -> scrollByColumns(1)
+        KeyEvent.KEYCODE_DPAD_RIGHT -> scrollByColumns(-1)
+        else -> super.onKeyDown(keyCode, event)
+    }
+
+    fun scrollByColumns(delta: Int): Boolean {
+        if (!isEnabled) return false
+        val v = view ?: return false
+        val target = (v.dataOffset.toLong() + delta).coerceIn(0, maxDataOffset.toLong()).toInt()
+        if (target == v.dataOffset) return false
+        scrollAnimator.cancel()
+        scroller.forceFinished(true)
+        val columnWidth = (v.dataColumnWidth * canvas.innerDensity).toInt().coerceAtLeast(1)
+        scroller.startScroll(0, 0, target * columnWidth, 0, 0)
+        scroller.computeScrollOffset()
+        v.dataOffset = target
+        refreshChartAccessibility()
+        invalidate()
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SCROLLED)
+        contentDescription?.let { announceForAccessibility(it) }
+        return true
     }
 
     override fun onTouchEvent(event: MotionEvent) = detector.onTouchEvent(event)
@@ -118,10 +190,11 @@ class AndroidDataView(
     private fun updateDataOffset() {
         view?.let { v ->
             var newDataOffset: Int =
-                scroller.currX / (v.dataColumnWidth * canvas.innerDensity).toInt()
-            newDataOffset = max(0, newDataOffset)
+                scroller.currX / (v.dataColumnWidth * canvas.innerDensity).toInt().coerceAtLeast(1)
+            newDataOffset = max(0, newDataOffset).coerceAtMost(maxDataOffset)
             if (newDataOffset != v.dataOffset) {
                 v.dataOffset = newDataOffset
+                refreshChartAccessibility()
                 postInvalidate()
             }
         }

@@ -24,6 +24,8 @@ import android.content.Context
 import android.view.View
 import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.activities.common.views.ScoreChart
+import org.isoron.uhabits.activities.common.views.chartSummary
+import org.isoron.uhabits.activities.common.views.chartWidgetDescription
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.screens.habits.show.views.ScoreCardPresenter
 import org.isoron.uhabits.core.ui.views.WidgetTheme
@@ -57,6 +59,7 @@ class ScoreWidget(
             setColor(WidgetTheme().color(habit.color).toInt())
             setScores(viewModel.scores)
         }
+        widgetView.contentDescription = context.chartWidgetDescription(habit.name, widgetView.dataView.chartSummary())
     }
 
     override fun buildView() =

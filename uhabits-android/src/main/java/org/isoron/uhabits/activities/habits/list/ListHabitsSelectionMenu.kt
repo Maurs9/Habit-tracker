@@ -86,6 +86,13 @@ class ListHabitsSelectionMenu @Inject constructor(
         itemArchive.isVisible = behavior.canArchive()
         itemUnarchive.isVisible = behavior.canUnarchive()
         itemNotify.isVisible = prefs.isDeveloper
+        val selectedPosition = listAdapter.selectedPosition()
+        for ((id, direction) in listOf(R.id.actionMoveHabitUp to -1, R.id.actionMoveHabitDown to 1)) {
+            menu.findItem(id).apply {
+                isVisible = listAdapter.selected.size == 1 && listAdapter.isSortable
+                isEnabled = listAdapter.canMoveHabit(selectedPosition, direction)
+            }
+        }
         activeActionMode?.title = listAdapter.selected.size.toString()
         return true
     }
@@ -95,6 +102,13 @@ class ListHabitsSelectionMenu @Inject constructor(
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.actionMoveHabitUp, R.id.actionMoveHabitDown -> {
+                val direction = if (item.itemId == R.id.actionMoveHabitUp) -1 else 1
+                listController.get().moveHabit(listAdapter.selectedPosition(), direction)
+                mode.invalidate()
+                return true
+            }
+
             R.id.actionHabitSection -> {
                 organizationDialogs.editSection(listAdapter.selected.toList())
                 mode.finish()

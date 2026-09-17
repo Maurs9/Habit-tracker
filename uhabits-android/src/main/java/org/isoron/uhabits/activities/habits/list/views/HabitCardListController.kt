@@ -61,6 +61,14 @@ class HabitCardListController @Inject constructor(
         behavior.onReorderHabit(from, to)
     }
 
+    fun moveHabit(position: Int, direction: Int): Boolean {
+        val (habit, target) = adapter.moveHabit(position, direction) ?: return false
+        behavior.onReorderHabit(habit, target)
+        adapter.announceMove(habit, target, direction)
+        if (!adapter.isSelectionEmpty) selectionMenu.get().onSelectionChange()
+        return true
+    }
+
     override fun onItemClick(position: Int) {
         if (adapter.getItem(position) == null) return
         activeMode.onItemClick(position)

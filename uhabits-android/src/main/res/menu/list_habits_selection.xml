@@ -42,6 +42,16 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@id/actionMoveHabitUp"
+        android:title="@string/habit_move_up"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@id/actionMoveHabitDown"
+        android:title="@string/habit_move_down"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/actionReminderTimes"
         android:title="@string/reminder_times_title"
         app:showAsAction="never" />

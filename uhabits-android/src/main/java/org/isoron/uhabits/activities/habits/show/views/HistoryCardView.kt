@@ -24,6 +24,10 @@ import android.view.LayoutInflater
 import android.widget.LinearLayout
 import org.isoron.platform.gui.toInt
 import org.isoron.platform.time.JavaLocalDateFormatter
+import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.ChartData
+import org.isoron.uhabits.activities.common.views.chartEntry
+import org.isoron.uhabits.activities.common.views.setChartData
 import org.isoron.uhabits.core.ui.screens.habits.show.views.HistoryCardPresenter
 import org.isoron.uhabits.core.ui.screens.habits.show.views.HistoryCardState
 import org.isoron.uhabits.core.ui.views.HistoryChart
@@ -46,6 +50,15 @@ class HistoryCardView(context: Context, attrs: AttributeSet) : LinearLayout(cont
             defaultSquare = state.defaultSquare,
             notesIndicators = state.notesIndicators,
             firstWeekday = state.firstWeekday
+        )
+        binding.chart.maxDataOffset = ((state.entries.size - 1) / 7).coerceAtLeast(0)
+        binding.chart.setChartData(
+            ChartData(
+                title = context.getString(R.string.calendar),
+                size = { state.entries.size },
+                initialPosition = { binding.chart.dataOffset * 7 },
+                row = { context.chartEntry(state.entries[it], state.isNumerical, state.unit) }
+            )
         )
         binding.chart.postInvalidate()
     }

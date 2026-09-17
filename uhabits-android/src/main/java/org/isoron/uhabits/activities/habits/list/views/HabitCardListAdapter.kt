@@ -234,6 +234,30 @@ class HabitCardListAdapter @Inject constructor(
         return cache.startReorder(position)
     }
 
+    fun selectedPosition(): Int {
+        val habit = selected.singleOrNull() ?: return RecyclerView.NO_POSITION
+        return (0 until itemCount).firstOrNull { getItem(it) == habit } ?: RecyclerView.NO_POSITION
+    }
+
+    fun canMoveHabit(position: Int, direction: Int): Boolean {
+        if (direction != -1 && direction != 1) return false
+        if (!isSortable || getItem(position) == null) return false
+        if (!isSelectionEmpty && position != selectedPosition()) return false
+        return cache.isSameSection(position, position + direction)
+    }
+
+    fun moveHabit(position: Int, direction: Int): Pair<Habit, Habit>? {
+        if (!canMoveHabit(position, direction)) return null
+        val session = cache.startReorder(position) ?: return null
+        if (!session.move(position, position + direction)) return null
+        val target = session.finish() ?: return null
+        return session.habit to target
+    }
+
+    fun announceMove(habit: Habit, target: Habit, direction: Int) {
+        listView?.announceMove(habit, target, direction)
+    }
+
     override fun refresh() {
         cache.refreshAllHabits()
     }

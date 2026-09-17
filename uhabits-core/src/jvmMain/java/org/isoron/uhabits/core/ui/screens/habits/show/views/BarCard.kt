@@ -34,7 +34,8 @@ data class BarCardState(
     val color: PaletteColor,
     val entries: List<Entry>,
     val isNumerical: Boolean,
-    val numericalSpinnerPosition: Int
+    val numericalSpinnerPosition: Int,
+    val unit: String = ""
 )
 
 class BarCardPresenter(
@@ -71,6 +72,7 @@ class BarCardPresenter(
                 color = habit.color,
                 isNumerical = habit.isNumerical,
                 numericalSpinnerPosition = numericalSpinnerPosition,
+                unit = habit.unit,
                 boolSpinnerPosition = boolSpinnerPosition
             )
         }

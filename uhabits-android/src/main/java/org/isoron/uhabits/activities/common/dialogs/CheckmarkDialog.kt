@@ -52,6 +52,10 @@ class CheckmarkDialog : AppCompatDialogFragment() {
         arrayOf(view.yesBtn, view.noBtn, view.skipBtn, view.unknownBtn).forEach {
             it.typeface = getFontAwesome(requireContext())
         }
+        view.yesBtn.setEntryActionAccessibility(R.string.entry_action_complete)
+        view.noBtn.setEntryActionAccessibility(R.string.entry_action_not_complete)
+        view.skipBtn.setEntryActionAccessibility(R.string.entry_action_skip)
+        view.unknownBtn.setEntryActionAccessibility(R.string.entry_action_clear)
         view.notes.setText(requireArguments().getString("notes")!!)
         if (!prefs.isSkipEnabled) view.skipBtn.visibility = GONE
         if (!prefs.areQuestionMarksEnabled) view.unknownBtn.visibility = GONE

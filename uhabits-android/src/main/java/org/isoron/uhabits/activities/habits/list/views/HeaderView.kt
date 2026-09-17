@@ -24,8 +24,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Parcelable
 import android.text.TextPaint
 import android.view.View.MeasureSpec.EXACTLY
+import android.view.accessibility.AccessibilityNodeInfo
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ScrollableChart
 import org.isoron.uhabits.core.preferences.Preferences
@@ -36,7 +38,9 @@ import org.isoron.uhabits.utils.dp
 import org.isoron.uhabits.utils.isRTL
 import org.isoron.uhabits.utils.sres
 import org.isoron.uhabits.utils.toMeasureSpec
+import java.text.DateFormat
 import java.util.GregorianCalendar
+import java.util.TimeZone
 
 class HeaderView(
     context: Context,
@@ -51,6 +55,7 @@ class HeaderView(
     var buttonCount: Int = 0
         set(value) {
             field = value
+            updateAccessibilityDescription()
             requestLayout()
         }
 
@@ -58,10 +63,14 @@ class HeaderView(
         setScrollerBucketSize(dim(R.dimen.checkmarkWidth).toInt())
         setBackgroundColor(sres.getColor(R.attr.headerBackgroundColor))
         elevation = dp(2.0f)
+        updateAccessibilityDescription()
     }
 
     override fun atMidnight() {
-        post { invalidate() }
+        post {
+            updateAccessibilityDescription()
+            invalidate()
+        }
     }
 
     override fun onCheckmarkSequenceChanged() {
@@ -69,9 +78,15 @@ class HeaderView(
         postInvalidate()
     }
 
+    override fun onRtlPropertiesChanged(layoutDirection: Int) {
+        super.onRtlPropertiesChanged(layoutDirection)
+        if (isAttachedToWindow) updateScrollDirection()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         updateScrollDirection()
+        updateAccessibilityDescription()
         prefs.addListener(this)
         midnightTimer.addListener(this)
     }
@@ -90,6 +105,45 @@ class HeaderView(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val height = dim(R.dimen.checkmarkHeight)
         setMeasuredDimension(widthMeasureSpec, height.toMeasureSpec(EXACTLY))
+    }
+
+    override fun onDataOffsetChanged() {
+        updateAccessibilityDescription()
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        super.onRestoreInstanceState(state)
+        updateAccessibilityDescription()
+    }
+
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        val actions = listOf(
+            AccessibilityNodeInfo.ACTION_SCROLL_FORWARD to R.string.habit_list_earlier_dates,
+            AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD to R.string.habit_list_later_dates
+        )
+        for ((action, label) in actions) {
+            if (info.actionList.any { it.id == action }) {
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction(action, context.getString(label)))
+            }
+        }
+    }
+
+    private fun updateAccessibilityDescription() {
+        if (buttonCount == 0) {
+            contentDescription = context.getString(R.string.habit_list_dates)
+            return
+        }
+        val newest = DateUtils.getTodayWithOffset().minus(dataOffset)
+        val oldest = newest.minus(buttonCount - 1)
+        val format = DateFormat.getDateInstance(DateFormat.MEDIUM, resources.configuration.locales[0]).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        contentDescription = context.getString(
+            R.string.habit_list_date_range,
+            format.format(oldest.toJavaDate()),
+            format.format(newest.toJavaDate())
+        )
     }
 
     private fun updateScrollDirection() {

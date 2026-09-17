@@ -103,6 +103,7 @@ class StreakChart : View {
         this.streaks = streaks
         initColors()
         updateMaxMinLengths()
+        refreshChartAccessibility()
         requestLayout()
     }
 
@@ -196,6 +197,21 @@ class StreakChart : View {
         dateFormat = newDateFormat
         rect = RectF()
         baseSize = resources.getDimensionPixelSize(R.dimen.baseSize)
+        setChartData(
+            ChartData(
+                title = context.getString(R.string.best_streaks),
+                size = { streaks?.size ?: 0 },
+                row = { index ->
+                    val streak = streaks!![index]
+                    context.getString(
+                        R.string.chart_streak,
+                        context.chartDate(streak.start),
+                        context.chartDate(streak.end),
+                        resources.getQuantityString(R.plurals.chart_streak_length, streak.length, streak.length)
+                    )
+                }
+            )
+        )
     }
 
     private fun initColors() {

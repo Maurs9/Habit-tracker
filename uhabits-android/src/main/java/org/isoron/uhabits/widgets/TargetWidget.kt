@@ -27,6 +27,8 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import kotlinx.coroutines.runBlocking
 import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.activities.common.views.TargetChart
+import org.isoron.uhabits.activities.common.views.chartSummary
+import org.isoron.uhabits.activities.common.views.chartWidgetDescription
 import org.isoron.uhabits.activities.habits.show.views.TargetCardView.Companion.intervalToLabel
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.screens.habits.show.views.TargetCardPresenter
@@ -50,6 +52,7 @@ class TargetWidget(
         widgetView.setBackgroundAlpha(preferedBackgroundAlpha)
         if (preferedBackgroundAlpha >= 255) widgetView.setShadowAlpha(0x4f)
         val chart = (widgetView.dataView as TargetChart)
+        chart.accessibilityUnit = habit.unit
         val data = TargetCardPresenter.buildState(
             habit = habit,
             firstWeekday = prefs.firstWeekdayInt,
@@ -59,6 +62,7 @@ class TargetWidget(
         chart.setTargets(data.targets)
         chart.setLabels(data.intervals.map { intervalToLabel(context.resources, it) })
         chart.setValues(data.values)
+        widgetView.contentDescription = context.chartWidgetDescription(habit.name, chart.chartSummary())
     }
 
     override fun buildView(): View {

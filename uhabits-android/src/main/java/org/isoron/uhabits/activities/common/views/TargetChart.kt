@@ -48,6 +48,7 @@ class TargetChart : View {
     private var targets = emptyList<Double>()
     private var maxLabelSize = 0f
     private var tinyTextSize = 0f
+    var accessibilityUnit: String = ""
 
     constructor(context: Context?) : super(context) {
         init()
@@ -173,20 +174,37 @@ class TargetChart : View {
         mediumContrastTextColor = res.getColor(R.attr.contrast60)
         highContrastReverseTextColor = res.getColor(R.attr.contrast0)
         tinyTextSize = getDimension(context, R.dimen.tinyTextSize)
+        setChartData(
+            ChartData(
+                title = context.getString(R.string.target),
+                size = { min(labels.size, min(values.size, targets.size)) },
+                row = { index ->
+                    context.getString(
+                        R.string.chart_target_value,
+                        labels[index],
+                        context.getString(R.string.chart_value_unit, context.chartNumber(values[index]), accessibilityUnit).trim(),
+                        context.getString(R.string.chart_value_unit, context.chartNumber(targets[index]), accessibilityUnit).trim()
+                    )
+                }
+            )
+        )
     }
 
     fun setValues(values: List<Double>) {
         this.values = values
+        refreshChartAccessibility()
         requestLayout()
     }
 
     fun setLabels(labels: List<String>) {
         this.labels = labels
+        refreshChartAccessibility()
         requestLayout()
     }
 
     fun setTargets(targets: List<Double>) {
         this.targets = targets
+        refreshChartAccessibility()
         requestLayout()
     }
 }

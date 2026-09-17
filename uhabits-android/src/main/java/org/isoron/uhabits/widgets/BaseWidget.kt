@@ -86,6 +86,7 @@ abstract class BaseWidget(val context: Context, val id: Int, val stacked: Boolea
     ) {
         val bitmap = getBitmapFromView(view)
         remoteViews.setImageViewBitmap(R.id.imageView, bitmap)
+        remoteViews.setContentDescription(R.id.button, view.contentDescription)
         adjustRemoteViewsPadding(remoteViews, view, width, height)
         val onClickIntent = getOnClickPendingIntent(context)
         if (onClickIntent != null) remoteViews.setOnClickPendingIntent(R.id.button, onClickIntent)

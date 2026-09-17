@@ -22,6 +22,7 @@ package org.isoron.uhabits.activities.common.dialogs
 import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -37,10 +38,36 @@ class FrequencyPickerDialog(
 ) : AppCompatDialogFragment() {
     private var _binding: FrequencyPickerDialogBinding? = null
     private val binding get() = _binding!!
+    private var restoredFocusId = View.NO_ID
 
     var onFrequencyPicked: (num: Int, den: Int) -> Unit = { _, _ -> }
 
+    init {
+        arguments = Bundle().apply {
+            putInt(NUMERATOR, freqNumerator)
+            putInt(DENOMINATOR, freqDenominator)
+        }
+    }
+
     constructor() : this(1, 1)
+
+    private val inputs
+        get() = listOf(
+            binding.everyXDaysTextView,
+            binding.xTimesPerWeekTextView,
+            binding.xTimesPerMonthTextView,
+            binding.xTimesPerYDaysXTextView,
+            binding.xTimesPerYDaysYTextView
+        )
+
+    private val radios
+        get() = listOf(
+            binding.everyDayRadioButton,
+            binding.everyXDaysRadioButton,
+            binding.xTimesPerWeekRadioButton,
+            binding.xTimesPerMonthRadioButton,
+            binding.xTimesPerYDaysRadioButton
+        )
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -49,6 +76,12 @@ class FrequencyPickerDialog(
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = FrequencyPickerDialogBinding.inflate(LayoutInflater.from(requireActivity()))
+        freqNumerator = requireArguments().getInt(NUMERATOR, 1)
+        freqDenominator = requireArguments().getInt(DENOMINATOR, 1)
+        (inputs + radios).forEach { it.isSaveEnabled = false }
+        binding.root.isFocusableInTouchMode = true
+        binding.root.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        binding.root.requestFocus()
 
         addBeforeAfterText(
             this.getString(R.string.every_x_days),
@@ -115,10 +148,41 @@ class FrequencyPickerDialog(
             if (hasFocus) check(binding.xTimesPerYDaysRadioButton)
         }
 
+        populateViews()
+        if (savedInstanceState != null) {
+            for (input in inputs) {
+                input.setText(savedInstanceState.getString("input_${input.id}", input.text.toString()))
+                input.error = savedInstanceState.getString("error_${input.id}")
+            }
+            radios.firstOrNull { it.id == savedInstanceState.getInt(SELECTED) }?.let { check(it) }
+            restoredFocusId = savedInstanceState.getInt(FOCUSED, View.NO_ID)
+        }
+
         return AlertDialog.Builder(requireActivity())
             .setView(binding.root)
-            .setPositiveButton(R.string.save) { _, _ -> onSaveClicked() }
+            .setPositiveButton(R.string.save, null)
             .create()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        (requireDialog() as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { onSaveClicked() }
+        if (restoredFocusId != View.NO_ID) {
+            binding.root.findViewById<View>(restoredFocusId)?.requestFocus()
+            restoredFocusId = View.NO_ID
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        _binding?.let {
+            outState.putInt(SELECTED, radios.firstOrNull { it.isChecked }?.id ?: R.id.everyDayRadioButton)
+            outState.putInt(FOCUSED, binding.root.findFocus()?.id ?: View.NO_ID)
+            for (input in inputs) {
+                outState.putString("input_${input.id}", input.text.toString())
+                outState.putString("error_${input.id}", input.error?.toString())
+            }
+        }
+        super.onSaveInstanceState(outState)
     }
 
     private fun addBeforeAfterText(
@@ -135,59 +199,56 @@ class FrequencyPickerDialog(
     }
 
     private fun onSaveClicked() {
-        var numerator = 1
-        var denominator = 1
-        when {
-            binding.everyDayRadioButton.isChecked -> {
-                // NOP
-            }
-
-            binding.everyXDaysRadioButton.isChecked -> {
-                if (binding.everyXDaysTextView.text.isNotEmpty()) {
-                    denominator = Integer.parseInt(binding.everyXDaysTextView.text.toString())
-                }
-            }
-
-            binding.xTimesPerWeekRadioButton.isChecked -> {
-                if (binding.xTimesPerWeekTextView.text.isNotEmpty()) {
-                    numerator = Integer.parseInt(binding.xTimesPerWeekTextView.text.toString())
-                    denominator = 7
-                }
-            }
-
-            binding.xTimesPerYDaysRadioButton.isChecked -> {
-                if (binding.xTimesPerYDaysXTextView.text.isNotEmpty() && binding.xTimesPerYDaysYTextView.text.isNotEmpty()) {
-                    numerator =
-                        Integer.parseInt(binding.xTimesPerYDaysXTextView.text.toString())
-                    denominator =
-                        Integer.parseInt(binding.xTimesPerYDaysYTextView.text.toString())
-                }
-            }
-
-            else -> {
-                if (binding.xTimesPerMonthTextView.text.isNotEmpty()) {
-                    numerator = Integer.parseInt(binding.xTimesPerMonthTextView.text.toString())
-                    denominator = 30
-                }
-            }
+        inputs.forEach { it.error = null }
+        val (numerator, denominator) = when {
+            binding.everyDayRadioButton.isChecked -> 1 to 1
+            binding.everyXDaysRadioButton.isChecked -> 1 to readPositiveInteger(binding.everyXDaysTextView)
+            binding.xTimesPerWeekRadioButton.isChecked -> readPositiveInteger(binding.xTimesPerWeekTextView) to 7
+            binding.xTimesPerMonthRadioButton.isChecked -> readPositiveInteger(binding.xTimesPerMonthTextView) to 30
+            else -> readPositiveInteger(binding.xTimesPerYDaysXTextView) to readPositiveInteger(binding.xTimesPerYDaysYTextView)
         }
-        if (numerator >= denominator || numerator < 1) {
-            numerator = 1
-            denominator = 1
+        if (numerator == null || denominator == null) {
+            inputs.firstOrNull { it.error != null }?.requestFocus()
+            return
         }
-        onFrequencyPicked(numerator, denominator)
+        if (numerator > denominator) {
+            val input = when {
+                binding.xTimesPerWeekRadioButton.isChecked -> binding.xTimesPerWeekTextView
+                binding.xTimesPerMonthRadioButton.isChecked -> binding.xTimesPerMonthTextView
+                else -> binding.xTimesPerYDaysXTextView
+            }
+            input.error = getString(R.string.frequency_not_more_than_days)
+            input.requestFocus()
+            return
+        }
+        val num = if (numerator == denominator) 1 else numerator
+        val den = if (numerator == denominator) 1 else denominator
+        parentFragmentManager.setFragmentResult(
+            REQUEST_KEY,
+            Bundle().apply {
+                putInt(NUMERATOR, num)
+                putInt(DENOMINATOR, den)
+            }
+        )
+        onFrequencyPicked(num, den)
         dismiss()
+    }
+
+    private fun readPositiveInteger(input: EditText): Int? {
+        val text = input.text.toString()
+        val value = parsePositiveFrequencyInteger(text)
+        if (value == null) {
+            input.error = getString(
+                if (text.isBlank()) R.string.validation_cannot_be_blank else R.string.frequency_positive_integer
+            )
+            return null
+        }
+        return value
     }
 
     private fun check(view: RadioButton) {
         uncheckAll()
         view.isChecked = true
-        view.requestFocus()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        populateViews()
     }
 
     private fun populateViews() {
@@ -195,7 +256,6 @@ class FrequencyPickerDialog(
         if (freqDenominator == 30 || freqDenominator == 31) {
             binding.xTimesPerMonthRadioButton.isChecked = true
             binding.xTimesPerMonthTextView.setText(freqNumerator.toString())
-            selectInputField(binding.xTimesPerMonthTextView)
         } else {
             if (freqNumerator == 1) {
                 if (freqDenominator == 1) {
@@ -203,13 +263,11 @@ class FrequencyPickerDialog(
                 } else {
                     binding.everyXDaysRadioButton.isChecked = true
                     binding.everyXDaysTextView.setText(freqDenominator.toString())
-                    selectInputField(binding.everyXDaysTextView)
                 }
             } else {
                 if (freqDenominator == 7) {
                     binding.xTimesPerWeekRadioButton.isChecked = true
                     binding.xTimesPerWeekTextView.setText(freqNumerator.toString())
-                    selectInputField(binding.xTimesPerWeekTextView)
                 } else {
                     binding.xTimesPerYDaysRadioButton.isChecked = true
                     binding.xTimesPerYDaysXTextView.setText(freqNumerator.toString())
@@ -220,14 +278,19 @@ class FrequencyPickerDialog(
     }
 
     private fun selectInputField(view: EditText) {
+        view.requestFocus()
         view.setSelection(view.text.length)
     }
 
     private fun uncheckAll() {
-        binding.everyDayRadioButton.isChecked = false
-        binding.everyXDaysRadioButton.isChecked = false
-        binding.xTimesPerWeekRadioButton.isChecked = false
-        binding.xTimesPerMonthRadioButton.isChecked = false
-        binding.xTimesPerYDaysRadioButton.isChecked = false
+        radios.forEach { it.isChecked = false }
+    }
+
+    companion object {
+        const val REQUEST_KEY = "frequencyPickerResult"
+        const val NUMERATOR = "numerator"
+        const val DENOMINATOR = "denominator"
+        private const val SELECTED = "selected"
+        private const val FOCUSED = "focused"
     }
 }

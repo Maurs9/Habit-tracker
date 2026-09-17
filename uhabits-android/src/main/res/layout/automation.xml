@@ -63,10 +63,36 @@
         android:layout_weight="1"
         android:background="?attr/contrast0">
 
-        <FrameLayout style="@style/FormOuterBox">
+        <TextView
+            android:id="@+id/emptyMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="@string/automation_no_habits"
+            android:textColor="?attr/contrast100"
+            android:textSize="@dimen/regularTextSize"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/selectionError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite"
+            android:paddingBottom="16dp"
+            android:text="@string/automation_habit_unavailable"
+            android:textColor="?attr/contrast100"
+            android:textSize="@dimen/regularTextSize"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:id="@+id/habitField"
+            style="@style/FormOuterBox">
             <LinearLayout style="@style/FormInnerBox">
                 <TextView
                     style="@style/FormLabel"
+                    android:labelFor="@+id/habitSpinner"
                     android:text="@string/habit" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
@@ -81,10 +107,13 @@
             </LinearLayout>
         </FrameLayout>
 
-        <FrameLayout style="@style/FormOuterBox">
+        <FrameLayout
+            android:id="@+id/actionField"
+            style="@style/FormOuterBox">
             <LinearLayout style="@style/FormInnerBox">
                 <TextView
                     style="@style/FormLabel"
+                    android:labelFor="@+id/actionSpinner"
                     android:text="@string/action" />
 
                 <androidx.appcompat.widget.AppCompatSpinner

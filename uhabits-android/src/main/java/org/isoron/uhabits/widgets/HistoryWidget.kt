@@ -24,6 +24,9 @@ import android.content.Context
 import android.view.View
 import org.isoron.platform.gui.AndroidDataView
 import org.isoron.platform.time.JavaLocalDateFormatter
+import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.views.chartEntry
+import org.isoron.uhabits.activities.common.views.chartWidgetDescription
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.screens.habits.show.views.HistoryCardPresenter
 import org.isoron.uhabits.core.ui.views.HistoryChart
@@ -61,6 +64,11 @@ class HistoryWidget(
             historyChart.defaultSquare = model.defaultSquare
             historyChart.notesIndicators = model.notesIndicators
         }
+        widgetView.contentDescription = context.chartWidgetDescription(
+            habit.name,
+            context.getString(R.string.calendar) + ". " +
+                context.chartEntry(habit.computedEntries.get(DateUtils.getTodayWithOffset()), habit.isNumerical, habit.unit)
+        )
     }
 
     override fun buildView() =

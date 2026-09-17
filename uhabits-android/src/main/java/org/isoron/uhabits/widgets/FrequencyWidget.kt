@@ -24,6 +24,8 @@ import android.content.Context
 import android.view.View
 import org.isoron.platform.gui.toInt
 import org.isoron.uhabits.activities.common.views.FrequencyChart
+import org.isoron.uhabits.activities.common.views.chartSummary
+import org.isoron.uhabits.activities.common.views.chartWidgetDescription
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.ui.views.WidgetTheme
 import org.isoron.uhabits.widgets.views.GraphWidgetView
@@ -47,11 +49,13 @@ class FrequencyWidget(
         widgetView.setBackgroundAlpha(preferedBackgroundAlpha)
         if (preferedBackgroundAlpha >= 255) widgetView.setShadowAlpha(0x4f)
         (widgetView.dataView as FrequencyChart).apply {
+            accessibilityUnit = habit.unit
             setFirstWeekday(firstWeekday)
             setColor(WidgetTheme().color(habit.color).toInt())
             setIsNumerical(habit.isNumerical)
             setFrequency(habit.originalEntries.computeWeekdayFrequency(habit.isNumerical))
         }
+        widgetView.contentDescription = context.chartWidgetDescription(habit.name, widgetView.dataView.chartSummary())
     }
 
     override fun buildView() =

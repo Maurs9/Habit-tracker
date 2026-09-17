@@ -62,7 +62,9 @@ class FrequencyChart : ScrollableChart {
     private lateinit var colors: IntArray
     private var primaryColor = 0
     private var isBackgroundTransparent = false
-    private lateinit var frequency: HashMap<Timestamp, Array<Int>>
+    private var frequency = HashMap<Timestamp, Array<Int>>()
+    private var frequencyMonths = emptyList<Timestamp>()
+    var accessibilityUnit: String = ""
     private var maxFreq = 0
     private var firstWeekday = Calendar.SUNDAY
     private var isNumerical: Boolean = false
@@ -84,17 +86,29 @@ class FrequencyChart : ScrollableChart {
 
     fun setIsNumerical(type: Boolean) {
         isNumerical = type
+        refreshChartAccessibility()
         postInvalidate()
     }
 
     fun setFrequency(frequency: java.util.HashMap<Timestamp, Array<Int>>) {
         this.frequency = frequency
+        val oldest = frequency.keys.minOrNull()
+        val month = getStartOfTodayCalendarWithOffset().apply { set(Calendar.DAY_OF_MONTH, 1) }
+        frequencyMonths = buildList {
+            while (oldest != null && month.timeInMillis >= oldest.unixTime) {
+                add(Timestamp(month))
+                month.add(Calendar.MONTH, -1)
+            }
+        }
         maxFreq = getMaxFreq(frequency)
+        setMaxDataOffset((frequencyMonths.size - 1).coerceAtLeast(0))
+        refreshChartAccessibility()
         postInvalidate()
     }
 
     fun setFirstWeekday(firstWeekday: Int) {
         this.firstWeekday = firstWeekday
+        refreshChartAccessibility()
         postInvalidate()
     }
 
@@ -267,6 +281,32 @@ class FrequencyChart : ScrollableChart {
         initColors()
         initDateFormats()
         initRects()
+        setChartData(
+            ChartData(
+                title = context.getString(R.string.frequency),
+                size = { frequencyMonths.size * 7 },
+                initialPosition = { dataOffset * 7 },
+                row = { index ->
+                    val month = frequencyMonths[index / 7]
+                    val weekday = getWeekdaySequence(firstWeekday)[index % 7]
+                    val value = frequency[month]?.get(weekday % 7) ?: 0
+                    val amount = if (isNumerical) {
+                        context.getString(R.string.chart_value_unit, context.chartNumber(value / 1000.0), accessibilityUnit).trim()
+                    } else {
+                        context.chartNumber(value.toDouble())
+                    }
+                    val locale = resources.configuration.locales[0]
+                    context.getString(
+                        R.string.chart_frequency_value,
+                        java.text.SimpleDateFormat("MMMM yyyy", locale).apply {
+                            timeZone = java.util.TimeZone.getTimeZone("UTC")
+                        }.format(month.toJavaDate()),
+                        java.text.DateFormatSymbols(locale).weekdays[weekday],
+                        amount
+                    )
+                }
+            )
+        )
     }
 
     private fun initColors() {

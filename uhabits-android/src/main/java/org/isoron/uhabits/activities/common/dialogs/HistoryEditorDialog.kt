@@ -27,9 +27,13 @@ import org.isoron.platform.time.JavaLocalDateFormatter
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
+import org.isoron.uhabits.activities.common.views.ChartData
+import org.isoron.uhabits.activities.common.views.chartEntry
+import org.isoron.uhabits.activities.common.views.setChartData
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.screens.habits.show.views.HistoryCardPresenter
 import org.isoron.uhabits.core.ui.views.HistoryChart
@@ -115,6 +119,27 @@ class HistoryEditorDialog : AppCompatDialogFragment(), CommandRunner.Listener {
         chart?.series = model.series
         chart?.defaultSquare = model.defaultSquare
         chart?.notesIndicators = model.notesIndicators
+        val today = Timestamp.fromLocalDate(model.today)
+        val dayCount = Timestamp.ZERO.daysUntil(today) + 1
+        dataView.maxDataOffset = (dayCount - 1) / 7
+        dataView.setChartData(
+            ChartData(
+                title = getString(R.string.calendar),
+                size = { dayCount },
+                initialPosition = { dataView.dataOffset * 7 },
+                row = { index ->
+                    requireContext().chartEntry(habit.computedEntries.get(today.minus(index)), habit.isNumerical, habit.unit)
+                },
+                onSelect = { index ->
+                    val date = today.minus(index).toLocalDate()
+                    if (!habit.isNumerical && preferences.isShortToggleEnabled) {
+                        onDateClickedListener?.onDateLongPress(date)
+                    } else {
+                        onDateClickedListener?.onDateShortPress(date)
+                    }
+                }
+            )
+        )
         dataView.postInvalidate()
     }
 

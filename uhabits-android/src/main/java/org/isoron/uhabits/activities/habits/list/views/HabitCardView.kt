@@ -26,10 +26,12 @@ import android.graphics.PointF
 import android.graphics.text.LineBreaker.BREAK_STRATEGY_BALANCED
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -142,6 +144,8 @@ class HabitCardView(
     private var scoreRing: RingView
 
     private var currentToggleTaskId = 0
+    var canMove: (Int) -> Boolean = { false }
+    var onMove: (Int) -> Boolean = { false }
     private val dividerPaint = Paint().apply {
         color = sres.getColor(R.attr.habitRowDividerColor)
     }
@@ -157,6 +161,7 @@ class HabitCardView(
         }
 
     init {
+        isFocusable = true
         scoreRing = RingView(context).apply {
             val thickness = dp(3f)
             val margin = dp(8f).toInt()
@@ -264,6 +269,37 @@ class HabitCardView(
                 )
             )
         }
+        val moves = listOf(
+            Triple(-1, R.id.actionMoveHabitUp, R.string.habit_move_up),
+            Triple(1, R.id.actionMoveHabitDown, R.string.habit_move_down)
+        )
+        for ((direction, action, label) in moves) {
+            if (canMove(direction)) {
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction(action, context.getString(label)))
+            }
+        }
+    }
+
+    override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean {
+        val direction = when (action) {
+            R.id.actionMoveHabitUp -> -1
+            R.id.actionMoveHabitDown -> 1
+            else -> return super.performAccessibilityAction(action, arguments)
+        }
+        return canMove(direction) && onMove(direction)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (event.hasModifiers(KeyEvent.META_CTRL_ON)) {
+            val direction = when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> -1
+                KeyEvent.KEYCODE_DPAD_DOWN -> 1
+                else -> return super.onKeyDown(keyCode, event)
+            }
+            if (canMove(direction)) onMove(direction)
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun setSelected(isSelected: Boolean) {

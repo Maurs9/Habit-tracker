@@ -1,8 +1,12 @@
 package org.isoron.uhabits.activities.habits.list
 
 import android.content.Intent
+import android.view.KeyEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.FrameLayout
+import android.widget.PopupMenu
+import androidx.appcompat.view.ActionMode
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
@@ -10,6 +14,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import dagger.Lazy
 import org.isoron.uhabits.BaseAndroidTest
+import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.edit.EditHabitActivity
 import org.isoron.uhabits.activities.habits.list.views.CheckmarkButtonViewFactory
 import org.isoron.uhabits.activities.habits.list.views.CheckmarkPanelViewFactory
@@ -17,6 +22,7 @@ import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListController
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListView
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListViewFactory
+import org.isoron.uhabits.activities.habits.list.views.HabitCardView
 import org.isoron.uhabits.activities.habits.list.views.HabitCardViewFactory
 import org.isoron.uhabits.activities.habits.list.views.NumberButtonViewFactory
 import org.isoron.uhabits.activities.habits.list.views.NumberPanelViewFactory
@@ -36,6 +42,8 @@ import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 
 @RunWith(AndroidJUnit4::class)
@@ -46,6 +54,7 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
     private lateinit var adapter: HabitCardListAdapter
     private lateinit var commands: CommandRunner
     private lateinit var testHabits: HabitList
+    private lateinit var controller: HabitCardListController
     private val memoryFactory = MemoryModelFactory()
 
     @Test
@@ -253,6 +262,145 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
         assertReorderPersisted(listOf(a, c, d))
     }
 
+    @Test
+    fun testAccessibilityMovesPersistAndUpdateBoundaryActions() = withRoot {
+        val (a, b, c, d) = prepareReorder()
+        val first = holderAt(0).itemView
+        assertEquals(setOf(R.id.actionMoveHabitDown), moveActions(first))
+        assertFalse(first.performAccessibilityAction(R.id.actionMoveHabitUp, null))
+        assertTrue(first.performAccessibilityAction(R.id.actionMoveHabitDown, null))
+        layoutList()
+        assertReorderPersisted(listOf(b, a, c, d))
+        assertEquals(setOf(R.id.actionMoveHabitUp, R.id.actionMoveHabitDown), moveActions(holderAt(1).itemView))
+        assertTrue(holderAt(1).itemView.performAccessibilityAction(R.id.actionMoveHabitUp, null))
+        layoutList()
+        assertReorderPersisted(listOf(a, b, c, d))
+        assertTrue(adapter.isSelectionEmpty)
+    }
+
+    @Test
+    fun testKeyboardMovesRequireControlAndManualSort() = withRoot {
+        val (a, b, c, d) = prepareReorder()
+        val card = holderAt(0).itemView
+        val down = KeyEvent(0, 0, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN, 0, KeyEvent.META_CTRL_ON)
+        assertTrue(card.onKeyDown(down.keyCode, down))
+        layoutList()
+        assertReorderPersisted(listOf(b, a, c, d))
+        holderAt(1).itemView.onKeyDown(
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP)
+        )
+        assertReorderPersisted(listOf(b, a, c, d))
+        adapter.primaryOrder = HabitList.Order.BY_NAME_ASC
+        layoutList()
+        val sorted = testHabits.toList()
+        assertTrue(moveActions(holderAt(0).itemView).isEmpty())
+        assertFalse(holderAt(0).itemView.performAccessibilityAction(R.id.actionMoveHabitDown, null))
+        holderAt(0).itemView.onKeyDown(down.keyCode, down)
+        assertEquals(sorted, testHabits.toList())
+    }
+
+    @Test
+    fun testAccessibleMovesProtectSectionsFiltersAndMultipleSelection() = withRoot {
+        val morning = memoryFactory.buildSectionList().add("Morning")
+        val evening = memoryFactory.buildSectionList().add("Evening")
+        val a = addHabit(Entry.NO).apply {
+            sectionId = morning.id
+            tags = setOf("Visible")
+        }
+        val hidden = addHabit(Entry.NO).apply { sectionId = morning.id }
+        val b = addHabit(Entry.NO).apply {
+            sectionId = morning.id
+            tags = setOf("Visible")
+        }
+        val c = addHabit(Entry.NO).apply {
+            sectionId = evening.id
+            tags = setOf("Visible")
+        }
+        adapter.setFilter(HabitMatcher(requiredTags = setOf("Visible")))
+        adapter.primaryOrder = HabitList.Order.BY_POSITION
+        adapter.groupBySection = true
+        adapter.refresh()
+        root.listView.itemAnimator = null
+        layoutList()
+        assertFalse(adapter.canMoveHabit(0, 1))
+        assertFalse(adapter.canMoveHabit(1, -1))
+        assertFalse(adapter.canMoveHabit(2, 1))
+        assertFalse(controller.moveHabit(2, 2))
+        assertTrue(holderAt(1).itemView.performAccessibilityAction(R.id.actionMoveHabitDown, null))
+        layoutList()
+        assertEquals(listOf(hidden, b, a, c), testHabits.toList())
+        adapter.refresh()
+        assertEquals(listOf(b, a, c), (0 until adapter.itemCount).mapNotNull { adapter.getItem(it) })
+        adapter.toggleSelection(1)
+        assertTrue(adapter.canMoveHabit(1, 1))
+        assertFalse(adapter.canMoveHabit(2, -1))
+        adapter.toggleSelection(2)
+        assertFalse(adapter.canMoveHabit(1, 1))
+        assertFalse(controller.moveHabit(1, 1))
+    }
+
+    @Test
+    fun testSelectionMenuOffersRepeatedMovesWithoutEndingSelection() = withRoot {
+        val (a, b, c, d) = prepareReorder()
+        adapter.toggleSelection(0)
+        val selection = ListHabitsSelectionMenu(
+            root.context,
+            adapter,
+            commands,
+            prefs,
+            mock(),
+            Lazy { controller },
+            mock(),
+            mock()
+        )
+        val menu = PopupMenu(root.context, root).menu
+        val mode: ActionMode = mock()
+        selection.onCreateActionMode(mode, menu)
+        selection.onPrepareActionMode(mode, menu)
+        assertTrue(menu.findItem(R.id.actionMoveHabitUp).isVisible)
+        assertFalse(menu.findItem(R.id.actionMoveHabitUp).isEnabled)
+        assertTrue(menu.findItem(R.id.actionMoveHabitDown).isEnabled)
+        selection.onActionItemClicked(mode, menu.findItem(R.id.actionMoveHabitDown))
+        layoutList()
+        assertReorderPersisted(listOf(b, a, c, d))
+        selection.onPrepareActionMode(mode, menu)
+        assertTrue(menu.findItem(R.id.actionMoveHabitUp).isEnabled)
+        selection.onActionItemClicked(mode, menu.findItem(R.id.actionMoveHabitUp))
+        layoutList()
+        assertReorderPersisted(listOf(a, b, c, d))
+        assertEquals(listOf(a), adapter.selected.toList())
+        verify(mode, never()).finish()
+        adapter.primaryOrder = HabitList.Order.BY_NAME_ASC
+        selection.onPrepareActionMode(mode, menu)
+        assertFalse(menu.findItem(R.id.actionMoveHabitDown).isVisible)
+    }
+
+    @Test
+    fun testAccessibleDateNavigationRebindsVisibleHabitDates() = withRoot {
+        prepareReorder()
+        assertTrue(root.header.buttonCount > 0)
+        assertTrue(root.header.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD, null))
+        assertEquals(1, root.listView.dataOffset)
+        val card = holderAt(0).itemView as HabitCardView
+        assertEquals(day(1), card.checkmarkPanel.buttons[0].timestamp)
+        assertTrue(root.header.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD, null))
+        assertEquals(0, root.listView.dataOffset)
+        assertEquals(day(0), card.checkmarkPanel.buttons[0].timestamp)
+    }
+
+    private fun moveActions(view: View): Set<Int> {
+        val info = AccessibilityNodeInfo.obtain()
+        return try {
+            view.onInitializeAccessibilityNodeInfo(info)
+            info.actionList.map { it.id }.filter {
+                it == R.id.actionMoveHabitUp || it == R.id.actionMoveHabitDown
+            }.toSet()
+        } finally {
+            info.recycle()
+        }
+    }
+
     private fun prepareReorder(): List<Habit> {
         val habits = List(4) { addHabit(Entry.NO) }
         adapter.primaryOrder = HabitList.Order.BY_POSITION
@@ -316,7 +464,7 @@ class ListHabitsRootViewTest : BaseAndroidTest() {
                     mock()
                 )
                 val selectionMenu: ListHabitsSelectionMenu = mock()
-                val controller = HabitCardListController(adapter, behavior, Lazy { selectionMenu })
+                controller = HabitCardListController(adapter, behavior, Lazy { selectionMenu })
                 val cardFactory = HabitCardViewFactory(
                     activity,
                     CheckmarkPanelViewFactory(activity, prefs, CheckmarkButtonViewFactory(activity, prefs)),

@@ -38,6 +38,7 @@ import org.isoron.uhabits.utils.dp
  */
 class ColorPickerDialog : AppCompatDialogFragment() {
     private var onPicked: OnColorPickedCallback? = null
+    private var currentSelection = 0
 
     fun setListener(callback: OnColorPickedCallback) {
         onPicked = callback
@@ -47,7 +48,7 @@ class ColorPickerDialog : AppCompatDialogFragment() {
         val builder = MaterialAlertDialogBuilder(requireContext(), R.style.HabitControlsDialogTheme)
         val context = builder.context
         val colors = requireArguments().getIntArray("colors")!!
-        var currentSelection = requireArguments().getInt("selected").coerceIn(0, colors.size - 1)
+        currentSelection = (savedInstanceState ?: requireArguments()).getInt(SELECTED).coerceIn(0, colors.size - 1)
         val names = resources.getStringArray(R.array.habit_color_names)
 
         val container = LinearLayout(context).apply {
@@ -113,9 +114,23 @@ class ColorPickerDialog : AppCompatDialogFragment() {
         return builder.setTitle(R.string.color_picker_default_title)
             .setView(container)
             .setPositiveButton(android.R.string.ok) { _, _ ->
+                parentFragmentManager.setFragmentResult(
+                    REQUEST_KEY,
+                    Bundle().apply { putInt(SELECTED, currentSelection) }
+                )
                 onPicked?.onColorPicked(PaletteColor(currentSelection))
             }
             .setNegativeButton(android.R.string.cancel, null)
             .create()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(SELECTED, currentSelection)
+        super.onSaveInstanceState(outState)
+    }
+
+    companion object {
+        const val REQUEST_KEY = "colorPickerResult"
+        const val SELECTED = "selected"
     }
 }

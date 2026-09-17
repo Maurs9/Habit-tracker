@@ -783,7 +783,9 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
             int currentItemShowing = getCurrentItemShowing();
             if (currentItemShowing == HOUR_INDEX) {
                 stepSize = HOUR_VALUE_TO_DEGREES_STEP_SIZE;
-                value %= 12;
+                if (!mIs24HourMode) {
+                    value %= 12;
+                }
             } else if (currentItemShowing == MINUTE_INDEX) {
                 stepSize = MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
             }

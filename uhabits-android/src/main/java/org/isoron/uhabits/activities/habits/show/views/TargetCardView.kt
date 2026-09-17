@@ -30,8 +30,10 @@ import org.isoron.uhabits.databinding.ShowHabitTargetBinding
 
 class TargetCardView(context: Context, attrs: AttributeSet) : LinearLayout(context, attrs) {
     private val binding = ShowHabitTargetBinding.inflate(LayoutInflater.from(context), this)
+    var accessibilityUnit: String = ""
     fun setState(state: TargetCardState) {
         val androidColor = state.theme.color(state.color).toInt()
+        binding.targetChart.accessibilityUnit = accessibilityUnit
         binding.targetChart.setValues(state.values)
         binding.targetChart.setTargets(state.targets)
         binding.targetChart.setLabels(state.intervals.map { intervalToLabel(resources, it) })
