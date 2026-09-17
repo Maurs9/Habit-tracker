@@ -29,18 +29,16 @@ habit rows. Pure-black card backgrounds stay black, and light mode retains its
 existing card spacing and shadows.
 
 **Settings -> Interface -> List density** offers **Compact**, **Standard**
-(the default), and **Large**, with an interactive preview before saving. Cancel leaves
+(the default), and **Spacious**, with a preview before saving. Cancel leaves
 the current density unchanged. This changes only the main habit list, not
 widgets or detail charts.
 
-Compact reduces row height to 40dp (with 1dp row gaps and proportionally scaled
-14.5sp title text, 12.5sp checkmark icons, and 13dp score rings), using tighter section
-headers (6dp above the first header, 16dp above later headers, 3dp below each title).
-Standard retains the classic 48dp rows, 3dp row gaps, 16sp title text, 14sp icons, and
-12/28/6dp header spacing. Large uses 64dp rows, 4dp row gaps, larger 18.5sp title text,
-18sp checkmark icons, 17sp numbers, 19dp score rings, and 16/32/8dp header spacing for
-maximum comfort and readability. Horizontal date spacing, ordering, and habit history
-are unchanged; text continues to respect the device's system font scale.
+Compact keeps 48dp entry buttons, reduces the row gap to 1dp, and uses smaller
+section headers: 8dp above the first header, 20dp above later headers, and 4dp
+below each title. Standard retains the existing 48dp buttons, 3dp row gaps,
+and 12/28/6dp header spacing. Spacious uses 64dp buttons with Standard's gaps
+and header spacing. Text size, horizontal date spacing, ordering, and habit
+history are unchanged; text continues to respect the device's font settings.
 
 The toolbar shows **X of N done** for the current filtered list, or **N to go**
 when completed/entered habits are hidden. Selected tags follow the count in

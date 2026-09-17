@@ -425,13 +425,6 @@ class HabitCardListCache @Inject constructor(
             for (habit in habits) {
                 if (isCancelled) return
                 if (targetId != null && targetId != habit.id && newData.checkmarks.containsKey(habit.id)) continue
-                if (habit.computedEntries.getKnown().isEmpty() && habit.originalEntries.getKnown().isNotEmpty()) {
-                    try {
-                        habit.recompute()
-                    } catch (e: Exception) {
-                        // ignore and fall back
-                    }
-                }
                 newData.scores[habit.id] = habit.scores[today].value
                 val entries = habit.computedEntries.getByInterval(dateFrom, today)
                 newData.checkmarks[habit.id] = entries.map { it.value }.toIntArray()

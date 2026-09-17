@@ -140,7 +140,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
             }
         }
 
-        taskRunner.execute {
+        taskRunner.run {
             try {
                 AutoBackup(this@ListHabitsActivity).run()
                 appComponent.widgetUpdater.updateWidgets()
@@ -156,9 +156,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     }
 
     private fun scheduleReminders() {
-        taskRunner.execute {
-            appComponent.reminderScheduler.scheduleAll()
-        }
+        appComponent.reminderScheduler.scheduleAll()
     }
 
     override fun onCreateOptionsMenu(m: Menu): Boolean {

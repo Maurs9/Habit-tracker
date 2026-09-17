@@ -9,18 +9,15 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
-import android.util.TypedValue
 import androidx.annotation.StringRes
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
-import org.isoron.uhabits.activities.common.views.RingView
 import org.isoron.uhabits.activities.habits.list.views.SectionHeaderView
 import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache.ListItem.Header
 import org.isoron.uhabits.utils.dp
-import org.isoron.uhabits.utils.getFontAwesome
 import org.isoron.uhabits.utils.sres
 
 @get:StringRes
@@ -28,14 +25,14 @@ val ListDensity.labelResId: Int
     get() = when (this) {
         ListDensity.COMPACT -> R.string.list_density_compact
         ListDensity.STANDARD -> R.string.list_density_standard
-        ListDensity.LARGE -> R.string.list_density_large
+        ListDensity.SPACIOUS -> R.string.list_density_spacious
     }
 
 private val ListDensity.radioId: Int
     get() = when (this) {
         ListDensity.COMPACT -> R.id.list_density_compact
         ListDensity.STANDARD -> R.id.list_density_standard
-        ListDensity.LARGE -> R.id.list_density_spacious
+        ListDensity.SPACIOUS -> R.id.list_density_spacious
     }
 
 class ListDensityDialog : DialogFragment() {
@@ -108,43 +105,15 @@ class ListDensityDialog : DialogFragment() {
                 LinearLayout(preview.context).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(dp(3f).toInt(), 0, dp(3f).toInt(), dp((selectedDensity.rowGapDp - 1).toFloat()).toInt())
-                    val row = LinearLayout(context).apply {
-                        orientation = LinearLayout.HORIZONTAL
-                        gravity = Gravity.CENTER_VERTICAL
-                        minimumHeight = dp(selectedDensity.rowHeightDp.toFloat()).toInt()
-                        setBackgroundColor(sres.getColor(R.attr.cardBgColor))
-                        val ringSize = dp(selectedDensity.ringSizeDp.toFloat()).toInt()
-                        val ringMargin = dp(8f).toInt()
-                        addView(
-                            RingView(context).apply {
-                                setPercentage(0.75f)
-                                setThickness(dp(selectedDensity.ringThicknessDp))
-                                layoutParams = LinearLayout.LayoutParams(ringSize, ringSize).apply {
-                                    setMargins(ringMargin, 0, ringMargin, 0)
-                                }
-                            }
-                        )
-                        addView(
-                            TextView(context).apply {
-                                setText(R.string.habit)
-                                setTextSize(TypedValue.COMPLEX_UNIT_SP, selectedDensity.titleTextSizeSp)
-                                setTextColor(sres.getColor(R.attr.contrast100))
-                                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                            }
-                        )
-                        addView(
-                            TextView(context).apply {
-                                typeface = getFontAwesome()
-                                text = context.getString(R.string.fa_check)
-                                setTextSize(TypedValue.COMPLEX_UNIT_SP, selectedDensity.checkmarkIconSizeSp)
-                                setTextColor(sres.getColor(R.attr.contrast60))
-                                gravity = Gravity.CENTER
-                                layoutParams = LinearLayout.LayoutParams(dp(48f).toInt(), dp(selectedDensity.rowHeightDp.toFloat()).toInt())
-                            }
-                        )
-                    }
                     addView(
-                        row,
+                        TextView(context).apply {
+                            setText(R.string.habit)
+                            gravity = Gravity.CENTER_VERTICAL
+                            minHeight = dp(selectedDensity.rowHeightDp.toFloat()).toInt()
+                            setPaddingRelative(dp(31f).toInt(), 0, dp(16f).toInt(), 0)
+                            setTextColor(sres.getColor(R.attr.contrast100))
+                            setBackgroundColor(sres.getColor(R.attr.cardBgColor))
+                        },
                         LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                     )
                     addView(

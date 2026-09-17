@@ -34,14 +34,12 @@ import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.NumericalHabitType.AT_LEAST
 import org.isoron.uhabits.core.models.NumericalHabitType.AT_MOST
 import org.isoron.uhabits.core.models.Timestamp
-import org.isoron.uhabits.core.preferences.ListDensity
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.dim
 import org.isoron.uhabits.utils.drawNotesIndicator
 import org.isoron.uhabits.utils.getFontAwesome
-import org.isoron.uhabits.utils.sp
 import org.isoron.uhabits.utils.sres
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -78,12 +76,6 @@ class NumberButtonView(
 ) : View(context),
     OnClickListener,
     OnLongClickListener {
-
-    var listDensity: ListDensity = ListDensity.STANDARD
-        set(value) {
-            field = value
-            invalidate()
-        }
 
     var color = 0
         set(value) {
@@ -234,38 +226,36 @@ class NumberButtonView(
             val label: String
             val typeface: Typeface
             val textSize: Float
-            val smallSize = sp(listDensity.numberTextSizeSp)
-            val smallerSize = sp(listDensity.unitTextSizeSp)
 
             when {
                 isAuto -> {
                     label = resources.getString(R.string.fa_check)
-                    textSize = smallSize
+                    textSize = dim(R.dimen.smallTextSize)
                     typeface = getFontAwesome()
                 }
 
                 value == Entry.SKIP.toDouble() / 1000 -> {
                     label = resources.getString(R.string.fa_skipped)
-                    textSize = smallSize
+                    textSize = dim(R.dimen.smallTextSize)
                     typeface = getFontAwesome()
                 }
 
                 value >= 0 -> {
                     label = value.toShortString()
                     typeface = BOLD_TYPEFACE
-                    textSize = smallSize
+                    textSize = dim(R.dimen.smallTextSize)
                 }
 
                 preferences.areQuestionMarksEnabled -> {
                     label = resources.getString(R.string.fa_question)
                     typeface = getFontAwesome()
-                    textSize = smallerSize
+                    textSize = dim(R.dimen.smallerTextSize)
                 }
 
                 else -> {
                     label = "0"
                     typeface = BOLD_TYPEFACE
-                    textSize = smallSize
+                    textSize = dim(R.dimen.smallTextSize)
                 }
             }
 
@@ -280,7 +270,6 @@ class NumberButtonView(
             pNumber.textSize = textSize
             pNumber.color = if (isToday) todayHighlight.foreground(activeColor) else activeColor
             pNumber.typeface = typeface
-            pUnit.textSize = smallerSize
             pUnit.color = pNumber.color
 
             if (units.isBlank() || isAuto) {

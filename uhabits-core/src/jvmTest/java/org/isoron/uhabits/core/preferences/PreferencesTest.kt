@@ -179,7 +179,7 @@ class PreferencesTest : BaseUnitTest() {
         assertThat(prefs.listDensity, equalTo(ListDensity.STANDARD))
         prefs.listDensity = ListDensity.STANDARD
         verify(listener, times(0)).onListDensityChanged()
-        for (density in listOf(ListDensity.COMPACT, ListDensity.LARGE, ListDensity.STANDARD)) {
+        for (density in listOf(ListDensity.COMPACT, ListDensity.SPACIOUS, ListDensity.STANDARD)) {
             prefs.listDensity = density
             assertThat(Preferences(storage).listDensity, equalTo(density))
             assertThat(storage.getString("pref_list_density", ""), equalTo(density.name))
@@ -192,12 +192,6 @@ class PreferencesTest : BaseUnitTest() {
     }
 
     @Test
-    fun testLegacySpaciousListDensityIsMappedToLarge() {
-        storage.putString("pref_list_density", "SPACIOUS")
-        assertThat(prefs.listDensity, equalTo(ListDensity.LARGE))
-    }
-
-    @Test
     fun testInvalidListDensityIsReported() {
         storage.putString("pref_list_density", "INVALID")
         assertFailsWith<IllegalArgumentException> { prefs.listDensity }
@@ -205,19 +199,18 @@ class PreferencesTest : BaseUnitTest() {
 
     @Test
     fun testListDensityDimensionsKeepTouchTargetsAndStandardSpacing() {
-        assertTrue(ListDensity.entries.all { it.rowHeightDp >= 40 && it.rowGapDp >= 1 })
-        assertThat(ListDensity.COMPACT.rowHeightDp, equalTo(40))
+        assertTrue(ListDensity.entries.all { it.rowHeightDp >= 48 && it.rowGapDp >= 1 })
+        assertThat(ListDensity.COMPACT.rowHeightDp, equalTo(48))
         assertThat(ListDensity.COMPACT.rowGapDp, equalTo(1))
-        assertThat(ListDensity.COMPACT.firstSectionTopDp, equalTo(6))
-        assertThat(ListDensity.COMPACT.sectionTopDp, equalTo(16))
-        assertThat(ListDensity.COMPACT.sectionBottomDp, equalTo(3))
+        assertThat(ListDensity.COMPACT.firstSectionTopDp, equalTo(8))
+        assertThat(ListDensity.COMPACT.sectionTopDp, equalTo(20))
+        assertThat(ListDensity.COMPACT.sectionBottomDp, equalTo(4))
         assertThat(ListDensity.STANDARD.rowHeightDp, equalTo(48))
         assertThat(ListDensity.STANDARD.rowGapDp, equalTo(3))
         assertThat(ListDensity.STANDARD.firstSectionTopDp, equalTo(12))
         assertThat(ListDensity.STANDARD.sectionTopDp, equalTo(28))
         assertThat(ListDensity.STANDARD.sectionBottomDp, equalTo(6))
-        assertThat(ListDensity.LARGE.rowHeightDp, equalTo(64))
-        assertThat(ListDensity.LARGE.rowGapDp, equalTo(4))
+        assertThat(ListDensity.SPACIOUS.rowHeightDp, equalTo(64))
     }
 
     @Test

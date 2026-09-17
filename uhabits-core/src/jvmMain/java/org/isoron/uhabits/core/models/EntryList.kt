@@ -257,10 +257,9 @@ open class EntryList {
             freq: Frequency,
             entries: List<Entry>
         ): ArrayList<Interval> {
+            val filtered = entries.filter { it.value == YES_MANUAL }
             val num = freq.numerator
             val den = freq.denominator
-            if (num <= 0 || den <= 0) return arrayListOf()
-            val filtered = entries.filter { it.value == YES_MANUAL }
             val intervals = arrayListOf<Interval>()
             for (i in num - 1 until filtered.size) {
                 val (begin, _) = filtered[i]
@@ -288,15 +287,14 @@ open class EntryList {
             targetValue: Double,
             targetType: NumericalHabitType
         ): ArrayList<Interval> {
-            val num = freq.numerator
-            val den = freq.denominator
-            if (num <= 0 || den <= 0) return arrayListOf()
             val filtered = entries.filter { entry ->
                 entry.value >= 0 && entry.value != SKIP && when (targetType) {
                     NumericalHabitType.AT_LEAST -> entry.value / 1000.0 >= targetValue
                     NumericalHabitType.AT_MOST -> entry.value / 1000.0 <= targetValue
                 }
             }
+            val num = freq.numerator
+            val den = freq.denominator
             val intervals = arrayListOf<Interval>()
             for (i in num - 1 until filtered.size) {
                 val (begin, _) = filtered[i]

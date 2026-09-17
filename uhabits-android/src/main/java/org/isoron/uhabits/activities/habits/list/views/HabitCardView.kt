@@ -29,7 +29,6 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -151,16 +150,9 @@ class HabitCardView(
         set(value) {
             if (field == value) return
             field = value
-            checkmarkPanel.listDensity = value
-            numberPanel.listDensity = value
-            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, value.titleTextSizeSp)
-            val ringSize = dp(value.ringSizeDp.toFloat()).toInt()
-            (scoreRing.layoutParams as? LinearLayout.LayoutParams)?.let {
-                it.width = ringSize
-                it.height = ringSize
-                scoreRing.layoutParams = it
-            }
-            scoreRing.setThickness(dp(value.ringThicknessDp))
+            val rowHeight = dp(value.rowHeightDp.toFloat()).toInt()
+            checkmarkPanel.buttonHeight = rowHeight
+            numberPanel.buttonHeight = rowHeight
             setPadding(paddingLeft, paddingTop, paddingRight, dp(value.rowGapDp.toFloat()).toInt())
         }
 

@@ -1,4 +1,4 @@
-﻿*.iml
+*.iml
 *.pbxuser
 *.perspective
 *.perspectivev3
@@ -18,3 +18,4 @@ node_modules
 *.sketch
 crowdin.yml
 kotlin-js-store
+.agents/

@@ -26,10 +26,10 @@
 
 ## 🌟 What's New in v2.5
 
-* **📏 Habit List Density (Compact, Standard, Large)**: Customize the layout of your main habit list under **Settings → Interface → List density** with an interactive live preview:
-  * **Compact**: Ultra-dense 40dp row height, 1dp row spacing, 14.5sp text, and streamlined headers to view maximum habits at a glance without scrolling.
-  * **Standard**: Balanced default layout with 48dp rows, 3dp row gaps, 16sp text, and classic 48dp action buttons.
-  * **Large**: Generous 64dp rows, 4dp row gaps, larger 18.5sp title text, 18sp checkmark icons, 17sp numbers, and 19dp score rings for enhanced readability and comfortable touch targets.
+* **📏 Habit List Density (Compact, Standard, Spacious)**: Customize the layout of your main habit list under **Settings → Interface → List density** with a live visual preview:
+  * **Compact**: Minimalist 1dp row spacing and streamlined headers to view maximum habits at a glance without scrolling.
+  * **Standard**: Balanced default layout with 3dp row gaps and classic 48dp action buttons.
+  * **Spacious**: Generous touch targets with 64dp action buttons and enhanced row breathing room.
 * **📁 Habit Sections & Collapsible Headers**: Organize daily routines into custom sections (e.g., *Morning Routine*, *Health & Fitness*, *Evening & Learning*). View live *done / total* counts in section headers and collapse sections to stay focused.
 * **↕️ Seamless Long-Press Habit Reordering**: Reorder habits cleanly inside their sections via smooth drag-and-drop when sorted Manually. Clean card design with no intrusive drag handle icons, haptic feedback on elevation, atomic database persistence upon release, and instant in-place long-press for multi-selection mode (CAB).
 * **🎯 Flexible Frequencies for Measurable Habits**: Measurable/numerical habits now enjoy full frequency support (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days automatically receive outline checkmarks (`YES_AUTO`), cleanly distinguished from measured values across cards, widgets, and CSV exports.

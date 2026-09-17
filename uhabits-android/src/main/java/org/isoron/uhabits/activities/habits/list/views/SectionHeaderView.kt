@@ -29,8 +29,6 @@ class SectionHeaderView(context: Context) : LinearLayout(context) {
         set(value) {
             if (field == value) return
             field = value
-            nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, value.sectionTextSizeSp)
-            countView.setTextSize(TypedValue.COMPLEX_UNIT_SP, value.sectionTextSizeSp)
             updatePadding()
         }
 
@@ -89,7 +87,7 @@ class SectionHeaderView(context: Context) : LinearLayout(context) {
         val styled = StyledResources(context)
         isAllCaps = true
         letterSpacing = 0.08f
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, listDensity.sectionTextSizeSp)
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.smallerTextSize))
         setTextColor(styled.getColor(R.attr.contrast60))
     }
 }
