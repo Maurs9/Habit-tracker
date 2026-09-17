@@ -7,6 +7,7 @@ import android.util.Log
 import org.isoron.uhabits.BaseAndroidJVMTest
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.tasks.StartupCoordinator
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.junit.Test
@@ -33,6 +34,7 @@ class ReminderReceiverTest : BaseAndroidJVMTest() {
         val context: Context = mock()
         val application: HabitsApplication = mock()
         val component: HabitsApplicationComponent = mock()
+        val startup: StartupCoordinator = mock()
         val habits: HabitList = mock()
         val controller: ReminderController = mock()
         val intent: Intent = mock()
@@ -42,6 +44,8 @@ class ReminderReceiverTest : BaseAndroidJVMTest() {
         val reminderTime = timestamp.unixTime + 8 * 60 * 60 * 1000 + 15 * 60 * 1000
         whenever(context.applicationContext).thenReturn(application)
         whenever(application.component).thenReturn(component)
+        whenever(application.startup).thenReturn(startup)
+        whenever(startup.state).thenReturn(StartupCoordinator.State.Ready)
         whenever(component.habitList).thenReturn(habits)
         whenever(component.reminderController).thenReturn(controller)
         whenever(intent.action).thenReturn(action)

@@ -8,8 +8,12 @@ import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.core.tasks.StartupCoordinator
 
 fun BroadcastReceiver.whenHabitsReady(context: Context, intent: Intent, action: () -> Unit) {
-    val startup = (context.applicationContext as HabitsApplication).startup
-    if (startup.state == StartupCoordinator.State.Ready) {
+    val startup = try {
+        (context.applicationContext as? HabitsApplication)?.startup
+    } catch (e: Exception) {
+        null
+    }
+    if (startup == null || startup.state == StartupCoordinator.State.Ready) {
         action()
         return
     }
@@ -32,5 +36,5 @@ fun BroadcastReceiver.whenHabitsReady(context: Context, intent: Intent, action: 
             }
         }
     }
-    if (finished) subscription.close()
+    if (finished) subscription?.close()
 }

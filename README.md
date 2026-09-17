@@ -24,8 +24,12 @@
 
 ---
 
-## 🌟 What's New in v2.5
+## 🌟 What's New in v2.6
 
+* **🚀 Startup Readiness & Background Coordinator**: Offloads database and habit history initialization off the UI thread behind lifecycle-safe readiness gates, eliminating app launch lags and ANRs while showing responsive loading states.
+* **♿ Comprehensive Accessibility & Keyboard Navigation**: Full screen reader (TalkBack) support across all statistics charts (Frequency, Score, History, Streaks, Target), keyboard date navigation and habit movement, descriptive widget labels, and accessible entry actions.
+* **🛡️ Habit Editor Refinements & Draft Protection**: Unsaved changes are protected with dirty-state confirmation before discarding. Complete editor draft state (types, frequencies, targets, colors, tags) survives device rotation, interruptions, and dialog recreations.
+* **📊 Adaptive Statistics & System Font Scaling**: Chart text, layouts, and statistics headers dynamically scale with Android system font sizing for superior readability and touch targets across all themes.
 * **📏 Habit List Density (Compact, Standard, Spacious)**: Customize the layout of your main habit list under **Settings → Interface → List density** with a live visual preview:
   * **Compact**: Minimalist 1dp row spacing and streamlined headers to view maximum habits at a glance without scrolling.
   * **Standard**: Balanced default layout with 3dp row gaps and classic 48dp action buttons.

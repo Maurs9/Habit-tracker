@@ -44,8 +44,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        versionCode = 20500
-        versionName = "2.5.0"
+        versionCode = 20600
+        versionName = "2.6.0"
         minSdk = 28
         targetSdk = 36
         applicationId = "org.isoron.uhabits"
