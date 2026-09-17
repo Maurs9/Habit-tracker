@@ -32,5 +32,5 @@ fun BroadcastReceiver.whenHabitsReady(context: Context, intent: Intent, action: 
             }
         }
     }
-    if (finished) subscription.close()
+    if (finished) subscription?.close()
 }

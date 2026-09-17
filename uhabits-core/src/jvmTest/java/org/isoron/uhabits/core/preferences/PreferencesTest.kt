@@ -30,7 +30,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.io.File
-import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -175,53 +174,27 @@ class PreferencesTest : BaseUnitTest() {
     }
 
     @Test
-    fun testListDensityDefaultsPersistsAndNotifiesOnlyOnChange() {
-        assertThat(prefs.listDensity, equalTo(ListDensity.STANDARD))
-        prefs.listDensity = ListDensity.STANDARD
-        verify(listener, times(0)).onListDensityChanged()
-        for (density in listOf(ListDensity.COMPACT, ListDensity.SPACIOUS, ListDensity.STANDARD)) {
-            prefs.listDensity = density
-            assertThat(Preferences(storage).listDensity, equalTo(density))
-            assertThat(storage.getString("pref_list_density", ""), equalTo(density.name))
-            prefs.listDensity = density
-        }
-        verify(listener, times(3)).onListDensityChanged()
-        prefs.listDensity = ListDensity.COMPACT
-        prefs.clear()
-        assertThat(prefs.listDensity, equalTo(ListDensity.STANDARD))
-    }
-
-    @Test
-    fun testLegacyLargeDensityMigratesBeforeReadingOrChanging() {
-        storage.putString("pref_list_density", "LARGE")
-        assertThat(prefs.listDensity, equalTo(ListDensity.SPACIOUS))
-        assertThat(storage.getString("pref_list_density", ""), equalTo("SPACIOUS"))
-        assertThat(Preferences(storage).listDensity, equalTo(ListDensity.SPACIOUS))
-        prefs.listDensity = ListDensity.COMPACT
+    fun testListDensityIsAlwaysCompact() {
         assertThat(prefs.listDensity, equalTo(ListDensity.COMPACT))
-        assertThat(ListDensity.fromPersistedName("LARGE"), equalTo(ListDensity.SPACIOUS))
-    }
-
-    @Test
-    fun testInvalidListDensityIsReported() {
-        storage.putString("pref_list_density", "INVALID")
-        assertFailsWith<IllegalArgumentException> { prefs.listDensity }
-    }
-
-    @Test
-    fun testListDensityDimensionsKeepTouchTargetsAndStandardSpacing() {
-        assertTrue(ListDensity.entries.all { it.rowHeightDp >= 48 && it.rowGapDp >= 1 })
         assertThat(ListDensity.COMPACT.rowHeightDp, equalTo(48))
         assertThat(ListDensity.COMPACT.rowGapDp, equalTo(1))
         assertThat(ListDensity.COMPACT.firstSectionTopDp, equalTo(8))
         assertThat(ListDensity.COMPACT.sectionTopDp, equalTo(20))
         assertThat(ListDensity.COMPACT.sectionBottomDp, equalTo(4))
-        assertThat(ListDensity.STANDARD.rowHeightDp, equalTo(48))
-        assertThat(ListDensity.STANDARD.rowGapDp, equalTo(3))
-        assertThat(ListDensity.STANDARD.firstSectionTopDp, equalTo(12))
-        assertThat(ListDensity.STANDARD.sectionTopDp, equalTo(28))
-        assertThat(ListDensity.STANDARD.sectionBottomDp, equalTo(6))
-        assertThat(ListDensity.SPACIOUS.rowHeightDp, equalTo(64))
+    }
+
+    @Test
+    fun testRetiredDensityPreferencesCannotBreakStartup() {
+        for (stored in listOf("STANDARD", "SPACIOUS", "LARGE", "INVALID", "")) {
+            storage.putString("pref_list_density", stored)
+            assertThat(prefs.listDensity, equalTo(ListDensity.COMPACT))
+            assertThat(Preferences(storage).listDensity, equalTo(ListDensity.COMPACT))
+            prefs.listDensity = ListDensity.COMPACT
+            assertThat(storage.getString("pref_list_density", ""), equalTo(stored))
+        }
+        verify(listener, times(0)).onListDensityChanged()
+        prefs.clear()
+        assertThat(prefs.listDensity, equalTo(ListDensity.COMPACT))
     }
 
     @Test

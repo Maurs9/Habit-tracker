@@ -36,7 +36,7 @@ include `Version29Test`, `NumericalDataRegressionTest`, `HabitValidationTest`,
 `SectionImportTest`, `TargetCardStateTest`, and `ChartBoundaryTest`.
 
 `ThemeSwitcherTest`, `PreferencesTest`, and `HabitCardListCacheTest` cover
-automatic-night pure-black resolution, legacy `LARGE` preferences, and full or
+automatic-night pure-black resolution, safely ignored retired density preferences, and full or
 partial cache refresh across midnight. Reminder and automation suites exercise
 expired snoozes, reconstructed notification trays, and read-modify-write
 commands queued before execution.
@@ -411,23 +411,16 @@ HabitCardView goldens are unchanged.
 
 ### List density
 
-`PreferencesTest` covers the Standard default, persistence, change notifications,
-and exact density metrics. `ListDensityIntegrationTest` checks that saving a
-density rebinds real list rows and section headers, survives activity recreation,
-and still applies with grouping off. `ListDensityDialogTest` covers the settings
-entry point, summary, preview-only selection, Save/Cancel, rotation, and dark
-themes.
+`PreferencesTest` covers the Compact density metrics and defaults, including
+safe handling of retired density preference values.
+`ListDensityIntegrationTest` checks that the habit list uses Compact density for
+rows and section headers, and still applies with grouping off.
 
-`HabitListAppearanceTest` checks both entry types at all three densities,
+`HabitListAppearanceTest` checks both entry types at Compact density,
 including RTL, minimum 48dp touch targets, fixed date-column widths, and
-returning to Standard on the same view. Its Standard screenshot baselines are
-unchanged; Compact and Spacious have separate light, dark, and pure-black
-baselines. `SectionHeaderViewTest` checks Compact's 8/20/4dp spacing and
-restoration of Standard's 12/28/6dp spacing.
-
-All 20 density, appearance, header, and settings tests pass on the API 35 ARM64
-emulator described above. The six new density screenshots were reviewed before
-acceptance. The main-list integration test uses Android instrumentation directly
+screenshot rendering baselines across light, dark, and pure-black themes.
+`SectionHeaderViewTest` checks Compact's 8/20/4dp spacing.
+The main-list integration test uses Android instrumentation directly
 because that activity clears its launch intent, which prevents ActivityScenario
 from matching its resumed lifecycle.
 

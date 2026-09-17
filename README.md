@@ -24,12 +24,13 @@
 
 ---
 
-## 🌟 What's New in v2.5
+## 🌟 What's New in v2.6
 
-* **📏 Habit List Density (Compact, Standard, Spacious)**: Customize the layout of your main habit list under **Settings → Interface → List density** with a live visual preview:
-  * **Compact**: Minimalist 1dp row spacing and streamlined headers to view maximum habits at a glance without scrolling.
-  * **Standard**: Balanced default layout with 3dp row gaps and classic 48dp action buttons.
-  * **Spacious**: Generous touch targets with 64dp action buttons and enhanced row breathing room.
+* **🚀 Startup Readiness & Background Coordinator**: Offloads database and habit history initialization off the UI thread behind lifecycle-safe readiness gates, eliminating app launch lags and ANRs while showing responsive loading states.
+* **♿ Comprehensive Accessibility & Keyboard Navigation**: Full screen reader (TalkBack) support across all statistics charts (Frequency, Score, History, Streaks, Target), keyboard date navigation and habit movement, descriptive widget labels, and accessible entry actions.
+* **🛡️ Habit Editor Refinements & Draft Protection**: Unsaved changes are protected with dirty-state confirmation before discarding. Complete editor draft state (types, frequencies, targets, colors, tags) survives device rotation, interruptions, and dialog recreations.
+* **📊 Adaptive Statistics & System Font Scaling**: Chart text, layouts, and statistics headers dynamically scale with Android system font sizing for superior readability and touch targets across all themes.
+* **📏 Streamlined Compact Layout**: Minimalist 1dp row spacing, 48dp touch targets, and streamlined section headers allow viewing maximum habits at a glance without unnecessary scrolling.
 * **📁 Habit Sections**: Organize daily routines into custom sections (e.g., *Morning Routine*, *Health & Fitness*, *Evening & Learning*). View live *done / total* counts in informational section headers.
 * **↕️ Seamless Long-Press Habit Reordering**: Reorder habits cleanly inside their sections via smooth drag-and-drop when sorted Manually. Clean card design with no intrusive drag handle icons, haptic feedback on elevation, atomic database persistence upon release, and instant in-place long-press for multi-selection mode (CAB).
 * **🎯 Flexible Frequencies for Measurable Habits**: Measurable/numerical habits now enjoy full frequency support (e.g., 3 times per week, 5 times per month, every 2 days). Qualifying rest days automatically receive outline checkmarks (`YES_AUTO`), cleanly distinguished from measured values across cards, widgets, and CSV exports.
@@ -73,7 +74,7 @@ Because this enhanced edition contains custom features (Sections, 4-Ring Color W
    *(If prompted, allow your browser or file manager permission to "Install unknown apps").*
 
 > [!NOTE]
-> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Habit List Density, Measurable Habit Frequencies, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
+> The upstream version of Loop Habit Tracker is available on Google Play and F-Droid, but it does not include the custom Habit Sections, Compact Habit List Layout, Measurable Habit Frequencies, Tag Picker dialog, or the Donut Color Wheel introduced in this repository.
 
 ---
 

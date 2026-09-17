@@ -6,7 +6,7 @@
 
 - Apply pure-black theme changes consistently in automatic and explicit dark mode, including existing and recycled habit rows.
 - Refresh list entry dates and open history calendars when the logical day changes; protect empty charts and calendar dates before 1970.
-- Migrate the former Large list-density setting to Spacious and retain settings-screen cutout and navigation-bar insets.
+- Ignore retired list-density preferences so older values cannot break startup, and retain settings-screen cutout and navigation-bar insets.
 - Make entry replacement atomic and propagate database insertion errors instead of losing the previous entry or reporting a successful write.
 - Separate skip markers from numerical measurements with database version 29. Preserve historical skips while allowing new `0.003` measurements.
 - Keep numerical skips within streaks, restore missing-day behavior for at-most scores, and use wide arithmetic for aggregate totals.

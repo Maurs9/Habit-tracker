@@ -25,7 +25,7 @@ class SectionHeaderView(context: Context) : LinearLayout(context) {
     }
     private val dividerHeight = dp(1f)
     private val dividerTop = dp(8f)
-    var listDensity = ListDensity.STANDARD
+    var listDensity = ListDensity.COMPACT
         set(value) {
             if (field == value) return
             field = value

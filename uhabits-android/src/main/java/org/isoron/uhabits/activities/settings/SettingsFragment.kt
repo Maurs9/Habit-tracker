@@ -235,12 +235,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         val key = preference.key ?: return false
         when (key) {
-            "pref_list_density" -> {
-                if (parentFragmentManager.findFragmentByTag(ListDensityDialog.TAG) == null) {
-                    ListDensityDialog().show(parentFragmentManager, ListDensityDialog.TAG)
-                }
-                return true
-            }
             "manageSections" -> {
                 if (parentFragmentManager.findFragmentByTag("sections") == null) {
                     SectionsDialog().show(parentFragmentManager, "sections")
@@ -304,7 +298,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             devCategory.isVisible = false
         }
         updateWeekdayPreference()
-        updateListDensityPreference()
         updateBackupStatus()
 
         requirePreference<Preference>("reminderSound").isVisible = false
@@ -343,10 +336,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         weekdayPref.summary = dayNames[currentFirstWeekday % 7]
     }
 
-    private fun updateListDensityPreference() {
-        requirePreference<Preference>("pref_list_density").setSummary(prefs.listDensity.labelResId)
-    }
-
     override fun onSharedPreferenceChanged(
         sharedPreferences: SharedPreferences,
         key: String?
@@ -357,7 +346,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         }
         BackupManager.dataChanged("org.isoron.uhabits")
         updateWeekdayPreference()
-        updateListDensityPreference()
         if (key == "pref_pure_black") requireActivity().recreate()
     }
 

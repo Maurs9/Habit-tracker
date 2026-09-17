@@ -151,7 +151,7 @@ class HabitCardView(
         color = sres.getColor(R.attr.habitRowDividerColor)
     }
     private val dividerHeight = dp(1f)
-    var listDensity = ListDensity.STANDARD
+    var listDensity = ListDensity.COMPACT
         set(value) {
             if (field == value) return
             field = value
@@ -235,7 +235,8 @@ class HabitCardView(
         clipToPadding = false
         layoutParams = LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         val margin = dp(3f).toInt()
-        setPadding(margin, 0, margin, margin)
+        val bottomGap = dp(ListDensity.COMPACT.rowGapDp.toFloat()).toInt()
+        setPadding(margin, 0, margin, bottomGap)
         addView(innerFrame)
     }
 
