@@ -67,8 +67,8 @@ import org.isoron.uhabits.utils.formatTime
 import org.isoron.uhabits.utils.toFormattedString
 
 fun formatFrequency(freqNum: Int, freqDen: Int, resources: Resources) = when {
-    freqNum == 1 && (freqDen == 30 || freqDen == 31) -> resources.getString(R.string.every_month)
-    freqDen == 30 || freqDen == 31 -> resources.getString(R.string.x_times_per_month, freqNum)
+    freqNum == 1 && Frequency.isMonthlyInterval(freqDen) -> resources.getString(R.string.every_month)
+    Frequency.isMonthlyInterval(freqDen) -> resources.getString(R.string.x_times_per_month, freqNum)
     freqNum == 1 && freqDen == 1 -> resources.getString(R.string.every_day)
     freqNum == 1 && freqDen == 7 -> resources.getString(R.string.every_week)
     freqNum == 1 && freqDen > 1 -> resources.getString(R.string.every_x_days, freqDen)
@@ -470,8 +470,9 @@ class EditHabitActivity : HabitsActivity() {
             question = binding.questionInput.text.toString(),
             notes = binding.notesInput.text.toString(),
             type = habitType.value,
-            unit = binding.unitInput.text.toString(),
-            target = binding.targetInput.text.toString(),
+            // Hidden measurable fields are not persisted for yes/no habits; keep them out of the draft.
+            unit = if (habitType == HabitType.NUMERICAL) binding.unitInput.text.toString() else "",
+            target = if (habitType == HabitType.NUMERICAL) binding.targetInput.text.toString() else "",
             targetType = targetType.value,
             color = color.paletteIndex,
             numerator = freqNum,

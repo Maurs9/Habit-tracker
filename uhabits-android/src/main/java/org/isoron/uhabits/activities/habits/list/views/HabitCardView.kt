@@ -87,6 +87,8 @@ class HabitCardView(
             numberPanel.dataOffset = value
         }
 
+    private var activeColor: Int = 0
+
     var habit: Habit? = null
         set(newHabit) {
             if (isAttachedToWindow) {
@@ -362,10 +364,11 @@ class HabitCardView(
             }
         }
 
-        val c = getActiveColor(h)
+        activeColor = getActiveColor(h)
+        val c = readableLabelColor(activeColor)
         label.apply {
             text = h.name
-            setTextColor(readableLabelColor(c))
+            setTextColor(c)
         }
         scoreRing.apply {
             setColor(c)
@@ -407,9 +410,12 @@ class HabitCardView(
             false -> R.drawable.ripple
         }
         innerFrame.setBackgroundResource(background)
-        habit?.let {
-            val color = if (it.isArchived) sres.getColor(R.attr.contrast60) else currentTheme().color(it.color).toInt()
-            label.setTextColor(readableLabelColor(color))
+        if (habit != null) {
+            val c = readableLabelColor(activeColor)
+            label.setTextColor(c)
+            scoreRing.setColor(c)
+            checkmarkPanel.color = c
+            numberPanel.color = c
         }
     }
 

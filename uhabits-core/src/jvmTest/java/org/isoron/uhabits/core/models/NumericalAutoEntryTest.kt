@@ -57,7 +57,7 @@ class NumericalAutoEntryTest : BaseUnitTest() {
 
         habit.targetValue = 5.0
         habit.recompute()
-        assertFalse(habit.isCompletedToday())
+        assertTrue(habit.isCompletedToday())
         assertFalse(habit.isReminderSuppressedToday())
         assertEquals(1.0, habit.scores[today].value, 1e-9)
     }

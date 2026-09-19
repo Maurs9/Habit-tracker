@@ -20,6 +20,7 @@
 package org.isoron.uhabits.core.ui.screens.habits.show.views
 
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.models.Timestamp
@@ -55,7 +56,7 @@ class TargetCardPresenter {
             val daysInQuarter = (0L..2L).sumOf { quarterStart.plusMonths(it).lengthOfMonth() }
             val daysInYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR)
             val denominator = habit.frequency.denominator
-            val monthly = denominator == 30 || denominator == 31
+            val monthly = Frequency.isMonthlyInterval(denominator)
             val periodTarget = habit.targetValue * habit.frequency.numerator
             val dailyTarget = periodTarget / denominator
             val periods = buildList {

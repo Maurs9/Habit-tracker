@@ -32,6 +32,9 @@ abstract class HabitsActivity : AppCompatActivity() {
     private val pendingPermissions = mutableListOf<Triple<Int, Array<String>, IntArray>>()
 
     protected open fun onBeforeCreate() {}
+
+    /** Translucent sheets can opt out of the opaque loading panel while startup completes. */
+    protected open val showsStartupPanel: Boolean get() = true
     protected abstract fun onCreateReady(savedInstanceState: Bundle?)
     protected open fun onStartReady() {}
     protected open fun onResumeReady() {}
@@ -66,13 +69,13 @@ abstract class HabitsActivity : AppCompatActivity() {
         if (ready) {
             createContent()
         } else {
-            showStartupState(startup.state)
+            showStartupStateIfEnabled(startup.state)
             subscription = startup.observe { state ->
                 if (!isFinishing && !isDestroyed) {
                     if (state == StartupCoordinator.State.Ready) {
                         requestContentRecreation()
                     } else {
-                        showStartupState(state)
+                        showStartupStateIfEnabled(state)
                     }
                 }
             }
@@ -232,6 +235,29 @@ abstract class HabitsActivity : AppCompatActivity() {
                     requireNotNull(it.getIntArray("results"))
                 )
             )
+        }
+    }
+
+    final override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // The framework restores the view hierarchy from the outer bundle. After a loading
+        // recreate that bundle holds the loading panel's hierarchy and the content hierarchy
+        // is nested under PENDING_CREATE_STATE, so dispatch the matching one.
+        val contentState = if (savedInstanceState.containsKey(PENDING_CREATE_STATE)) {
+            savedInstanceState.getBundle(PENDING_CREATE_STATE)
+        } else {
+            savedInstanceState
+        }
+        if (isContentReady) {
+            contentState?.let { super.onRestoreInstanceState(it) }
+        } else {
+            super.onRestoreInstanceState(savedInstanceState)
+        }
+    }
+
+    private fun showStartupStateIfEnabled(state: StartupCoordinator.State) {
+        when {
+            showsStartupPanel -> showStartupState(state)
+            state is StartupCoordinator.State.Failed -> finish()
         }
     }
 

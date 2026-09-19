@@ -146,6 +146,7 @@ class AndroidDataView(
             0
         )
         scroller.computeScrollOffset()
+        clampScroller()
         updateDataOffset()
         return true
     }
@@ -162,7 +163,7 @@ class AndroidDataView(
             velocityX.toInt() / 2,
             0,
             0,
-            Integer.MAX_VALUE,
+            maxScrollX(),
             0,
             0
         )
@@ -185,6 +186,21 @@ class AndroidDataView(
         scroller.finalX = 0
         scroller.computeScrollOffset()
         updateDataOffset()
+    }
+
+    private fun maxScrollX(): Int {
+        val v = view ?: return Integer.MAX_VALUE
+        val columnWidth = (v.dataColumnWidth * canvas.innerDensity).toInt().coerceAtLeast(1)
+        return (maxDataOffset.toLong() * columnWidth).coerceAtMost(Integer.MAX_VALUE.toLong()).toInt()
+    }
+
+    private fun clampScroller() {
+        val clamped = scroller.currX.coerceIn(0, maxScrollX())
+        if (clamped != scroller.currX) {
+            scroller.forceFinished(true)
+            scroller.startScroll(clamped, scroller.currY, 0, 0, 0)
+            scroller.computeScrollOffset()
+        }
     }
 
     private fun updateDataOffset() {

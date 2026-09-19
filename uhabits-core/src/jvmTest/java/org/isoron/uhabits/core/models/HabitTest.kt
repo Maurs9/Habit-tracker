@@ -111,7 +111,8 @@ class HabitTest : BaseUnitTest() {
             assertFalse(habit.isCompleted(value))
         }
         habit.targetType = NumericalHabitType.AT_MOST
-        for (value in listOf(0, 10499, 10500, 10501, Entry.UNKNOWN, Entry.SKIP)) {
+        for (value in listOf(0, 10499, 10500)) assertTrue(habit.isCompleted(value))
+        for (value in listOf(10501, Entry.UNKNOWN, Entry.SKIP)) {
             assertFalse(habit.isCompleted(value))
         }
     }
@@ -169,10 +170,10 @@ class HabitTest : BaseUnitTest() {
         assertFalse(h.isCompletedToday())
         h.originalEntries.add(Entry(getToday(), 100000))
         h.recompute()
-        assertFalse(h.isCompletedToday())
+        assertTrue(h.isCompletedToday())
         h.originalEntries.add(Entry(getToday(), 50000))
         h.recompute()
-        assertFalse(h.isCompletedToday())
+        assertTrue(h.isCompletedToday())
     }
 
     @Test

@@ -45,22 +45,29 @@ class SQLiteHabitList @Inject constructor(private val modelFactory: ModelFactory
     ) {
         if (loaded) return
         loaded = true
-        list.removeAll()
-        val records = repository.findAll("order by position")
-        var shouldRebuildOrder = false
-        for ((expectedPosition, rec) in records.withIndex()) {
-            if (rec.position != expectedPosition) shouldRebuildOrder = true
-            val h = retainedHabits[rec.id] ?: modelFactory.buildHabit()
-            rec.copyTo(h)
-            val originalEntries = h.originalEntries as SQLiteEntryList
-            originalEntries.habitId = h.id
-            if (recompute) {
-                originalEntries.reload()
-                h.recompute()
+        try {
+            list.removeAll()
+            val records = repository.findAll("order by position")
+            var shouldRebuildOrder = false
+            for ((expectedPosition, rec) in records.withIndex()) {
+                if (rec.position != expectedPosition) shouldRebuildOrder = true
+                val h = retainedHabits[rec.id] ?: modelFactory.buildHabit()
+                rec.copyTo(h)
+                val originalEntries = h.originalEntries as SQLiteEntryList
+                originalEntries.habitId = h.id
+                if (recompute) {
+                    originalEntries.reload()
+                    h.recompute()
+                }
+                list.add(h)
             }
-            list.add(h)
+            if (shouldRebuildOrder) rebuildOrder()
+        } catch (e: Exception) {
+            // Leave the list reloadable instead of reporting a truncated list on retry.
+            loaded = false
+            list.removeAll()
+            throw e
         }
-        if (shouldRebuildOrder) rebuildOrder()
     }
 
     @Synchronized

@@ -262,7 +262,7 @@ class FrequencyPickerDialog(
             input.error = if (text.isBlank()) {
                 getString(R.string.validation_cannot_be_blank)
             } else {
-                getString(R.string.frequency_valid_interval, Frequency.MAX_DENOMINATOR)
+                getString(R.string.frequency_positive_integer)
             }
             return null
         }
@@ -276,7 +276,7 @@ class FrequencyPickerDialog(
 
     private fun populateViews() {
         uncheckAll()
-        if (freqDenominator == 30 || freqDenominator == 31) {
+        if (Frequency.isMonthlyInterval(freqDenominator)) {
             binding.xTimesPerMonthRadioButton.isChecked = true
             binding.xTimesPerMonthTextView.setText(freqNumerator.toString())
         } else {

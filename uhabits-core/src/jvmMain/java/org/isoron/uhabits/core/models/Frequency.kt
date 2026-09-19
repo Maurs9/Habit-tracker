@@ -35,12 +35,22 @@ data class Frequency(
         require(numerator in 1..denominator) { "Frequency repetitions must be between 1 and the interval length" }
     }
 
+    val isMonthly: Boolean get() = isMonthlyInterval(denominator)
+
     fun toDouble(): Double {
         return numerator.toDouble() / denominator
     }
 
     companion object {
         const val MAX_DENOMINATOR = Int.MAX_VALUE
+
+        fun isMonthlyInterval(denominator: Int): Boolean = denominator == 30 || denominator == 31
+
+        /** Builds a frequency from stored values, coercing out-of-range rows instead of failing startup. */
+        fun fromPersisted(numerator: Int, denominator: Int): Frequency {
+            val den = denominator.coerceIn(1, MAX_DENOMINATOR)
+            return Frequency(numerator.coerceIn(1, den), den)
+        }
 
         @JvmField
         val DAILY = Frequency(1, 1)

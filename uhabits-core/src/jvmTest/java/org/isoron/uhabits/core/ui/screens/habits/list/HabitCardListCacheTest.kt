@@ -117,18 +117,18 @@ class HabitCardListCacheTest : BaseUnitTest() {
             }
         }
         cache.refreshAllHabits()
-        assertThat(cache.completedTodayCount(), equalTo(4))
+        assertThat(cache.completedTodayCount(), equalTo(5))
 
         commandRunner.run(CreateRepetitionCommand(habitList, habits[0], today, Entry.NO, ""))
-        assertThat(cache.completedTodayCount(), equalTo(3))
+        assertThat(cache.completedTodayCount(), equalTo(4))
         commandRunner.run(CreateRepetitionCommand(habitList, habits[4], today, 9999, ""))
-        assertThat(cache.completedTodayCount(), equalTo(2))
+        assertThat(cache.completedTodayCount(), equalTo(3))
 
         habits[5].originalEntries.add(Entry(today, Entry.NO))
         habits[5].recompute()
-        assertThat(cache.completedTodayCount(), equalTo(2))
+        assertThat(cache.completedTodayCount(), equalTo(3))
         cache.refreshAllHabits()
-        assertThat(cache.completedTodayCount(), equalTo(1))
+        assertThat(cache.completedTodayCount(), equalTo(2))
     }
 
     @Test

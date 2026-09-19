@@ -22,6 +22,7 @@ import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
+import org.isoron.uhabits.core.commands.UpdateRepetitionCommand
 import org.isoron.uhabits.core.io.Logging
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
@@ -175,10 +176,10 @@ class HabitCardListCache @Inject constructor(
 
     @Synchronized
     override fun onCommandFinished(command: Command) {
-        if (command is CreateRepetitionCommand) {
-            command.habit.id?.let { refreshHabit(it) }
-        } else {
-            refreshAllHabits()
+        when (command) {
+            is CreateRepetitionCommand -> command.habit.id?.let { refreshHabit(it) }
+            is UpdateRepetitionCommand -> command.habit.id?.let { refreshHabit(it) }
+            else -> refreshAllHabits()
         }
     }
 

@@ -136,7 +136,7 @@ class HabitRecord {
         habit.name = name!!
         habit.description = description!!
         habit.question = question!!
-        habit.frequency = Frequency(freqNum!!, freqDen!!)
+        habit.frequency = Frequency.fromPersisted(freqNum!!, freqDen!!)
         habit.color = PaletteColor(color!!)
         habit.isArchived = archived != 0
         habit.type = HabitType.fromInt(type!!)

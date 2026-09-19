@@ -227,43 +227,26 @@ open class EntryList {
         fun buildIntervals(
             freq: Frequency,
             entries: List<Entry>
-        ): ArrayList<Interval> {
-            val filtered = entries.filter { it.value == YES_MANUAL }
-            val num = freq.numerator
-            val den = freq.denominator
-            val intervals = arrayListOf<Interval>()
-            for (i in num - 1 until filtered.size) {
-                val (begin, _) = filtered[i]
-                val (center, _) = filtered[i - num + 1]
-                var size = den
-                if (den == 30 || den == 31) {
-                    val beginDate = begin.toLocalDate()
-                    size = if (beginDate.day == beginDate.monthLength) {
-                        beginDate.plus(1).monthLength
-                    } else {
-                        beginDate.monthLength
-                    }
-                }
-                if (begin.daysUntil(center) < size) {
-                    val end = begin.plus(size - 1)
-                    intervals.add(Interval(begin, center, end))
-                }
-            }
-            return intervals
-        }
+        ): ArrayList<Interval> = buildIntervals(freq, entries) { it.value == YES_MANUAL }
 
         fun buildNumericalIntervals(
             freq: Frequency,
             entries: List<Entry>,
             targetValue: Double,
             targetType: NumericalHabitType
-        ): ArrayList<Interval> {
-            val filtered = entries.filter { entry ->
-                entry.value >= 0 && entry.value != SKIP && when (targetType) {
-                    NumericalHabitType.AT_LEAST -> entry.value / 1000.0 >= targetValue
-                    NumericalHabitType.AT_MOST -> entry.value / 1000.0 <= targetValue
-                }
+        ): ArrayList<Interval> = buildIntervals(freq, entries) { entry ->
+            entry.value >= 0 && when (targetType) {
+                NumericalHabitType.AT_LEAST -> entry.value / 1000.0 >= targetValue
+                NumericalHabitType.AT_MOST -> entry.value / 1000.0 <= targetValue
             }
+        }
+
+        private fun buildIntervals(
+            freq: Frequency,
+            entries: List<Entry>,
+            qualifies: (Entry) -> Boolean
+        ): ArrayList<Interval> {
+            val filtered = entries.filter(qualifies)
             val num = freq.numerator
             val den = freq.denominator
             val intervals = arrayListOf<Interval>()
@@ -271,7 +254,7 @@ open class EntryList {
                 val (begin, _) = filtered[i]
                 val (center, _) = filtered[i - num + 1]
                 var size = den
-                if (den == 30 || den == 31) {
+                if (freq.isMonthly) {
                     val beginDate = begin.toLocalDate()
                     size = if (beginDate.day == beginDate.monthLength) {
                         beginDate.plus(1).monthLength
@@ -292,7 +275,15 @@ open class EntryList {
             intervals: ArrayList<Interval>
         ): ArrayList<Entry> {
             val result = buildAutomaticEntries(original, intervals, NUMERICAL_AUTO)
-            original.forEach { result[it.timestamp] = it }
+            original.forEach { entry ->
+                // A notes-only entry (UNKNOWN) must not cancel an automatic rest day.
+                val value = if (entry.value == UNKNOWN && result[entry.timestamp]?.value == NUMERICAL_AUTO) {
+                    NUMERICAL_AUTO
+                } else {
+                    entry.value
+                }
+                result[entry.timestamp] = Entry(entry.timestamp, value, entry.notes)
+            }
             return ArrayList(result.values.sortedByDescending { it.timestamp })
         }
 

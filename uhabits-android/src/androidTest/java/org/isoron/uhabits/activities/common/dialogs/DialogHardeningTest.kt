@@ -244,7 +244,7 @@ class DialogHardeningTest : BaseAndroidTest() {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
                 assertNull(result)
                 assertTrue(dialog.isShowing)
-                assertEquals(activity.getString(R.string.frequency_valid_interval, limit), input.error.toString())
+                assertEquals(activity.getString(R.string.frequency_positive_integer), input.error.toString())
                 input.setText(limit.toString())
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
                 assertEquals(1 to limit, result)

@@ -52,7 +52,7 @@ class StreakList {
                 } else if (isNumerical) {
                     value == Entry.NUMERICAL_AUTO ||
                         (
-                            value >= 0 && value != Entry.SKIP && when (targetType) {
+                            value >= 0 && when (targetType) {
                                 NumericalHabitType.AT_LEAST -> value / 1000.0 >= targetValue
                                 NumericalHabitType.AT_MOST -> value / 1000.0 <= targetValue
                             }

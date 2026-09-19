@@ -51,6 +51,7 @@ import org.isoron.uhabits.utils.dismissCurrentDialog
 class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
 
     private lateinit var appliedTheme: ThemeSwitcher.Variant
+    private var launchIntentHandled = false
     lateinit var appComponent: HabitsApplicationComponent
     lateinit var component: HabitsActivityComponent
     lateinit var taskRunner: TaskRunner
@@ -78,6 +79,7 @@ class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
     }
 
     override fun onCreateReady(savedInstanceState: Bundle?) {
+        launchIntentHandled = savedInstanceState?.getBoolean(LAUNCH_INTENT_HANDLED) == true
         appComponent = (applicationContext as HabitsApplication).component
         component = DaggerHabitsActivityComponent
             .builder()
@@ -183,8 +185,13 @@ class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
         screen.onResult(requestCode, resultCode, data)
     }
 
+    override fun onSaveInstanceStateReady(outState: Bundle) {
+        outState.putBoolean(LAUNCH_INTENT_HANDLED, launchIntentHandled)
+    }
+
     private fun parseIntents() {
-        if (intent == null) return
+        // recreate() relaunches with the original intent; only handle it once per launch.
+        if (launchIntentHandled || intent == null) return
         if (intent.action == ACTION_EDIT) {
             val habitId = intent.extras?.getLong("habit")
             val timestamp = intent.extras?.getLong("timestamp")
@@ -197,14 +204,17 @@ class ListHabitsActivity : HabitsActivity(), Preferences.Listener {
                 }
             }
         }
+        launchIntentHandled = true
         intent = null
     }
 
     override fun onNewIntentReady(intent: Intent?) {
         setIntent(intent)
+        launchIntentHandled = false
     }
 
     companion object {
         const val ACTION_EDIT = "org.isoron.uhabits.ACTION_EDIT"
+        private const val LAUNCH_INTENT_HANDLED = "launchIntentHandled"
     }
 }

@@ -4,6 +4,19 @@
 
 ### Fixed
 
+- Remap habit colors saved by version 2.3.1 onto the 52-slot palette by hue family and tone (database version 30). Databases that already use a new slot are left unchanged.
+- Count an at-most habit as completed when the measurement is within its limit, matching the list button, history, streaks, and score.
+- Restore unsaved editor text and list positions when an activity is recreated after startup finishes.
+- Load stored frequencies outside the valid range by coercing them instead of failing startup, and keep the habit list complete after a failed load.
+- Keep numerical automatic rest days when only a note is added for that day.
+- Do not replay a widget or notification entry popup after a theme change.
+- Stop chart flings at the oldest data instead of scrolling invisibly past it.
+- Restore the start-of-day widget refresh broadcast.
+- Use one readable color for a habit row's name, score ring, and buttons.
+- Show a plain message for invalid frequency numbers.
+- Do not ask to discard hidden measurable fields when creating a yes/no habit.
+- Show the snooze delay picker without an opaque loading page during a cold start.
+- Refresh only the affected habit in the list after widget entry changes.
 - Apply pure-black theme changes consistently in automatic and explicit dark mode, including existing and recycled habit rows.
 - Refresh list entry dates and open history calendars when the logical day changes; protect empty charts and calendar dates before 1970.
 - Ignore retired list-density preferences so older values cannot break startup, and retain settings-screen cutout and navigation-bar insets.

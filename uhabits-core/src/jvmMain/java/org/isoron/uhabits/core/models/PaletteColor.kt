@@ -100,6 +100,7 @@ data class PaletteColor(val paletteIndex: Int) {
 
     companion object {
         // Persisted slots are append-only: values may be tuned, but never reorder indexes.
+        // Migration 30 remaps the 40 slots of v2.3.1 onto this table by hue family and tone.
         const val COUNT = 52
         val DEFAULT = PaletteColor(33)
     }

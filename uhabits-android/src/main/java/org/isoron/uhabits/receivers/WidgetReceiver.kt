@@ -53,7 +53,7 @@ class WidgetReceiver : BroadcastReceiver() {
         Log.i(TAG, String.format("Received intent: %s", intent.toString()))
         try {
             var data: CheckmarkIntentData? = null
-            if (intent.action !== ACTION_UPDATE_WIDGETS_VALUE) {
+            if (intent.action != ACTION_UPDATE_WIDGETS_VALUE) {
                 data = parser.parseCheckmarkIntent(intent)
             }
             when (intent.action) {

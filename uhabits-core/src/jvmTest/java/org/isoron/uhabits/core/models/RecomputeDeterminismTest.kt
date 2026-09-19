@@ -45,7 +45,13 @@ class RecomputeDeterminismTest {
             if (scenario.isNumerical) {
                 val originalEntries = reference.original.getKnown()
                 for (entry in originalEntries) {
-                    assertEquals(entry, reference.computed.get(entry.timestamp), scenario.toString())
+                    val computed = reference.computed.get(entry.timestamp)
+                    if (entry.value == Entry.UNKNOWN && computed.value == Entry.NUMERICAL_AUTO) {
+                        // A notes-only entry keeps the automatic rest day and carries its note.
+                        assertEquals(entry.notes, computed.notes, scenario.toString())
+                    } else {
+                        assertEquals(entry, computed, scenario.toString())
+                    }
                 }
                 val originalDates = originalEntries.map { it.timestamp }.toSet()
                 assertTrue(

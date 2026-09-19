@@ -8,7 +8,7 @@ import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.utils.DateUtils
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class HabitListEmptyStateTest : BaseUnitTest() {
     @Test
@@ -27,7 +27,7 @@ class HabitListEmptyStateTest : BaseUnitTest() {
     }
 
     @Test
-    fun distinguishesEnteredFromCompletedWithoutChangingLimitSemantics() {
+    fun treatsWithinLimitMeasurementsAsCompleted() {
         val habit = modelFactory.buildHabit().apply {
             type = HabitType.NUMERICAL
             targetType = NumericalHabitType.AT_MOST
@@ -35,9 +35,9 @@ class HabitListEmptyStateTest : BaseUnitTest() {
             originalEntries.add(Entry(DateUtils.getTodayWithOffset(), 2000))
             recompute()
         }
-        assertFalse(habit.isCompletedToday())
+        assertTrue(habit.isCompletedToday())
         assertEquals(HabitListEmptyState.ENTERED, HabitListEmptyState.classify(listOf(habit), HabitMatcher(isEnteredAllowed = false)))
-        assertEquals(HabitListEmptyState.NONE, HabitListEmptyState.classify(listOf(habit), HabitMatcher(isCompletedAllowed = false)))
+        assertEquals(HabitListEmptyState.COMPLETED, HabitListEmptyState.classify(listOf(habit), HabitMatcher(isCompletedAllowed = false)))
         habit.type = HabitType.YES_NO
         habit.originalEntries.add(Entry(DateUtils.getTodayWithOffset(), Entry.YES_MANUAL))
         habit.recompute()

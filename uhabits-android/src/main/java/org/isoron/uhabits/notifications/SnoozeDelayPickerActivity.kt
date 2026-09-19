@@ -43,6 +43,8 @@ class SnoozeDelayPickerActivity : HabitsActivity() {
     private var dialog: AlertDialog? = null
     private var androidColor: Int = 0
 
+    override val showsStartupPanel: Boolean get() = false
+
     override fun onBeforeCreate() {
         val app = applicationContext as HabitsApplication
         AndroidThemeSwitcher(this, app.component.preferences).setTheme()
