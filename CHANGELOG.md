@@ -44,6 +44,7 @@
 
 ### Changed
 
+- Streamline numerical check-in dialogs to display only the habit target or limit, removing the redundant value-label row.
 - Increase statistics selector targets, adapt chart text and geometry to system font sizing, and improve onboarding, calendar-action and color-preview contrast without changing saved palette colors.
 - Reuse entry buttons across ordinary row binds, expose sort direction to accessibility services, and distinguish within-limit measurements and filtered/archived empty states from completed goals.
 - Preserve original activity and fragment state until history is ready, and defer widget/reminder actions rather than reading partially initialized data.

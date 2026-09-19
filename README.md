@@ -26,6 +26,10 @@
 
 ## 🌟 What's New in v2.6
 
+* **🎯 Clean Check-in & Target-Focused Dialogs**: Streamlined entry dialogs for measurable habits by removing the redundant "Value" row to cleanly highlight only the specific target or limit alongside notes and quick entry actions.
+* **🎨 52-Slot Harmonic Palette & High-Contrast Harmonization (DB v30)**: Automatic color remapping onto the expanded 52-slot harmonic color wheel by hue family and tone. Single readable, high-contrast color harmonization across habit names, score rings, and action buttons in Light, Dark, and Pure Black AMOLED themes.
+* **✅ Accurate At-Most Habit Completion & Scoring**: Habits with "at most" limits now correctly register as completed whenever measurements stay within limit, consistently matching list checkmarks, history calendar indicators, streaks, widgets, and score calculations.
+* **⚡ Startup Robustness & Boundary Safety**: Stored frequencies outside the valid range are coerced safely to prevent startup crashes. Chart flings are strictly bounded at the oldest data, and start-of-day widget auto-refresh is restored.
 * **🚀 Startup Readiness & Background Coordinator**: Offloads database and habit history initialization off the UI thread behind lifecycle-safe readiness gates, eliminating app launch lags and ANRs while showing responsive loading states.
 * **♿ Comprehensive Accessibility & Keyboard Navigation**: Full screen reader (TalkBack) support across all statistics charts (Frequency, Score, History, Streaks, Target), keyboard date navigation and habit movement, descriptive widget labels, and accessible entry actions.
 * **🛡️ Habit Editor Refinements & Draft Protection**: Unsaved changes are protected with dirty-state confirmation before discarding. Complete editor draft state (types, frequencies, targets, colors, tags) survives device rotation, interruptions, and dialog recreations.

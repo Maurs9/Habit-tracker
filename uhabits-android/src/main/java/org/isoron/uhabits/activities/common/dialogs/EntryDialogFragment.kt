@@ -41,16 +41,12 @@ abstract class EntryDialogFragment : AppCompatDialogFragment() {
             val target = formatEditableNumber(habit.targetValue, resources.configuration.locales[0])
             val measurement = if (habit.unit.isBlank()) target else getString(R.string.habit_entry_value, target, habit.unit)
             view.entryDetails.text = getString(
-                R.string.entry_number_context,
-                valueLabel,
-                getString(
-                    if (habit.targetType == NumericalHabitType.AT_MOST) {
-                        R.string.entry_target_at_most
-                    } else {
-                        R.string.entry_target_at_least
-                    },
-                    measurement
-                )
+                if (habit.targetType == NumericalHabitType.AT_MOST) {
+                    R.string.entry_target_at_most
+                } else {
+                    R.string.entry_target_at_least
+                },
+                measurement
             )
             view.entryDetails.visibility = View.VISIBLE
             view.entryDetails.labelFor = R.id.value
