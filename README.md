@@ -33,7 +33,6 @@
 | **Measurable Habits** | Daily targets only; fractional frequencies unsupported | **Full frequency parity** (e.g., 3x/week, 5x/month) with automatic rest-day checkmarks (`YES_AUTO`) |
 | **Color System** | Basic 19-color flat picker | **4-Ring Donut Wheel (52 slots)** across Deep, Vibrant, Soft, and Pastel tones; calibrated for Light, Dark & AMOLED |
 | **Reminders** | 1 notification per habit | **Multiple daily reminders** per habit across selected weekdays with snooze picker actions |
-| **Check-in Popups** | Displays redundant *"Value"* row | **Target-focused dialogs** showing only the habit target or limit, numeric input, and notes |
 | **Startup & Speed** | Synchronous UI-thread database loading (risk of launch freezes / ANRs) | **Background Startup Coordinator** offloading migrations and history computation behind lifecycle-safe gates |
 | **Accessibility** | Canvas charts unannounced to screen readers | **Full TalkBack exploration** across all 5 charts, keyboard navigation, and descriptive action labels |
 | **Data Safety & Math** | Skips collided with `0.003` measurements; "at most" completion inconsistencies | **Schema 29 & 30 migrations**, atomic entry updates, wide-precision math, and accurate "at most" scoring |
